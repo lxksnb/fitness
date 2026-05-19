@@ -13,6 +13,10 @@ services:
       - mysql-data:/var/lib/mysql
       - ./fitness-server/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -21,7 +25,37 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: ./fitness-server
+    container_name: fitness-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    volumes:
+      - uploads-data:/app/uploads
+
+  web:
+    build: ./fitness-web
+    container_name: fitness-web
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    volumes:
+      - uploads-data:/app/uploads
 
 volumes:
   mysql-data:
   redis-data:
+  uploads-data:
