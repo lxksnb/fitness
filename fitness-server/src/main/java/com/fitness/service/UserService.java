@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 用户服务
+ * 处理用户个人资料的查询和更新
+ */
 @Service
 public class UserService {
 
@@ -23,11 +27,18 @@ public class UserService {
         this.profileMapper = profileMapper;
     }
 
+    /**
+     * 获取当前登录用户的个人资料
+     * 合并 SysUser 和 UserProfile 表的数据返回完整信息
+     *
+     * @return 包含用户基本信息和健身资料的 Map
+     */
     public Map<String, Object> getProfile() {
         Long userId = SecurityUtils.getCurrentUserId();
         SysUser user = userMapper.selectById(userId);
         UserProfile profile = profileMapper.selectByUserId(userId);
         Map<String, Object> result = new HashMap<>();
+        // 合并用户基本信息和资料
         result.put("id", user.getId());
         result.put("username", user.getUsername());
         result.put("nickname", user.getNickname());
@@ -46,16 +57,22 @@ public class UserService {
         return result;
     }
 
+    /**
+     * 更新当前用户的个人资料
+     * 同时更新 SysUser 和 UserProfile 两张表的数据
+     *
+     * @param dto 用户资料 DTO
+     */
     @Transactional
     public void updateProfile(UserProfileDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
-        // Update sys_user
+        // 更新系统用户表
         SysUser user = new SysUser();
         user.setId(userId);
         user.setNickname(dto.getNickname());
         user.setEmail(dto.getEmail());
         userMapper.updateById(user);
-        // Update or insert user_profile
+        // 更新或插入用户资料表
         UserProfile profile = profileMapper.selectByUserId(userId);
         if (profile == null) {
             profile = new UserProfile();
@@ -68,6 +85,9 @@ public class UserService {
         }
     }
 
+    /**
+     * 填充 UserProfile 对象的字段值
+     */
     private void fillProfile(UserProfile profile, UserProfileDTO dto) {
         profile.setGender(dto.getGender());
         profile.setBirthday(dto.getBirthday());

@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 食物服务
+ * 处理食物库的增删改查，包括食物基本信息和营养成分管理
+ */
 @Service
 public class FoodService {
 
@@ -27,6 +31,11 @@ public class FoodService {
         this.nutritionMapper = nutritionMapper;
     }
 
+    /**
+     * 按关键字搜索食物
+     * @param keyword 食物名称关键字
+     * @return 食物 VO 列表，包含营养成分信息
+     */
     public List<FoodVO> search(String keyword) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -36,6 +45,11 @@ public class FoodService {
         return toVOList(foods);
     }
 
+    /**
+     * 创建食物及其营养成分
+     * @param dto 食物创建 DTO
+     * @return 创建后的食物 VO
+     */
     @Transactional
     public FoodVO create(FoodCreateDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -47,6 +61,7 @@ public class FoodService {
         food.setStatus("ACTIVE");
         foodMapper.insert(food);
 
+        // 批量插入营养成分记录
         if (dto.getNutritions() != null) {
             for (FoodCreateDTO.NutritionItem item : dto.getNutritions()) {
                 FoodNutrition n = buildNutrition(food.getId(), item);
@@ -56,6 +71,14 @@ public class FoodService {
         return getById(food.getId());
     }
 
+    /**
+     * 更新食物信息和营养成分
+     * 采用先删后增的策略更新营养成分
+     *
+     * @param id 食物 ID
+     * @param dto 食物创建 DTO
+     * @return 更新后的食物 VO
+     */
     @Transactional
     public FoodVO update(Long id, FoodCreateDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -65,6 +88,7 @@ public class FoodService {
         food.setFoodName(dto.getFoodName());
         food.setImageUrl(dto.getImageUrl());
         foodMapper.updateById(food);
+        // 先删除旧营养成分，再重新插入
         nutritionMapper.deleteByFoodId(id);
         if (dto.getNutritions() != null) {
             for (FoodCreateDTO.NutritionItem item : dto.getNutritions()) {
@@ -75,6 +99,10 @@ public class FoodService {
         return getById(id);
     }
 
+    /**
+     * 删除食物（软删除）
+     * @param id 食物 ID
+     */
     @Transactional
     public void delete(Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -85,6 +113,11 @@ public class FoodService {
         foodMapper.updateById(food);
     }
 
+    /**
+     * 根据 ID 获取食物详情（含营养成分）
+     * @param id 食物 ID
+     * @return 食物 VO，包含营养成分列表
+     */
     public FoodVO getById(Long id) {
         FoodLibrary food = foodMapper.selectById(id);
         if (food == null) return null;
@@ -92,6 +125,10 @@ public class FoodService {
         return toVO(food, nutritions);
     }
 
+    /**
+     * 构建 FoodNutrition 实体并计算卡路里
+     * 热量公式：碳水*4 + 蛋白质*4 + 脂肪*9
+     */
     private FoodNutrition buildNutrition(Long foodId, FoodCreateDTO.NutritionItem item) {
         FoodNutrition n = new FoodNutrition();
         n.setFoodId(foodId);
@@ -100,6 +137,7 @@ public class FoodService {
         n.setCarbGrams(item.getCarbGrams());
         n.setProteinGrams(item.getProteinGrams());
         n.setFatGrams(item.getFatGrams());
+        // 根据宏量营养素计算卡路里
         double carb = item.getCarbGrams() != null ? item.getCarbGrams() : 0;
         double protein = item.getProteinGrams() != null ? item.getProteinGrams() : 0;
         double fat = item.getFatGrams() != null ? item.getFatGrams() : 0;
@@ -108,6 +146,7 @@ public class FoodService {
         return n;
     }
 
+    /** 批量转换 FoodLibrary 列表为 FoodVO 列表 */
     private List<FoodVO> toVOList(List<FoodLibrary> foods) {
         List<FoodVO> result = new ArrayList<>();
         for (FoodLibrary f : foods) {
@@ -117,6 +156,7 @@ public class FoodService {
         return result;
     }
 
+    /** 将 FoodLibrary 和营养成分列表转换为 FoodVO */
     private FoodVO toVO(FoodLibrary food, List<FoodNutrition> nutritions) {
         FoodVO vo = new FoodVO();
         vo.setId(food.getId());

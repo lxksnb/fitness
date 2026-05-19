@@ -13,6 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 健身计划服务
+ * 处理健身计划的创建、编辑、删除、激活以及详情查看
+ */
 @Service
 public class PlanService {
 
@@ -32,10 +36,19 @@ public class PlanService {
         this.mealFoodMapper = mealFoodMapper;
     }
 
+    /**
+     * 获取当前用户的所有计划列表
+     * @return 计划实体列表
+     */
     public List<FitnessPlan> list() {
         return planMapper.selectByUserId(SecurityUtils.getCurrentUserId());
     }
 
+    /**
+     * 获取计划详情（含训练日和餐食配置）
+     * @param id 计划 ID
+     * @return 计划 VO（包含完整的训练日和餐食配置树）
+     */
     public PlanVO getById(Long id) {
         FitnessPlan plan = planMapper.selectById(id);
         if (plan == null || !plan.getUserId().equals(SecurityUtils.getCurrentUserId())) {
@@ -44,10 +57,15 @@ public class PlanService {
         return buildVO(plan);
     }
 
+    /**
+     * 创建完整计划（含训练日、动作、餐食配置、食物）
+     * @param dto 计划创建 DTO
+     * @return 创建后的计划 VO
+     */
     @Transactional
     public PlanVO create(PlanCreateDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
-        // Create plan
+        // 创建计划主记录
         FitnessPlan plan = new FitnessPlan();
         plan.setUserId(userId);
         plan.setPlanName(dto.getPlanName());
@@ -56,7 +74,7 @@ public class PlanService {
         plan.setIsActive(0);
         planMapper.insert(plan);
 
-        // Create training days with actions
+        // 创建训练日及其动作
         if (dto.getTrainingDays() != null) {
             int order = 1;
             for (PlanCreateDTO.TrainingDayItem dayItem : dto.getTrainingDays()) {
@@ -70,6 +88,7 @@ public class PlanService {
                 day.setFatMultiplier(dayItem.getFatMultiplier() != null ? dayItem.getFatMultiplier() : 0);
                 dayMapper.insert(day);
 
+                // 插入训练日关联的动作
                 if (dayItem.getActions() != null) {
                     int aOrder = 0;
                     for (PlanCreateDTO.ActionItem a : dayItem.getActions()) {
@@ -87,7 +106,7 @@ public class PlanService {
             }
         }
 
-        // Create meal configs with foods
+        // 创建餐食配置及食物
         if (dto.getMealConfigs() != null) {
             for (PlanCreateDTO.MealConfigItem mcItem : dto.getMealConfigs()) {
                 PlanMealConfig mc = new PlanMealConfig();
@@ -100,6 +119,7 @@ public class PlanService {
                 mc.setSortOrder(mcItem.getSortOrder() != null ? mcItem.getSortOrder() : 0);
                 mealConfigMapper.insert(mc);
 
+                // 插入餐食关联的食物
                 if (mcItem.getFoods() != null) {
                     int fOrder = 0;
                     for (PlanCreateDTO.MealFoodItem f : mcItem.getFoods()) {
@@ -118,6 +138,12 @@ public class PlanService {
         return getById(plan.getId());
     }
 
+    /**
+     * 更新计划（删除旧子记录后重建）
+     * @param id 计划 ID
+     * @param dto 计划创建 DTO
+     * @return 更新后的计划 VO
+     */
     @Transactional
     public PlanVO update(Long id, PlanCreateDTO dto) {
         FitnessPlan plan = planMapper.selectById(id);
@@ -129,16 +155,19 @@ public class PlanService {
         plan.setSplitType(dto.getSplitType());
         planMapper.updateById(plan);
 
-        // Delete old children and recreate
+        // 删除旧子记录并重建（数据库级联删除动作和食物）
         dayMapper.deleteByPlanId(id);
         mealConfigMapper.deleteByPlanId(id);
-        // Cascading deletes in DB for actions and foods (ON DELETE CASCADE)
 
         recreateChildren(id, dto);
 
         return getById(id);
     }
 
+    /**
+     * 删除计划
+     * @param id 计划 ID
+     */
     @Transactional
     public void delete(Long id) {
         FitnessPlan plan = planMapper.selectById(id);
@@ -148,6 +177,10 @@ public class PlanService {
         planMapper.deleteById(id);
     }
 
+    /**
+     * 激活计划（先将用户所有计划设为未激活，再激活指定计划）
+     * @param id 计划 ID
+     */
     @Transactional
     public void activate(Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -155,11 +188,15 @@ public class PlanService {
         if (plan == null || !plan.getUserId().equals(userId)) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
+        // 先将该用户所有计划设为未激活
         planMapper.deactivateByUser(userId);
         plan.setIsActive(1);
         planMapper.updateById(plan);
     }
 
+    /**
+     * 重建计划的子记录（训练日和餐食配置）
+     */
     private void recreateChildren(Long planId, PlanCreateDTO dto) {
         if (dto.getTrainingDays() != null) {
             int order = 1;
@@ -216,6 +253,10 @@ public class PlanService {
         }
     }
 
+    /**
+     * 构建 PlanVO 完整对象树
+     * 从数据库加载计划的训练日、动作、餐食配置和食物，组装为 VO 树
+     */
     private PlanVO buildVO(FitnessPlan plan) {
         PlanVO vo = new PlanVO();
         vo.setId(plan.getId());
@@ -225,6 +266,7 @@ public class PlanService {
         vo.setIsActive(plan.getIsActive());
         vo.setCreatedAt(plan.getCreatedAt());
 
+        // 组装训练日及动作
         List<PlanTrainingDay> days = dayMapper.selectByPlanId(plan.getId());
         List<PlanVO.TrainingDayVO> dayVOs = new ArrayList<>();
         for (PlanTrainingDay day : days) {
@@ -255,6 +297,7 @@ public class PlanService {
         }
         vo.setTrainingDays(dayVOs);
 
+        // 组装餐食配置及食物
         List<PlanMealConfig> mealConfigs = mealConfigMapper.selectByPlanId(plan.getId());
         List<PlanVO.MealConfigVO> mcVOs = new ArrayList<>();
         for (PlanMealConfig mc : mealConfigs) {
