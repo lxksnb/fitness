@@ -38,4 +38,8 @@
     <delete id="deleteById">
         DELETE FROM food_library WHERE id = #{id}
     </delete>
+    <!-- 查询所有系统级别的食物 -->
+    <select id="selectSystemFoods" resultMap="BaseResultMap">
+        SELECT * FROM food_library WHERE scope = 'SYSTEM' AND status = 'ACTIVE' ORDER BY created_at DESC
+    </select>
 </mapper>

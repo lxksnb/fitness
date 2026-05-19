@@ -12,4 +12,6 @@ public interface ActionLibraryMapper {
     int insert(ActionLibrary action);
     int updateById(ActionLibrary action);
     int deleteById(Long id);
+    /** 查询所有系统级别的动作(SCOPE=SYSTEM, STATUS=ACTIVE) */
+    List<ActionLibrary> selectSystemActions();
 }

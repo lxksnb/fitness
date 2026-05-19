@@ -31,4 +31,12 @@
     <select id="countByUsername" resultType="int">
         SELECT COUNT(*) FROM sys_user WHERE username = #{username}
     </select>
+    <!-- 查询所有用户列表 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM sys_user ORDER BY created_at DESC
+    </select>
+    <!-- 更新用户状态(启用/禁用) -->
+    <update id="updateStatus">
+        UPDATE sys_user SET status = #{status} WHERE id = #{id}
+    </update>
 </mapper>
