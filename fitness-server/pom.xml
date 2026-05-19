@@ -14,7 +14,7 @@
     <name>fitness-server</name>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>1.8</java.version>
         <mybatis-spring-boot.version>2.3.1</mybatis-spring-boot.version>
         <jjwt.version>0.11.5</jjwt.version>
     </properties>
