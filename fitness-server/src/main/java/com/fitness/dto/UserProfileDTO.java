@@ -2,18 +2,30 @@ package com.fitness.dto;
 
 import java.util.Date;
 
+/**
+ * 用户资料 DTO
+ * 用于更新用户个人资料时的数据传输
+ */
 public class UserProfileDTO {
+    /** 性别 */
     private String gender;
+    /** 出生日期 */
     private Date birthday;
+    /** 身高（厘米） */
     private Double heightCm;
+    /** 目标类型 */
     private String targetType;
+    /** 目标体重（千克） */
     private Double targetWeightKg;
+    /** 目标达成日期 */
     private Date targetDate;
+    /** 每周预期变化率 */
     private Double weeklyChangeRate;
+    /** 昵称 */
     private String nickname;
+    /** 邮箱 */
     private String email;
 
-    // getters and setters for all fields
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
     public Date getBirthday() { return birthday; }

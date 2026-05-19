@@ -2,11 +2,20 @@ package com.fitness.dto;
 
 import java.util.List;
 
+/**
+ * 计划创建 DTO
+ * 用于一次性创建完整的健身计划，包含训练日、动作、餐食配置和食物列表
+ */
 public class PlanCreateDTO {
+    /** 计划名称 */
     private String planName;
+    /** 计划类型（TRAINING / DIET / HYBRID） */
     private String planType;
+    /** 训练分化类型 */
     private String splitType;
+    /** 训练日列表 */
     private List<TrainingDayItem> trainingDays;
+    /** 餐食配置列表 */
     private List<MealConfigItem> mealConfigs;
 
     public String getPlanName() { return planName; }
@@ -20,13 +29,23 @@ public class PlanCreateDTO {
     public List<MealConfigItem> getMealConfigs() { return mealConfigs; }
     public void setMealConfigs(List<MealConfigItem> l) { this.mealConfigs = l; }
 
+    /**
+     * 训练日内嵌项
+     */
     public static class TrainingDayItem {
+        /** 训练日序号 */
         private Integer dayOrder;
+        /** 训练日类型（TRAINING / REST） */
         private String dayType;
+        /** 训练类型 */
         private String trainingType;
+        /** 碳水倍率 */
         private Double carbMultiplier;
+        /** 蛋白质倍率 */
         private Double proteinMultiplier;
+        /** 脂肪倍率 */
         private Double fatMultiplier;
+        /** 动作列表 */
         private List<ActionItem> actions;
 
         public Integer getDayOrder() { return dayOrder; }
@@ -45,12 +64,21 @@ public class PlanCreateDTO {
         public void setActions(List<ActionItem> l) { this.actions = l; }
     }
 
+    /**
+     * 训练动作内嵌项
+     */
     public static class ActionItem {
+        /** 动作库 ID */
         private Long actionId;
+        /** 动作名称 */
         private String actionName;
+        /** 最少组数 */
         private Integer minSets;
+        /** 最多组数 */
         private Integer maxSets;
+        /** 组间休息（分钟） */
         private Integer restMinutes;
+        /** 排序序号 */
         private Integer sortOrder;
 
         public Long getActionId() { return actionId; }
@@ -67,13 +95,23 @@ public class PlanCreateDTO {
         public void setSortOrder(Integer i) { this.sortOrder = i; }
     }
 
+    /**
+     * 餐食配置内嵌项
+     */
     public static class MealConfigItem {
+        /** 训练日类型 */
         private String dayType;
+        /** 餐次类型 */
         private String mealType;
+        /** 碳水比例 */
         private Double carbRatio;
+        /** 蛋白质比例 */
         private Double proteinRatio;
+        /** 脂肪比例 */
         private Double fatRatio;
+        /** 排序序号 */
         private Integer sortOrder;
+        /** 食物列表 */
         private List<MealFoodItem> foods;
 
         public String getDayType() { return dayType; }
@@ -92,10 +130,17 @@ public class PlanCreateDTO {
         public void setFoods(List<MealFoodItem> l) { this.foods = l; }
     }
 
+    /**
+     * 餐食食物内嵌项
+     */
     public static class MealFoodItem {
+        /** 食物库 ID */
         private Long foodId;
+        /** 食物名称 */
         private String foodName;
+        /** 建议摄入量（克） */
         private Integer suggestedAmountG;
+        /** 排序序号 */
         private Integer sortOrder;
 
         public Long getFoodId() { return foodId; }

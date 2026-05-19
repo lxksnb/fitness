@@ -2,9 +2,16 @@ package com.fitness.dto;
 
 import java.util.Date;
 
+/**
+ * 体重趋势 VO
+ * 用于前端展示体重变化趋势图表的数据点
+ */
 public class WeightTrendVO {
+    /** 记录日期 */
     private Date date;
+    /** 体重（千克） */
     private Double weight;
+    /** BMI 指数 */
     private Double bmi;
 
     public WeightTrendVO() {}

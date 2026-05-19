@@ -2,9 +2,16 @@ package com.fitness.dto;
 
 import java.util.Date;
 
+/**
+ * 体重记录 DTO
+ * 用于创建或更新体重记录
+ */
 public class WeightRecordDTO {
+    /** 记录日期 */
     private Date recordDate;
+    /** 体重（千克） */
     private Double weightKg;
+    /** 备注 */
     private String note;
 
     public Date getRecordDate() { return recordDate; }

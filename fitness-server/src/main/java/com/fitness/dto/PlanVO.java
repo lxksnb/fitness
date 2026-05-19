@@ -3,14 +3,26 @@ package com.fitness.dto;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 计划视图 VO
+ * 用于前端展示健身计划的完整信息，包含训练日、动作、餐食配置等
+ */
 public class PlanVO {
+    /** 计划 ID */
     private Long id;
+    /** 计划名称 */
     private String planName;
+    /** 计划类型 */
     private String planType;
+    /** 训练分化类型 */
     private String splitType;
+    /** 是否启用 */
     private Integer isActive;
+    /** 创建时间 */
     private Date createdAt;
+    /** 训练日列表 */
     private List<TrainingDayVO> trainingDays;
+    /** 餐食配置列表 */
     private List<MealConfigVO> mealConfigs;
 
     public Long getId() { return id; }
@@ -30,14 +42,25 @@ public class PlanVO {
     public List<MealConfigVO> getMealConfigs() { return mealConfigs; }
     public void setMealConfigs(List<MealConfigVO> l) { this.mealConfigs = l; }
 
+    /**
+     * 训练日视图内部类
+     */
     public static class TrainingDayVO {
+        /** ID */
         private Long id;
+        /** 训练日序号 */
         private Integer dayOrder;
+        /** 训练日类型 */
         private String dayType;
+        /** 训练类型 */
         private String trainingType;
+        /** 碳水倍率 */
         private Double carbMultiplier;
+        /** 蛋白质倍率 */
         private Double proteinMultiplier;
+        /** 脂肪倍率 */
         private Double fatMultiplier;
+        /** 动作列表 */
         private List<ActionVO> actions;
 
         public Long getId() { return id; }
@@ -58,13 +81,23 @@ public class PlanVO {
         public void setActions(List<ActionVO> l) { this.actions = l; }
     }
 
+    /**
+     * 动作视图内部类
+     */
     public static class ActionVO {
+        /** ID */
         private Long id;
+        /** 动作库 ID */
         private Long actionId;
+        /** 动作名称 */
         private String actionName;
+        /** 最少组数 */
         private Integer minSets;
+        /** 最多组数 */
         private Integer maxSets;
+        /** 组间休息（分钟） */
         private Integer restMinutes;
+        /** 排序序号 */
         private Integer sortOrder;
 
         public Long getId() { return id; }
@@ -83,14 +116,25 @@ public class PlanVO {
         public void setSortOrder(Integer i) { this.sortOrder = i; }
     }
 
+    /**
+     * 餐食配置视图内部类
+     */
     public static class MealConfigVO {
+        /** ID */
         private Long id;
+        /** 训练日类型 */
         private String dayType;
+        /** 餐次类型 */
         private String mealType;
+        /** 碳水比例 */
         private Double carbRatio;
+        /** 蛋白质比例 */
         private Double proteinRatio;
+        /** 脂肪比例 */
         private Double fatRatio;
+        /** 排序序号 */
         private Integer sortOrder;
+        /** 食物列表 */
         private List<MealFoodVO> foods;
 
         public Long getId() { return id; }
@@ -111,11 +155,19 @@ public class PlanVO {
         public void setFoods(List<MealFoodVO> l) { this.foods = l; }
     }
 
+    /**
+     * 膳食食物视图内部类
+     */
     public static class MealFoodVO {
+        /** ID */
         private Long id;
+        /** 食物库 ID */
         private Long foodId;
+        /** 食物名称 */
         private String foodName;
+        /** 建议摄入量（克） */
         private Integer suggestedAmountG;
+        /** 排序序号 */
         private Integer sortOrder;
 
         public Long getId() { return id; }

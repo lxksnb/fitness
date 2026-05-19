@@ -2,9 +2,16 @@ package com.fitness.dto;
 
 import java.util.List;
 
+/**
+ * 食物创建 DTO
+ * 用于创建食物及其营养成分信息
+ */
 public class FoodCreateDTO {
+    /** 食物名称 */
     private String foodName;
+    /** 图片 URL */
     private String imageUrl;
+    /** 营养成分列表 */
     private List<NutritionItem> nutritions;
 
     public String getFoodName() { return foodName; }
@@ -14,12 +21,22 @@ public class FoodCreateDTO {
     public List<NutritionItem> getNutritions() { return nutritions; }
     public void setNutritions(List<NutritionItem> l) { this.nutritions = l; }
 
+    /**
+     * 营养成分内部类
+     * 描述食物的单个营养成分条目（每份/每100克的营养素含量）
+     */
     public static class NutritionItem {
+        /** 单位类型（PER_100G / PER_SERVING） */
         private String unitType;
+        /** 每份重量（克） */
         private Double servingWeightG;
+        /** 碳水含量（克） */
         private Double carbGrams;
+        /** 蛋白质含量（克） */
         private Double proteinGrams;
+        /** 脂肪含量（克） */
         private Double fatGrams;
+        /** 图片 URL */
         private String imageUrl;
 
         public String getUnitType() { return unitType; }

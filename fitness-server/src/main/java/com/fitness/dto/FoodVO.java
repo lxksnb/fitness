@@ -3,13 +3,24 @@ package com.fitness.dto;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 食物视图 VO
+ * 用于前端展示食物的完整信息及营养成分
+ */
 public class FoodVO {
+    /** 食物 ID */
     private Long id;
+    /** 作用域（SYSTEM / USER） */
     private String scope;
+    /** 食物名称 */
     private String foodName;
+    /** 图片 URL */
     private String imageUrl;
+    /** 状态 */
     private String status;
+    /** 创建时间 */
     private Date createdAt;
+    /** 营养成分列表 */
     private List<NutritionVO> nutritions;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
@@ -20,14 +31,25 @@ public class FoodVO {
     public Date getCreatedAt() { return createdAt; } public void setCreatedAt(Date d) { this.createdAt = d; }
     public List<NutritionVO> getNutritions() { return nutritions; } public void setNutritions(List<NutritionVO> l) { this.nutritions = l; }
 
+    /**
+     * 营养成分视图内部类
+     */
     public static class NutritionVO {
+        /** 营养成分 ID */
         private Long id;
+        /** 单位类型 */
         private String unitType;
+        /** 每份重量（克） */
         private Double servingWeightG;
+        /** 碳水含量（克） */
         private Double carbGrams;
+        /** 蛋白质含量（克） */
         private Double proteinGrams;
+        /** 脂肪含量（克） */
         private Double fatGrams;
+        /** 卡路里 */
         private Double calories;
+        /** 图片 URL */
         private String imageUrl;
 
         public Long getId() { return id; } public void setId(Long id) { this.id = id; }
