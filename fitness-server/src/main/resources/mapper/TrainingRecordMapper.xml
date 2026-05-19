@@ -16,6 +16,9 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM training_record WHERE id = #{id}
+    </select>
     <select id="selectByUserAndDate" resultMap="BaseResultMap">
         SELECT * FROM training_record WHERE user_id = #{userId} AND record_date = #{recordDate}
     </select>
@@ -24,8 +27,8 @@
         WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}
         ORDER BY record_date DESC
     </select>
-    <select id="selectCalendarData" resultType="java.util.HashMap">
-        SELECT record_date AS recordDate, training_type AS trainingType
+    <select id="selectCalendarData" resultMap="BaseResultMap">
+        SELECT record_date, training_type
         FROM training_record
         WHERE user_id = #{userId} AND YEAR(record_date) = #{year} AND MONTH(record_date) = #{month}
     </select>
