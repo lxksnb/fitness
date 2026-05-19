@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -d \"D:/Java Project/fitness/fitness-server/src/main/java/com/fitness/$d\" ])",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(mvn clean *)",
+      "Bash(npm run *)",
+      "Bash(git commit *)",
+      "Skill(frontend-design:frontend-design)",
+      "Bash(git filter-branch -f --msg-filter ' *)",
+      "Bash(git stash *)",
+      "Bash(xargs -r git update-ref -d)",
+      "Bash(git reflog *)",
+      "Bash(git gc *)"
+    ]
+  }
+}

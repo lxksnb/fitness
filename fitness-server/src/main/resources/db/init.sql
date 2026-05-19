@@ -419,6 +419,11 @@ INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
 INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
 (8, '新手', 'BEGINNER', 1), (8, '中级', 'INTERMEDIATE', 2), (8, '高级', 'ADVANCED', 3);
 
+-- 确保root可从任意主机连接(宿主机开发连接Docker MySQL)
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
 -- 创建管理员账户 (密码: admin123, BCrypt加密)
 INSERT INTO sys_user (username, password, nickname, role, status) VALUES
 ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', 'ADMIN', 'ACTIVE');
