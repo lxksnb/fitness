@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTemplateDayMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTemplateDay">
+        <id column="id" property="id"/>
+        <result column="template_id" property="templateId"/>
+        <result column="day_order" property="dayOrder"/>
+        <result column="day_type" property="dayType"/>
+        <result column="training_type" property="trainingType"/>
+        <result column="carb_multiplier" property="carbMultiplier"/>
+        <result column="protein_multiplier" property="proteinMultiplier"/>
+        <result column="fat_multiplier" property="fatMultiplier"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByTemplateId" resultMap="BaseResultMap">
+        SELECT * FROM plan_template_day WHERE template_id = #{templateId} ORDER BY day_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_day (template_id, day_order, day_type, training_type, carb_multiplier, protein_multiplier, fat_multiplier)
+        VALUES (#{templateId}, #{dayOrder}, #{dayType}, #{trainingType}, #{carbMultiplier}, #{proteinMultiplier}, #{fatMultiplier})
+    </insert>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_day (template_id, day_order, day_type, training_type, carb_multiplier, protein_multiplier, fat_multiplier)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.templateId}, #{item.dayOrder}, #{item.dayType}, #{item.trainingType}, #{item.carbMultiplier}, #{item.proteinMultiplier}, #{item.fatMultiplier})
+        </foreach>
+    </insert>
+    <delete id="deleteByTemplateId">
+        DELETE FROM plan_template_day WHERE template_id = #{templateId}
+    </delete>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.FoodLibraryMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.FoodLibrary">
+        <id column="id" property="id"/>
+        <result column="scope" property="scope"/>
+        <result column="user_id" property="userId"/>
+        <result column="food_name" property="foodName"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="status" property="status"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="searchByName" resultMap="BaseResultMap">
+        SELECT * FROM food_library WHERE food_name LIKE CONCAT('%', #{keyword}, '%') AND status = 'ACTIVE'
+    </select>
+    <select id="selectByScopeAndUser" resultMap="BaseResultMap">
+        SELECT * FROM food_library
+        WHERE status = 'ACTIVE'
+        AND (scope = 'SYSTEM' OR (scope = #{scope} AND user_id = #{userId}))
+    </select>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM food_library WHERE id = #{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO food_library (scope, user_id, food_name, image_url, status, created_by)
+        VALUES (#{scope}, #{userId}, #{foodName}, #{imageUrl}, #{status}, #{createdBy})
+    </insert>
+    <update id="updateById">
+        UPDATE food_library SET food_name = #{foodName}, image_url = #{imageUrl}, status = #{status}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById">
+        DELETE FROM food_library WHERE id = #{id}
+    </delete>
+</mapper>

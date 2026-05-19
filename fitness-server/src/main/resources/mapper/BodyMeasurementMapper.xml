@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.BodyMeasurementMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.BodyMeasurement">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="record_date" property="recordDate"/>
+        <result column="chest_cm" property="chestCm"/>
+        <result column="waist_cm" property="waistCm"/>
+        <result column="left_arm_cm" property="leftArmCm"/>
+        <result column="right_arm_cm" property="rightArmCm"/>
+        <result column="left_thigh_cm" property="leftThighCm"/>
+        <result column="right_thigh_cm" property="rightThighCm"/>
+        <result column="hip_cm" property="hipCm"/>
+        <result column="neck_cm" property="neckCm"/>
+        <result column="note" property="note"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="selectByUserAndDate" resultMap="BaseResultMap">
+        SELECT * FROM body_measurement WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+    <select id="selectByUserAndDateRange" resultMap="BaseResultMap">
+        SELECT * FROM body_measurement
+        WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY record_date
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO body_measurement (user_id, record_date, chest_cm, waist_cm, left_arm_cm, right_arm_cm, left_thigh_cm, right_thigh_cm, hip_cm, neck_cm, note)
+        VALUES (#{userId}, #{recordDate}, #{chestCm}, #{waistCm}, #{leftArmCm}, #{rightArmCm}, #{leftThighCm}, #{rightThighCm}, #{hipCm}, #{neckCm}, #{note})
+    </insert>
+    <update id="updateById">
+        UPDATE body_measurement SET chest_cm = #{chestCm}, waist_cm = #{waistCm},
+        left_arm_cm = #{leftArmCm}, right_arm_cm = #{rightArmCm}, left_thigh_cm = #{leftThighCm},
+        right_thigh_cm = #{rightThighCm}, hip_cm = #{hipCm}, neck_cm = #{neckCm}, note = #{note}
+        WHERE id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.WaterRecordMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.WaterRecord">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="record_date" property="recordDate"/>
+        <result column="amount_ml" property="amountMl"/>
+        <result column="recorded_at" property="recordedAt"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByUserAndDate" resultMap="BaseResultMap">
+        SELECT * FROM water_record WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+    <select id="selectTodayTotal" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(amount_ml), 0) FROM water_record
+        WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO water_record (user_id, record_date, amount_ml)
+        VALUES (#{userId}, #{recordDate}, #{amountMl})
+    </insert>
+    <delete id="deleteById">
+        DELETE FROM water_record WHERE id = #{id}
+    </delete>
+</mapper>

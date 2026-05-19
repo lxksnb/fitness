@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTemplateActionMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTemplateAction">
+        <id column="id" property="id"/>
+        <result column="template_day_id" property="templateDayId"/>
+        <result column="action_id" property="actionId"/>
+        <result column="action_name" property="actionName"/>
+        <result column="min_sets" property="minSets"/>
+        <result column="max_sets" property="maxSets"/>
+        <result column="rest_minutes" property="restMinutes"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByTemplateDayId" resultMap="BaseResultMap">
+        SELECT * FROM plan_template_action WHERE template_day_id = #{templateDayId} ORDER BY sort_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_action (template_day_id, action_id, action_name, min_sets, max_sets, rest_minutes, sort_order)
+        VALUES (#{templateDayId}, #{actionId}, #{actionName}, #{minSets}, #{maxSets}, #{restMinutes}, #{sortOrder})
+    </insert>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_action (template_day_id, action_id, action_name, min_sets, max_sets, rest_minutes, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.templateDayId}, #{item.actionId}, #{item.actionName}, #{item.minSets}, #{item.maxSets}, #{item.restMinutes}, #{item.sortOrder})
+        </foreach>
+    </insert>
+    <delete id="deleteByTemplateDayId">
+        DELETE FROM plan_template_action WHERE template_day_id = #{templateDayId}
+    </delete>
+</mapper>

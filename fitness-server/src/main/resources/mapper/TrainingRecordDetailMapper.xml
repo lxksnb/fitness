@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.TrainingRecordDetailMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.TrainingRecordDetail">
+        <id column="id" property="id"/>
+        <result column="training_record_id" property="trainingRecordId"/>
+        <result column="action_id" property="actionId"/>
+        <result column="action_name" property="actionName"/>
+        <result column="sets" property="sets"/>
+        <result column="weight_kg" property="weightKg"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByTrainingRecordId" resultMap="BaseResultMap">
+        SELECT * FROM training_record_detail WHERE training_record_id = #{trainingRecordId} ORDER BY sort_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO training_record_detail (training_record_id, action_id, action_name, sets, weight_kg, sort_order)
+        VALUES (#{trainingRecordId}, #{actionId}, #{actionName}, #{sets}, #{weightKg}, #{sortOrder})
+    </insert>
+    <update id="updateById">
+        UPDATE training_record_detail SET action_id = #{actionId}, action_name = #{actionName},
+        sets = #{sets}, weight_kg = #{weightKg}, sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteByRecordId">
+        DELETE FROM training_record_detail WHERE training_record_id = #{trainingRecordId}
+    </delete>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO training_record_detail (training_record_id, action_id, action_name, sets, weight_kg, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.trainingRecordId}, #{item.actionId}, #{item.actionName}, #{item.sets}, #{item.weightKg}, #{item.sortOrder})
+        </foreach>
+    </insert>
+</mapper>

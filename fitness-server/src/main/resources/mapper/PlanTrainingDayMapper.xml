@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTrainingDayMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTrainingDay">
+        <id column="id" property="id"/>
+        <result column="plan_id" property="planId"/>
+        <result column="day_order" property="dayOrder"/>
+        <result column="day_type" property="dayType"/>
+        <result column="training_type" property="trainingType"/>
+        <result column="carb_multiplier" property="carbMultiplier"/>
+        <result column="protein_multiplier" property="proteinMultiplier"/>
+        <result column="fat_multiplier" property="fatMultiplier"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByPlanId" resultMap="BaseResultMap">
+        SELECT * FROM plan_training_day WHERE plan_id = #{planId} ORDER BY day_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_training_day (plan_id, day_order, day_type, training_type, carb_multiplier, protein_multiplier, fat_multiplier)
+        VALUES (#{planId}, #{dayOrder}, #{dayType}, #{trainingType}, #{carbMultiplier}, #{proteinMultiplier}, #{fatMultiplier})
+    </insert>
+    <update id="updateById">
+        UPDATE plan_training_day SET day_order = #{dayOrder}, day_type = #{dayType}, training_type = #{trainingType},
+        carb_multiplier = #{carbMultiplier}, protein_multiplier = #{proteinMultiplier}, fat_multiplier = #{fatMultiplier}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteByPlanId">
+        DELETE FROM plan_training_day WHERE plan_id = #{planId}
+    </delete>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_training_day (plan_id, day_order, day_type, training_type, carb_multiplier, protein_multiplier, fat_multiplier)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.planId}, #{item.dayOrder}, #{item.dayType}, #{item.trainingType}, #{item.carbMultiplier}, #{item.proteinMultiplier}, #{item.fatMultiplier})
+        </foreach>
+    </insert>
+</mapper>

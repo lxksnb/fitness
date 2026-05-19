@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTemplateMealConfigMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTemplateMealConfig">
+        <id column="id" property="id"/>
+        <result column="template_id" property="templateId"/>
+        <result column="day_type" property="dayType"/>
+        <result column="meal_type" property="mealType"/>
+        <result column="carb_ratio" property="carbRatio"/>
+        <result column="protein_ratio" property="proteinRatio"/>
+        <result column="fat_ratio" property="fatRatio"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByTemplateId" resultMap="BaseResultMap">
+        SELECT * FROM plan_template_meal_config WHERE template_id = #{templateId} ORDER BY sort_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_meal_config (template_id, day_type, meal_type, carb_ratio, protein_ratio, fat_ratio, sort_order)
+        VALUES (#{templateId}, #{dayType}, #{mealType}, #{carbRatio}, #{proteinRatio}, #{fatRatio}, #{sortOrder})
+    </insert>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template_meal_config (template_id, day_type, meal_type, carb_ratio, protein_ratio, fat_ratio, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.templateId}, #{item.dayType}, #{item.mealType}, #{item.carbRatio}, #{item.proteinRatio}, #{item.fatRatio}, #{item.sortOrder})
+        </foreach>
+    </insert>
+    <delete id="deleteByTemplateId">
+        DELETE FROM plan_template_meal_config WHERE template_id = #{templateId}
+    </delete>
+</mapper>

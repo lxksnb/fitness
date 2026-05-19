@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTemplateMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTemplate">
+        <id column="id" property="id"/>
+        <result column="template_name" property="templateName"/>
+        <result column="description" property="description"/>
+        <result column="plan_type" property="planType"/>
+        <result column="split_type" property="splitType"/>
+        <result column="difficulty" property="difficulty"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM plan_template WHERE status = 'ACTIVE'
+    </select>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM plan_template WHERE id = #{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_template (template_name, description, plan_type, split_type, difficulty, created_by, status)
+        VALUES (#{templateName}, #{description}, #{planType}, #{splitType}, #{difficulty}, #{createdBy}, #{status})
+    </insert>
+    <update id="updateById">
+        UPDATE plan_template SET template_name = #{templateName}, description = #{description},
+        plan_type = #{planType}, split_type = #{splitType}, difficulty = #{difficulty}, status = #{status}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById">
+        DELETE FROM plan_template WHERE id = #{id}
+    </delete>
+</mapper>

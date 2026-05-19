@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.TrainingRecordMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.TrainingRecord">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="record_date" property="recordDate"/>
+        <result column="plan_id" property="planId"/>
+        <result column="training_day_id" property="trainingDayId"/>
+        <result column="training_type" property="trainingType"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="duration_minutes" property="durationMinutes"/>
+        <result column="note" property="note"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="selectByUserAndDate" resultMap="BaseResultMap">
+        SELECT * FROM training_record WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+    <select id="selectByUserAndDateRange" resultMap="BaseResultMap">
+        SELECT * FROM training_record
+        WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY record_date DESC
+    </select>
+    <select id="selectCalendarData" resultType="java.util.HashMap">
+        SELECT record_date AS recordDate, training_type AS trainingType
+        FROM training_record
+        WHERE user_id = #{userId} AND YEAR(record_date) = #{year} AND MONTH(record_date) = #{month}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO training_record (user_id, record_date, plan_id, training_day_id, training_type, start_time, end_time, duration_minutes, note)
+        VALUES (#{userId}, #{recordDate}, #{planId}, #{trainingDayId}, #{trainingType}, #{startTime}, #{endTime}, #{durationMinutes}, #{note})
+    </insert>
+    <update id="updateById">
+        UPDATE training_record SET training_type = #{trainingType}, start_time = #{startTime},
+        end_time = #{endTime}, duration_minutes = #{durationMinutes}, note = #{note}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById">
+        DELETE FROM training_record WHERE id = #{id}
+    </delete>
+</mapper>

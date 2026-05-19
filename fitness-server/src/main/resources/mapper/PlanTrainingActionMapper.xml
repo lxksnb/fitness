@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanTrainingActionMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanTrainingAction">
+        <id column="id" property="id"/>
+        <result column="training_day_id" property="trainingDayId"/>
+        <result column="action_id" property="actionId"/>
+        <result column="action_name" property="actionName"/>
+        <result column="min_sets" property="minSets"/>
+        <result column="max_sets" property="maxSets"/>
+        <result column="rest_minutes" property="restMinutes"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByDayId" resultMap="BaseResultMap">
+        SELECT * FROM plan_training_action WHERE training_day_id = #{trainingDayId} ORDER BY sort_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_training_action (training_day_id, action_id, action_name, min_sets, max_sets, rest_minutes, sort_order)
+        VALUES (#{trainingDayId}, #{actionId}, #{actionName}, #{minSets}, #{maxSets}, #{restMinutes}, #{sortOrder})
+    </insert>
+    <update id="updateById">
+        UPDATE plan_training_action SET action_id = #{actionId}, action_name = #{actionName},
+        min_sets = #{minSets}, max_sets = #{maxSets}, rest_minutes = #{restMinutes}, sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteByDayId">
+        DELETE FROM plan_training_action WHERE training_day_id = #{trainingDayId}
+    </delete>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_training_action (training_day_id, action_id, action_name, min_sets, max_sets, rest_minutes, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.trainingDayId}, #{item.actionId}, #{item.actionName}, #{item.minSets}, #{item.maxSets}, #{item.restMinutes}, #{item.sortOrder})
+        </foreach>
+    </insert>
+</mapper>

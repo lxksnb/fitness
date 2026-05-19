@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.BodyPhotoMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.BodyPhoto">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="photo_date" property="photoDate"/>
+        <result column="photo_type" property="photoType"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="note" property="note"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="selectByUserAndDate" resultMap="BaseResultMap">
+        SELECT * FROM body_photo WHERE user_id = #{userId} AND photo_date = #{photoDate}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO body_photo (user_id, photo_date, photo_type, image_url, note)
+        VALUES (#{userId}, #{photoDate}, #{photoType}, #{imageUrl}, #{note})
+    </insert>
+    <update id="updateById">
+        UPDATE body_photo SET photo_type = #{photoType}, image_url = #{imageUrl}, note = #{note}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById">
+        DELETE FROM body_photo WHERE id = #{id}
+    </delete>
+</mapper>

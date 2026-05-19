@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.PlanMealConfigMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.PlanMealConfig">
+        <id column="id" property="id"/>
+        <result column="plan_id" property="planId"/>
+        <result column="day_type" property="dayType"/>
+        <result column="meal_type" property="mealType"/>
+        <result column="carb_ratio" property="carbRatio"/>
+        <result column="protein_ratio" property="proteinRatio"/>
+        <result column="fat_ratio" property="fatRatio"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <select id="selectByPlanId" resultMap="BaseResultMap">
+        SELECT * FROM plan_meal_config WHERE plan_id = #{planId} ORDER BY sort_order
+    </select>
+    <select id="selectByPlanIdAndDayType" resultMap="BaseResultMap">
+        SELECT * FROM plan_meal_config WHERE plan_id = #{planId} AND day_type = #{dayType} ORDER BY sort_order
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_meal_config (plan_id, day_type, meal_type, carb_ratio, protein_ratio, fat_ratio, sort_order)
+        VALUES (#{planId}, #{dayType}, #{mealType}, #{carbRatio}, #{proteinRatio}, #{fatRatio}, #{sortOrder})
+    </insert>
+    <update id="updateById">
+        UPDATE plan_meal_config SET day_type = #{dayType}, meal_type = #{mealType},
+        carb_ratio = #{carbRatio}, protein_ratio = #{proteinRatio}, fat_ratio = #{fatRatio}, sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteByPlanId">
+        DELETE FROM plan_meal_config WHERE plan_id = #{planId}
+    </delete>
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plan_meal_config (plan_id, day_type, meal_type, carb_ratio, protein_ratio, fat_ratio, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.planId}, #{item.dayType}, #{item.mealType}, #{item.carbRatio}, #{item.proteinRatio}, #{item.fatRatio}, #{item.sortOrder})
+        </foreach>
+    </insert>
+</mapper>
