@@ -17,6 +17,9 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM diet_record WHERE id = #{id}
+    </select>
     <select id="selectByUserAndDate" resultMap="BaseResultMap">
         SELECT * FROM diet_record WHERE user_id = #{userId} AND record_date = #{recordDate}
         ORDER BY recorded_at

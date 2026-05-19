@@ -15,6 +15,9 @@
     <select id="selectByUserAndDate" resultMap="BaseResultMap">
         SELECT * FROM weight_record WHERE user_id = #{userId} AND record_date = #{recordDate}
     </select>
+    <select id="selectLatestByUser" resultMap="BaseResultMap">
+        SELECT * FROM weight_record WHERE user_id = #{userId} ORDER BY record_date DESC LIMIT 1
+    </select>
     <select id="selectByUserAndDateRange" resultMap="BaseResultMap">
         SELECT * FROM weight_record
         WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}

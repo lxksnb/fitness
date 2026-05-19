@@ -9,6 +9,7 @@ import java.util.List;
 public interface WeightRecordMapper {
     WeightRecord selectByUserAndDate(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("recordDate") Date recordDate);
     List<WeightRecord> selectByUserAndDateRange(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("startDate") Date startDate, @org.apache.ibatis.annotations.Param("endDate") Date endDate);
+    WeightRecord selectLatestByUser(Long userId);
     int insert(WeightRecord record);
     int updateById(WeightRecord record);
 }
