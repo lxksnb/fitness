@@ -16,7 +16,13 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
-        SELECT * FROM action_library WHERE action_name LIKE CONCAT('%', #{keyword}, '%') AND status = 'ACTIVE'
+        SELECT * FROM action_library
+        WHERE action_name LIKE CONCAT('%', #{keyword}, '%')
+        AND status = 'ACTIVE'
+        AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
+        <if test="suitableFor != null and suitableFor != ''">
+            AND suitable_for = #{suitableFor}
+        </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
         SELECT * FROM action_library
