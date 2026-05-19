@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.fitness.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: fitness-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
+  access-token-expiration: 7200000
+  refresh-token-expiration: 604800000
