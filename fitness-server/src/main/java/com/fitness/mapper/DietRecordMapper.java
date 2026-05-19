@@ -10,6 +10,7 @@ import java.util.Map;
 public interface DietRecordMapper {
     DietRecord selectById(Long id);
     List<DietRecord> selectByUserAndDate(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("recordDate") Date recordDate);
+    List<DietRecord> selectByUserAndDateRange(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("startDate") Date startDate, @org.apache.ibatis.annotations.Param("endDate") Date endDate);
     Map<String, Object> selectDailySummary(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("recordDate") Date recordDate);
     int insert(DietRecord record);
     int updateById(DietRecord record);

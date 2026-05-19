@@ -1,0 +1,62 @@
+package com.fitness.controller;
+
+import com.fitness.common.Result;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
+/**
+ * 文件上传控制器
+ * <p>
+ * 提供通用文件上传接口，支持图片等文件上传。
+ * 文件按日期分目录存储，使用UUID命名避免冲突。
+ */
+@RestController
+@RequestMapping("/api/v1")
+public class UploadController {
+
+    /** 上传文件存储根目录，可通过配置 upload.path 自定义 */
+    @Value("${upload.path:uploads}")
+    private String uploadPath;
+
+    /**
+     * 上传文件
+     * <p>
+     * 接收multipart文件，生成唯一文件名后保存到日期子目录。
+     *
+     * @param file 上传的文件
+     * @return 成功时返回文件的相对访问URL
+     * @throws IOException 文件保存失败时抛出
+     */
+    @PostMapping("/upload")
+    public Result<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+        // 获取原始文件名和扩展名
+        String originalName = file.getOriginalFilename();
+        String ext = "";
+        if (originalName != null && originalName.contains(".")) {
+            ext = originalName.substring(originalName.lastIndexOf("."));
+        }
+
+        // 生成唯一文件名: 日期目录 + UUID + 扩展名
+        String dateDir = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
+        String fileName = UUID.randomUUID().toString() + ext;
+
+        // 创建目录并保存文件
+        File dir = new File(uploadPath, dateDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File dest = new File(dir, fileName);
+        file.transferTo(dest);
+
+        // 返回相对路径，前端可直接拼接域名访问
+        String url = "/" + uploadPath + "/" + dateDir + "/" + fileName;
+        return Result.ok(url);
+    }
+}

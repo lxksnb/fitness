@@ -24,6 +24,11 @@
         SELECT * FROM diet_record WHERE user_id = #{userId} AND record_date = #{recordDate}
         ORDER BY recorded_at
     </select>
+    <select id="selectByUserAndDateRange" resultMap="BaseResultMap">
+        SELECT * FROM diet_record
+        WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY record_date, recorded_at
+    </select>
     <select id="selectDailySummary" resultType="java.util.HashMap">
         SELECT COALESCE(SUM(carb_grams), 0) AS carbGrams,
                COALESCE(SUM(protein_grams), 0) AS proteinGrams,
