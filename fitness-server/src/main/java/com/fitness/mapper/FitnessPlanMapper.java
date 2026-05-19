@@ -6,6 +6,7 @@ import java.util.List;
 
 @Mapper
 public interface FitnessPlanMapper {
+    FitnessPlan selectById(Long id);
     List<FitnessPlan> selectByUserId(Long userId);
     List<FitnessPlan> selectActiveByUser(Long userId);
     int insert(FitnessPlan plan);

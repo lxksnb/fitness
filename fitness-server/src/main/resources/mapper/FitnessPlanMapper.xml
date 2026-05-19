@@ -12,6 +12,9 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM fitness_plan WHERE id = #{id}
+    </select>
     <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT * FROM fitness_plan WHERE user_id = #{userId} ORDER BY created_at DESC
     </select>
