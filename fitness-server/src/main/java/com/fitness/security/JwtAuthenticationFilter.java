@@ -13,15 +13,26 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * JWT 认证过滤器
+ * 在每个请求到达控制器之前拦截并验证 JWT 令牌，解析用户信息并设置到安全上下文中
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /** JWT 工具类 */
     private final JwtUtils jwtUtils;
 
     public JwtAuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
     }
 
+    /**
+     * 过滤器核心逻辑：提取请求中的 Token，验证后设置认证信息
+     * @param request HTTP 请求
+     * @param response HTTP 响应
+     * @param chain 过滤器链
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -36,6 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+    /**
+     * 从请求头中提取 Bearer Token
+     * @param request HTTP 请求
+     * @return JWT 令牌字符串，无则返回 null
+     */
     private String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
