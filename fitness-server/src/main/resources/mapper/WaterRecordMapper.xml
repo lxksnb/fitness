@@ -10,6 +10,9 @@
         <result column="recorded_at" property="recordedAt"/>
         <result column="created_at" property="createdAt"/>
     </resultMap>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM water_record WHERE id = #{id}
+    </select>
     <select id="selectByUserAndDate" resultMap="BaseResultMap">
         SELECT * FROM water_record WHERE user_id = #{userId} AND record_date = #{recordDate}
     </select>
@@ -18,8 +21,8 @@
         WHERE user_id = #{userId} AND record_date = #{recordDate}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO water_record (user_id, record_date, amount_ml)
-        VALUES (#{userId}, #{recordDate}, #{amountMl})
+        INSERT INTO water_record (user_id, record_date, amount_ml, recorded_at)
+        VALUES (#{userId}, #{recordDate}, #{amountMl}, #{recordedAt})
     </insert>
     <delete id="deleteById">
         DELETE FROM water_record WHERE id = #{id}

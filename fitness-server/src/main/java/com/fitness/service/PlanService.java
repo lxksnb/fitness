@@ -174,6 +174,10 @@ public class PlanService {
         if (plan == null || !plan.getUserId().equals(SecurityUtils.getCurrentUserId())) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
+        // 先删除子表数据，防止孤儿记录
+        mealConfigMapper.deleteByPlanId(id);
+        dayMapper.deleteByPlanId(id);
+        // 再删除主表
         planMapper.deleteById(id);
     }
 

@@ -123,6 +123,8 @@ public class TrainingService {
         if (record == null || !record.getUserId().equals(SecurityUtils.getCurrentUserId())) {
             throw new BusinessException(ResultCode.NOT_FOUND, "训练记录不存在");
         }
+        // 先删除动作明细，防止孤儿记录
+        detailMapper.deleteByRecordId(id);
         recordMapper.deleteById(id);
     }
 

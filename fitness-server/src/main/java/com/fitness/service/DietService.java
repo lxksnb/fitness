@@ -136,9 +136,12 @@ public class DietService {
             // 简化处理：使用第一个训练日的营养素倍率
             if (!days.isEmpty()) {
                 PlanTrainingDay today = days.get(0); // 默认取第一个训练日
-                vo.setTargetCarb(weight * today.getCarbMultiplier());
-                vo.setTargetProtein(weight * today.getProteinMultiplier());
-                vo.setTargetFat(weight * today.getFatMultiplier());
+                double carbMult = today.getCarbMultiplier() != null ? today.getCarbMultiplier() : 0;
+                double proteinMult = today.getProteinMultiplier() != null ? today.getProteinMultiplier() : 0;
+                double fatMult = today.getFatMultiplier() != null ? today.getFatMultiplier() : 0;
+                vo.setTargetCarb(weight * carbMult);
+                vo.setTargetProtein(weight * proteinMult);
+                vo.setTargetFat(weight * fatMult);
             }
         }
 

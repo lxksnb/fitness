@@ -97,9 +97,12 @@ public class DashboardService {
                 // 简化: 取第一个训练日的营养乘数作为目标
                 PlanTrainingDay day = days.get(0);
                 double w = todayWeight.getWeightKg();
-                vo.setTargetCarb(w * day.getCarbMultiplier());
-                vo.setTargetProtein(w * day.getProteinMultiplier());
-                vo.setTargetFat(w * day.getFatMultiplier());
+                double carbMult = day.getCarbMultiplier() != null ? day.getCarbMultiplier() : 0;
+                double proteinMult = day.getProteinMultiplier() != null ? day.getProteinMultiplier() : 0;
+                double fatMult = day.getFatMultiplier() != null ? day.getFatMultiplier() : 0;
+                vo.setTargetCarb(w * carbMult);
+                vo.setTargetProtein(w * proteinMult);
+                vo.setTargetFat(w * fatMult);
                 vo.setTargetCalories(calcCalories(
                         vo.getTargetCarb(), vo.getTargetProtein(), vo.getTargetFat()));
             }

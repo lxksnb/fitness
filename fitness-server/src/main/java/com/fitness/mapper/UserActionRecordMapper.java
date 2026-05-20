@@ -8,5 +8,5 @@ import java.util.List;
 public interface UserActionRecordMapper {
     List<UserActionRecord> selectByUserIdAndAction(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("actionId") Long actionId);
     int insert(UserActionRecord record);
-    UserActionRecord selectByUserIdAndActionId(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("actionId") Long actionId);
+    List<UserActionRecord> selectByUserIdAndActionId(@org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("actionId") Long actionId);
 }

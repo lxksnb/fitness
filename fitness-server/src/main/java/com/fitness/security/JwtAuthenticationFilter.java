@@ -1,6 +1,9 @@
 package com.fitness.security;
 
+import com.fitness.entity.SysUser;
+import com.fitness.mapper.SysUserMapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -11,28 +14,24 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * JWT 认证过滤器
- * 在每个请求到达控制器之前拦截并验证 JWT 令牌，解析用户信息并设置到安全上下文中
+ * JWT认证过滤器
+ * 从请求头提取Bearer token，验证后查询用户角色并设置权限到Security上下文
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    /** JWT 工具类 */
     private final JwtUtils jwtUtils;
+    private final SysUserMapper userMapper;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, SysUserMapper userMapper) {
         this.jwtUtils = jwtUtils;
+        this.userMapper = userMapper;
     }
 
-    /**
-     * 过滤器核心逻辑：提取请求中的 Token，验证后设置认证信息
-     * @param request HTTP 请求
-     * @param response HTTP 响应
-     * @param chain 过滤器链
-     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -40,17 +39,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (StringUtils.hasText(token) && jwtUtils.validate(token)) {
             Long userId = jwtUtils.getUserId(token);
+
+            // 从数据库查询用户角色，设置权限
+            List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+            SysUser user = userMapper.selectById(userId);
+            if (user != null && "ADMIN".equals(user.getRole())) {
+                authorities.add(new SimpleGrantedAuthority("ADMIN"));
+            }
+
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         chain.doFilter(request, response);
     }
 
     /**
-     * 从请求头中提取 Bearer Token
-     * @param request HTTP 请求
-     * @return JWT 令牌字符串，无则返回 null
+     * 从请求头提取Bearer token
      */
     private String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");

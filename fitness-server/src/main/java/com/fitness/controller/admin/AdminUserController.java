@@ -29,7 +29,12 @@ public class AdminUserController {
      */
     @GetMapping
     public Result<List<SysUser>> list() {
-        return Result.ok(userMapper.selectAll());
+        List<SysUser> users = userMapper.selectAll();
+        // 清除密码字段，防止泄露
+        for (SysUser user : users) {
+            user.setPassword(null);
+        }
+        return Result.ok(users);
     }
 
     /**

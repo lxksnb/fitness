@@ -12,8 +12,17 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM body_photo WHERE id = #{id}
+    </select>
     <select id="selectByUserAndDate" resultMap="BaseResultMap">
         SELECT * FROM body_photo WHERE user_id = #{userId} AND photo_date = #{photoDate}
+    </select>
+    <select id="selectByUserAndDateRange" resultMap="BaseResultMap">
+        SELECT * FROM body_photo
+        WHERE user_id = #{userId}
+        AND photo_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY photo_date DESC, created_at DESC
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO body_photo (user_id, photo_date, photo_type, image_url, note)
