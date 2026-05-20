@@ -1,5 +1,8 @@
 package com.fitness.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 
@@ -8,6 +11,7 @@ import java.util.List;
  */
 public class TrainingRecordDTO {
     /** 训练日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date recordDate;
     /** 关联计划ID(可选) */
     private Long planId;
@@ -16,9 +20,9 @@ public class TrainingRecordDTO {
     /** 训练类型 */
     private String trainingType;
     /** 开始时间 */
-    private Date startTime;
+    private Time startTime;
     /** 结束时间 */
-    private Date endTime;
+    private Time endTime;
     /** 训练时长(分钟) */
     private Integer durationMinutes;
     /** 备注 */
@@ -35,10 +39,10 @@ public class TrainingRecordDTO {
     public void setTrainingDayId(Long id) { this.trainingDayId = id; }
     public String getTrainingType() { return trainingType; }
     public void setTrainingType(String s) { this.trainingType = s; }
-    public Date getStartTime() { return startTime; }
-    public void setStartTime(Date d) { this.startTime = d; }
-    public Date getEndTime() { return endTime; }
-    public void setEndTime(Date d) { this.endTime = d; }
+    public Time getStartTime() { return startTime; }
+    public void setStartTime(Time d) { this.startTime = d; }
+    public Time getEndTime() { return endTime; }
+    public void setEndTime(Time d) { this.endTime = d; }
     public Integer getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(Integer i) { this.durationMinutes = i; }
     public String getNote() { return note; }

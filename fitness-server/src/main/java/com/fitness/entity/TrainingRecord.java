@@ -1,6 +1,8 @@
 package com.fitness.entity;
 
 import lombok.Data;
+
+import java.sql.Time;
 import java.util.Date;
 
 /**
@@ -22,9 +24,9 @@ public class TrainingRecord {
     /** 训练类型 */
     private String trainingType;
     /** 开始时间 */
-    private Date startTime;
+    private Time startTime;
     /** 结束时间 */
-    private Date endTime;
+    private Time endTime;
     /** 训练时长（分钟） */
     private Integer durationMinutes;
     /** 备注 */
