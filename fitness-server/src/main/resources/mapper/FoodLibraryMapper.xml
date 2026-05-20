@@ -15,9 +15,12 @@
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
         SELECT * FROM food_library
-        WHERE food_name LIKE CONCAT('%', #{keyword}, '%')
-        AND status = 'ACTIVE'
+        WHERE
+        status = 'ACTIVE'
         AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
+        <if test="keyword != null and keyword != ''">
+            and food_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
         SELECT * FROM food_library

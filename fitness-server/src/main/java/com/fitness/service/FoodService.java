@@ -38,10 +38,8 @@ public class FoodService {
      */
     public List<FoodVO> search(String keyword) {
         Long userId = SecurityUtils.getCurrentUserId();
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<FoodLibrary> foods = foodMapper.searchByName(keyword.trim(), userId);
+        // keyword可为null, SQL中通过<if>动态标签处理空值查询全部
+        List<FoodLibrary> foods = foodMapper.searchByName(keyword, userId);
         return toVOList(foods);
     }
 

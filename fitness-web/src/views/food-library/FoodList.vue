@@ -164,7 +164,7 @@
             </el-button>
           </div>
 
-          <el-row :gutter="16" style="margin-bottom: 8px">
+          <el-row :gutter="16" style="margin-bottom: 15px">
             <el-col :span="12">
               <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '请选择', trigger: 'change' }]" style="margin-bottom: 0">
                 <el-select v-model="entry.unitType" placeholder="选择单位类型" style="width: 100%" @change="onUnitTypeChange(index)">
@@ -183,18 +183,18 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="16">
-            <el-col :span="7">
+          <el-row :gutter="20" style="margin-bottom: 25px">
+            <el-col :span="8">
               <el-form-item label="碳水(g)" style="margin-bottom: 0">
                 <el-input-number v-model="entry.carbGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="7">
+            <el-col :span="8">
               <el-form-item label="蛋白(g)" style="margin-bottom: 0">
                 <el-input-number v-model="entry.proteinGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="7">
+            <el-col :span="8">
               <el-form-item label="脂肪(g)" style="margin-bottom: 0">
                 <el-input-number v-model="entry.fatGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
