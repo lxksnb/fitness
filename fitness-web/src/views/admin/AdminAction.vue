@@ -317,7 +317,9 @@ function openDialog(action?: ActionItem) {
     editingId.value = action.id
     form.name = action.actionName
     form.description = action.description || ''
-    form.suitableFor = action.suitableFor || []
+    // 后端返回逗号分隔字符串, 转为数组供checkbox展示
+    const sf = (action as any).suitableFor
+    form.suitableFor = Array.isArray(sf) ? sf : (typeof sf === 'string' ? sf.split(',').filter(Boolean) : [])
     form.imageUrls = action.imageUrls || []
     form.videoUrl = action.videoUrl || ''
   } else {
