@@ -163,9 +163,9 @@
           <el-select v-model="form.mealType" placeholder="选择餐次" style="width: 100%">
             <el-option
               v-for="item in mealTypeOptions"
-              :key="item.code"
-              :label="item.name"
-              :value="item.code"
+              :key="item.dictValue"
+              :label="item.dictLabel"
+              :value="item.dictValue"
             />
           </el-select>
         </el-form-item>
@@ -175,17 +175,17 @@
         </el-form-item>
 
         <el-row :gutter="16">
-          <el-col :span="8">
+          <el-col :span="10">
             <el-form-item label="碳水(g)" prop="carbGrams">
               <el-input-number v-model="form.carbGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="10">
             <el-form-item label="蛋白质(g)" prop="proteinGrams">
               <el-input-number v-model="form.proteinGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="10">
             <el-form-item label="脂肪(g)" prop="fatGrams">
               <el-input-number v-model="form.fatGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
             </el-form-item>
@@ -243,8 +243,8 @@ interface DietRecord {
 
 /** 字典选项 */
 interface DictOption {
-  code: string
-  name: string
+  dictLabel: string
+  dictValue: string
 }
 
 /** 食物搜索选项 */
@@ -383,15 +383,10 @@ function calcMealCalories(records: DietRecord[]): string {
 async function fetchMealTypes() {
   try {
     const res = await getDict('meal_type') as any
+    console.info("餐次:",res)
     mealTypeOptions.value = Array.isArray(res) ? res : (res?.list || res?.records || [])
   } catch {
-    // 使用默认餐次兜底
-    mealTypeOptions.value = [
-      { code: 'breakfast', name: '早餐' },
-      { code: 'lunch', name: '午餐' },
-      { code: 'dinner', name: '晚餐' },
-      { code: 'snack', name: '加餐' }
-    ]
+    
   }
 }
 
@@ -501,7 +496,7 @@ function openDialog(record?: DietRecord) {
 
 /** 重置表单数据 */
 function resetFormData() {
-  form.mealType = 'breakfast'
+  form.mealType = ''
   form.foodName = ''
   form.carbGrams = 0
   form.proteinGrams = 0

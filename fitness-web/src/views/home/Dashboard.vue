@@ -637,7 +637,7 @@ const chartColors = {
   point: '#38b589'
 }
 
-/** ECharts 体重趋势折线图配置 —— 薄荷绿清新主题 */
+/** ECharts 体重趋势散点图配置 —— 薄荷绿清新主题 */
 const weightChartOption = computed(() => {
   if (!dashboard.value?.weightTrend?.length) return null
 
@@ -659,20 +659,15 @@ const weightChartOption = computed(() => {
   return {
     backgroundColor: '#ffffff',
     tooltip: {
-      trigger: 'axis' as const,
+      trigger: 'item' as const,
       backgroundColor: '#ffffff',
       borderColor: '#38b589',
       borderWidth: 1,
       textStyle: { color: '#2d3436', fontSize: 13 },
-      axisPointer: {
-        type: 'line' as const,
-        lineStyle: { color: '#e0e8e4', type: 'dashed' as const }
-      },
       formatter: (params: any) => {
-        const p = Array.isArray(params) ? params[0] : params
-        if (!p) return ''
-        return `<div style="font-size:13px;color:#636e72">${p.axisValue}</div>
-          <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${p.value} kg</div>`
+        if (!params) return ''
+        return `<div style="font-size:13px;color:#636e72">${params.name}</div>
+          <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${params.value} kg</div>`
       }
     },
     legend: {
@@ -693,7 +688,7 @@ const weightChartOption = computed(() => {
     xAxis: {
       type: 'category' as const,
       data: dates,
-      boundaryGap: false,
+      boundaryGap: true,
       axisLabel: {
         color: '#b2bec3',
         fontSize: 10
@@ -721,34 +716,18 @@ const weightChartOption = computed(() => {
       {
         name: '体重',
         data: weights,
-        type: 'line' as const,
-        smooth: true,
+        type: 'scatter' as const,
         symbol: 'circle',
-        symbolSize: 6,
-        showSymbol: false,
+        symbolSize: 8,
+        showSymbol: true,
         emphasis: {
           focus: 'series' as const,
-          itemStyle: { borderWidth: 3 }
+          itemStyle: { borderWidth: 3, symbolSize: 12 }
         },
-        lineStyle: { color: '#38b589', width: 2.5 },
         itemStyle: {
           color: '#38b589',
           borderColor: '#ffffff',
           borderWidth: 2
-        },
-        areaStyle: {
-          color: {
-            type: 'linear' as const,
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(56, 181, 137, 0.2)' },
-              { offset: 0.5, color: 'rgba(56, 181, 137, 0.06)' },
-              { offset: 1, color: 'rgba(56, 181, 137, 0.01)' }
-            ]
-          }
         },
         markLine: {
           silent: true,
