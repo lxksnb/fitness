@@ -102,7 +102,12 @@ public class ActionService {
     private void fillAction(ActionLibrary action, ActionDTO dto) {
         action.setActionName(dto.getActionName());
         action.setDescription(dto.getDescription());
-        action.setSuitableFor(dto.getSuitableFor());
+        // 前端checkbox多选传来数组, 拼成逗号分隔字符串存入数据库
+        if (dto.getSuitableFor() != null && !dto.getSuitableFor().isEmpty()) {
+            action.setSuitableFor(String.join(",", dto.getSuitableFor()));
+        } else {
+            action.setSuitableFor(null);
+        }
         action.setImageUrls(dto.getImageUrls());
         action.setVideoUrl(dto.getVideoUrl());
     }

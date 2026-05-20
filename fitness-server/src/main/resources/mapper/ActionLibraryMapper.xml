@@ -17,8 +17,11 @@
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
         SELECT * FROM action_library
-        WHERE action_name LIKE CONCAT('%', #{keyword}, '%')
-        AND status = 'ACTIVE'
+        WHERE
+        status = 'ACTIVE'
+        <if test="keyword != null and keyword != ''">
+            AND action_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
         AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
         <if test="suitableFor != null and suitableFor != ''">
             AND suitable_for = #{suitableFor}
@@ -33,8 +36,8 @@
         SELECT * FROM action_library WHERE id = #{id}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO action_library (scope, user_id, action_name, description, suitable_for, image_urls, video_url, status)
-        VALUES (#{scope}, #{userId}, #{actionName}, #{description}, #{suitableFor}, #{imageUrls}, #{videoUrl}, #{status})
+        INSERT INTO action_library (scope, user_id, action_name, description, suitable_for, image_urls, video_url)
+        VALUES (#{scope}, #{userId}, #{actionName}, #{description}, #{suitableFor}, #{imageUrls}, #{videoUrl})
     </insert>
     <update id="updateById">
         UPDATE action_library SET action_name = #{actionName}, description = #{description},

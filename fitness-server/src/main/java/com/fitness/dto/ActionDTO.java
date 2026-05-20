@@ -9,8 +9,8 @@ public class ActionDTO {
     private String actionName;
     /** 动作描述 */
     private String description;
-    /** 适用人群 */
-    private String suitableFor;
+    /** 适用部位列表(前端checkbox多选, 逗号分隔存入DB) */
+    private java.util.List<String> suitableFor;
     /** 图片 URL 列表 */
     private String imageUrls;
     /** 视频 URL */
@@ -20,8 +20,8 @@ public class ActionDTO {
     public void setActionName(String name) { this.actionName = name; }
     public String getDescription() { return description; }
     public void setDescription(String desc) { this.description = desc; }
-    public String getSuitableFor() { return suitableFor; }
-    public void setSuitableFor(String sf) { this.suitableFor = sf; }
+    public java.util.List<String> getSuitableFor() { return suitableFor; }
+    public void setSuitableFor(java.util.List<String> sf) { this.suitableFor = sf; }
     public String getImageUrls() { return imageUrls; }
     public void setImageUrls(String urls) { this.imageUrls = urls; }
     public String getVideoUrl() { return videoUrl; }

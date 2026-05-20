@@ -44,7 +44,8 @@ public class AdminActionController {
         action.setScope("SYSTEM");
         action.setActionName(dto.getActionName());
         action.setDescription(dto.getDescription());
-        action.setSuitableFor(dto.getSuitableFor());
+        // 前端checkbox多选传来数组, 拼成逗号分隔字符串存入数据库
+        action.setSuitableFor(joinList(dto.getSuitableFor()));
         action.setImageUrls(dto.getImageUrls());
         action.setVideoUrl(dto.getVideoUrl());
         action.setStatus("ACTIVE");
@@ -61,7 +62,7 @@ public class AdminActionController {
         if (action != null) {
             action.setActionName(dto.getActionName());
             action.setDescription(dto.getDescription());
-            action.setSuitableFor(dto.getSuitableFor());
+            action.setSuitableFor(joinList(dto.getSuitableFor()));
             action.setImageUrls(dto.getImageUrls());
             action.setVideoUrl(dto.getVideoUrl());
             actionMapper.updateById(action);
@@ -81,5 +82,17 @@ public class AdminActionController {
             actionMapper.updateById(action);
         }
         return Result.ok();
+    }
+
+    /**
+     * 将前端checkbox多选数组转为逗号分隔字符串存入数据库
+     * @param list 前端传来的部位列表
+     * @return 逗号分隔的字符串, 如 "CHEST,BACK,LEGS"
+     */
+    private String joinList(java.util.List<String> list) {
+        if (list != null && !list.isEmpty()) {
+            return String.join(",", list);
+        }
+        return null;
     }
 }
