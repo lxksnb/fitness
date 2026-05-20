@@ -67,8 +67,8 @@
               <!-- 动作图片 -->
               <div class="action-image" @click="openHistory(action)">
                 <el-image
-                  v-if="action.imageUrl"
-                  :src="action.imageUrl"
+                  v-if="action.imageUrls && action.imageUrls.length > 0"
+                  :src="action.imageUrls[0]"
                   fit="cover"
                   style="width: 100%; height: 160px; border-radius: 6px 6px 0 0"
                 />
@@ -80,8 +80,8 @@
               <!-- 动作信息 -->
               <div class="action-info">
                 <div class="action-name-row">
-                  <span class="action-name">{{ action.name }}</span>
-                  <el-tag v-if="action.isSystem" size="small" type="info">系统</el-tag>
+                  <span class="action-name">{{ action.actionName }}</span>
+                  <el-tag v-if="action.scope === 'SYSTEM'" size="small" type="info">系统</el-tag>
                 </div>
                 <div class="action-desc" v-if="action.description">
                   {{ action.description }}
@@ -111,7 +111,7 @@
               </div>
 
               <!-- 操作按钮 -->
-              <div class="action-card-actions" v-if="!action.isSystem">
+              <div class="action-card-actions" v-if="action.scope !== 'SYSTEM'">
                 <el-button type="primary" link size="small" @click="openHistory(action)">
                   <el-icon><TrendCharts /></el-icon>
                   训练记录
@@ -252,12 +252,12 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 /** 动作列表项 */
 interface ActionItem {
   id: number
-  name: string
+  actionName: string
   description?: string
-  imageUrl?: string
+  imageUrls?: string[]
   videoUrl?: string
   suitableFor?: string[]
-  isSystem?: boolean
+  scope?: string
 }
 
 /** 训练记录项 */
@@ -371,10 +371,10 @@ function openDialog(action?: ActionItem) {
   if (action) {
     isEditing.value = true
     editingId.value = action.id
-    form.name = action.name
+    form.name = action.actionName
     form.description = action.description || ''
     form.suitableFor = action.suitableFor || []
-    form.imageUrls = action.imageUrl ? [action.imageUrl] : []
+    form.imageUrls = action.imageUrls || []
     form.videoUrl = action.videoUrl || ''
   } else {
     isEditing.value = false
@@ -407,10 +407,10 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      name: form.name,
+      actionName: form.name,
       description: form.description || undefined,
       suitableFor: form.suitableFor.length > 0 ? form.suitableFor : undefined,
-      imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined,
+      imageUrls: form.imageUrls.length > 0 ? form.imageUrls : undefined,
       videoUrl: form.videoUrl || undefined
     }
 
@@ -435,7 +435,7 @@ async function handleSave() {
 async function handleDelete(action: ActionItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${action.name}"吗？此操作不可撤销。`,
+      `确定要删除"${action.actionName}"吗？此操作不可撤销。`,
       '删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )
@@ -453,7 +453,7 @@ async function handleDelete(action: ActionItem) {
 
 /** 打开训练记录历史弹窗 */
 async function openHistory(action: ActionItem) {
-  historyActionName.value = action.name
+  historyActionName.value = action.actionName
   historyVisible.value = true
   historyLoading.value = true
   historyError.value = ''

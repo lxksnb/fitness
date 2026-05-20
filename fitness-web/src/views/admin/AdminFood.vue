@@ -46,7 +46,7 @@
           <span v-else class="no-image">--</span>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="食物名称" min-width="180" />
+      <el-table-column prop="foodName" label="食物名称" min-width="180" />
       <el-table-column label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="row.status === 'DELETED' ? 'danger' : 'success'" size="small">
@@ -148,8 +148,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="4">
-              <el-form-item label="重量(g)" :prop="`nutritionEntries.${index}.servingWeight`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
-                <el-input-number v-model="entry.servingWeight" :min="1" controls-position="right" style="width: 100%" />
+              <el-form-item label="重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
+                <el-input-number v-model="entry.servingWeightG" :min="1" controls-position="right" style="width: 100%" />
               </el-form-item>
             </el-col>
             <el-col :span="4">
@@ -213,7 +213,7 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 /** 食物列表项 */
 interface FoodItem {
   id: number
-  name: string
+  foodName: string
   imageUrl?: string
   status?: string
   scope?: string
@@ -223,7 +223,7 @@ interface FoodItem {
 /** 营养单位 */
 interface NutritionEntry {
   unitType: string
-  servingWeight: number
+  servingWeightG: number
   carbGrams: number
   proteinGrams: number
   fatGrams: number
@@ -233,9 +233,9 @@ interface NutritionEntry {
 /** 食物详情（用于编辑时回填） */
 interface FoodDetail {
   id: number
-  name: string
+  foodName: string
   imageUrl?: string
-  nutritionEntries: NutritionEntry[]
+  nutritions: NutritionEntry[]
 }
 
 // ==================== 状态 ====================
@@ -263,7 +263,7 @@ const form = reactive({
   nutritionEntries: [
     {
       unitType: '每100g',
-      servingWeight: 100,
+      servingWeightG: 100,
       carbGrams: 0,
       proteinGrams: 0,
       fatGrams: 0,
@@ -324,7 +324,7 @@ async function fetchList() {
 function addNutritionEntry() {
   form.nutritionEntries.push({
     unitType: `每份(${form.nutritionEntries.length + 1})`,
-    servingWeight: 100,
+    servingWeightG: 100,
     carbGrams: 0,
     proteinGrams: 0,
     fatGrams: 0,
@@ -348,7 +348,7 @@ async function openDialog(food?: FoodItem) {
   if (food) {
     isEditing.value = true
     editingId.value = food.id
-    form.name = food.name
+    form.name = food.foodName
     form.imageUrls = food.imageUrl ? [food.imageUrl] : []
 
     // 尝试加载详情以获取营养单位列表
@@ -357,10 +357,11 @@ async function openDialog(food?: FoodItem) {
       // 如果后端单独提供了详情接口，可在此调用
       // 这里使用 food 对象自身携带的信息
       const detail = food as any
-      if (detail.nutritionEntries && Array.isArray(detail.nutritionEntries) && detail.nutritionEntries.length > 0) {
-        form.nutritionEntries = detail.nutritionEntries.map((e: any) => ({
+      const entries = detail.nutritions || detail.nutritionEntries
+      if (entries && Array.isArray(entries) && entries.length > 0) {
+        form.nutritionEntries = entries.map((e: any) => ({
           unitType: e.unitType || '每100g',
-          servingWeight: e.servingWeight || 100,
+          servingWeightG: e.servingWeightG || e.servingWeight || 100,
           carbGrams: e.carbGrams || 0,
           proteinGrams: e.proteinGrams || 0,
           fatGrams: e.fatGrams || 0,
@@ -368,12 +369,12 @@ async function openDialog(food?: FoodItem) {
         }))
       } else {
         form.nutritionEntries = [
-          { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+          { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
         ]
       }
     } catch {
       form.nutritionEntries = [
-        { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+        { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
       ]
     }
   } else {
@@ -389,7 +390,7 @@ function resetFormData() {
   form.name = ''
   form.imageUrls = []
   form.nutritionEntries = [
-    { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+    { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
   ]
 }
 
@@ -407,11 +408,11 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      name: form.name,
+      foodName: form.name,
       imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined,
-      nutritionEntries: form.nutritionEntries.map(e => ({
+      nutritions: form.nutritionEntries.map(e => ({
         unitType: e.unitType,
-        servingWeight: e.servingWeight,
+        servingWeightG: e.servingWeightG,
         carbGrams: e.carbGrams,
         proteinGrams: e.proteinGrams,
         fatGrams: e.fatGrams,
@@ -441,7 +442,7 @@ async function handleSave() {
 async function handleDelete(food: FoodItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${food.name}"吗？此操作将软删除该食物，不会影响已有记录。`,
+      `确定要删除"${food.foodName}"吗？此操作将软删除该食物，不会影响已有记录。`,
       '删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )

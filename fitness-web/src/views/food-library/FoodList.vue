@@ -64,7 +64,7 @@
                   </div>
                 </div>
                 <div class="food-name-row">
-                  <span class="food-name">{{ food.name }}</span>
+                  <span class="food-name">{{ food.foodName }}</span>
                   <el-tag v-if="food.isSystem" size="small" type="info">系统</el-tag>
                 </div>
               </div>
@@ -76,12 +76,12 @@
                 </div>
                 <div v-else-if="foodDetail" class="nutrition-entries">
                   <div
-                    v-for="(entry, idx) in foodDetail.nutritionEntries"
+                    v-for="(entry, idx) in foodDetail.nutritions"
                     :key="idx"
                     class="nutrition-entry-item"
                   >
                     <el-tag size="small" effect="plain" type="success">{{ entry.unitType || '标准' }}</el-tag>
-                    <span class="entry-serving">每{{ entry.servingWeight || 100 }}g</span>
+                    <span class="entry-serving">每{{ entry.servingWeightG || 100 }}g</span>
                     <div class="entry-macros">
                       <span>碳水 {{ formatNum(entry.carbGrams) }}g</span>
                       <span>蛋白质 {{ formatNum(entry.proteinGrams) }}g</span>
@@ -171,8 +171,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="4">
-              <el-form-item label="重量(g)" :prop="`nutritionEntries.${index}.servingWeight`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
-                <el-input-number v-model="entry.servingWeight" :min="1" controls-position="right" style="width: 100%" />
+              <el-form-item label="重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
+                <el-input-number v-model="entry.servingWeightG" :min="1" controls-position="right" style="width: 100%" />
               </el-form-item>
             </el-col>
             <el-col :span="4">
@@ -236,7 +236,7 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 /** 食物列表项 */
 interface FoodItem {
   id: number
-  name: string
+  foodName: string
   imageUrl?: string
   isSystem?: boolean
 }
@@ -244,7 +244,7 @@ interface FoodItem {
 /** 营养单位项 */
 interface NutritionEntry {
   unitType: string
-  servingWeight: number
+  servingWeightG: number
   carbGrams: number
   proteinGrams: number
   fatGrams: number
@@ -254,9 +254,9 @@ interface NutritionEntry {
 /** 食物详情 */
 interface FoodDetail {
   id: number
-  name: string
+  foodName: string
   imageUrl?: string
-  nutritionEntries: NutritionEntry[]
+  nutritions: NutritionEntry[]
 }
 
 // ==================== 状态 ====================
@@ -286,7 +286,7 @@ const form = reactive({
   nutritionEntries: [
     {
       unitType: '每100g',
-      servingWeight: 100,
+      servingWeightG: 100,
       carbGrams: 0,
       proteinGrams: 0,
       fatGrams: 0,
@@ -346,17 +346,17 @@ async function toggleExpand(food: FoodItem) {
     const res = await getFoodDetail(food.id) as any
     foodDetail.value = {
       id: res?.id || food.id,
-      name: res?.name || food.name,
+      foodName: res?.foodName || food.foodName,
       imageUrl: res?.imageUrl,
-      nutritionEntries: Array.isArray(res?.nutritionEntries)
-        ? res.nutritionEntries
-        : (Array.isArray(res?.units) ? res.units : [])
+      nutritions: Array.isArray(res?.nutritions)
+        ? res.nutritions
+        : (Array.isArray(res?.nutritionEntries) ? res.nutritionEntries : (Array.isArray(res?.units) ? res.units : []))
     }
   } catch {
     foodDetail.value = {
       id: food.id,
-      name: food.name,
-      nutritionEntries: []
+      foodName: food.foodName,
+      nutritions: []
     }
   } finally {
     foodDetailLoading.value = false
@@ -369,7 +369,7 @@ async function toggleExpand(food: FoodItem) {
 function addNutritionEntry() {
   form.nutritionEntries.push({
     unitType: `每份(${form.nutritionEntries.length + 1})`,
-    servingWeight: 100,
+    servingWeightG: 100,
     carbGrams: 0,
     proteinGrams: 0,
     fatGrams: 0,
@@ -393,19 +393,19 @@ async function openDialog(food?: FoodItem) {
   if (food) {
     isEditing.value = true
     editingId.value = food.id
-    form.name = food.name
+    form.name = food.foodName
     form.imageUrls = food.imageUrl ? [food.imageUrl] : []
 
     // 加载详情以获取营养单位列表
     try {
       const res = await getFoodDetail(food.id) as any
-      const entries = Array.isArray(res?.nutritionEntries)
-        ? res.nutritionEntries
-        : (Array.isArray(res?.units) ? res.units : [])
+      const entries = Array.isArray(res?.nutritions)
+        ? res.nutritions
+        : (Array.isArray(res?.nutritionEntries) ? res.nutritionEntries : (Array.isArray(res?.units) ? res.units : []))
       if (entries.length > 0) {
         form.nutritionEntries = entries.map((e: any) => ({
           unitType: e.unitType || '标准',
-          servingWeight: e.servingWeight || 100,
+          servingWeightG: e.servingWeightG || e.servingWeight || 100,
           carbGrams: e.carbGrams || 0,
           proteinGrams: e.proteinGrams || 0,
           fatGrams: e.fatGrams || 0,
@@ -413,12 +413,12 @@ async function openDialog(food?: FoodItem) {
         }))
       } else {
         form.nutritionEntries = [
-          { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+          { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
         ]
       }
     } catch {
       form.nutritionEntries = [
-        { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+        { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
       ]
     }
   } else {
@@ -434,7 +434,7 @@ function resetFormData() {
   form.name = ''
   form.imageUrls = []
   form.nutritionEntries = [
-    { unitType: '每100g', servingWeight: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+    { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
   ]
 }
 
@@ -452,11 +452,11 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      name: form.name,
+      foodName: form.name,
       imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined,
-      nutritionEntries: form.nutritionEntries.map(e => ({
+      nutritions: form.nutritionEntries.map(e => ({
         unitType: e.unitType,
-        servingWeight: e.servingWeight,
+        servingWeightG: e.servingWeightG,
         carbGrams: e.carbGrams,
         proteinGrams: e.proteinGrams,
         fatGrams: e.fatGrams,
@@ -485,7 +485,7 @@ async function handleSave() {
 async function handleDelete(food: FoodItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${food.name}"吗？此操作不可撤销。`,
+      `确定要删除"${food.foodName}"吗？此操作不可撤销。`,
       '删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )

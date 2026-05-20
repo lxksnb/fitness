@@ -87,19 +87,18 @@
             <template #default="{ row }">
               <div class="expand-actions">
                 <h4>动作详情</h4>
-                <el-table v-if="row.actions && row.actions.length" :data="row.actions" size="small" border>
+                <el-table v-if="row.details && row.details.length" :data="row.details" size="small" border>
                   <el-table-column prop="actionName" label="动作名称" />
                   <el-table-column prop="sets" label="组数" width="80" />
-                  <el-table-column prop="weight" label="重量(kg)" width="100" />
-                  <el-table-column prop="reps" label="次数" width="80" />
+                  <el-table-column prop="weightKg" label="重量(kg)" width="100" />
                 </el-table>
                 <el-empty v-else description="无动作记录" :image-size="60" />
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="trainingDate" label="日期" width="130" sortable>
+          <el-table-column prop="recordDate" label="日期" width="130" sortable>
             <template #default="{ row }">
-              {{ formatDate(row.trainingDate) }}
+              {{ formatDate(row.recordDate) }}
             </template>
           </el-table-column>
           <el-table-column prop="trainingType" label="训练类型" width="120">
@@ -131,7 +130,7 @@
           </el-table-column>
           <el-table-column label="动作数" width="80">
             <template #default="{ row }">
-              <el-tag round size="small">{{ row.actions?.length || 0 }}</el-tag>
+              <el-tag round size="small">{{ row.details?.length || 0 }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="140" fixed="right">
@@ -162,9 +161,9 @@
       <el-form ref="trainingFormRef" :model="trainingForm" :rules="trainingRules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="训练日期" prop="trainingDate">
+            <el-form-item label="训练日期" prop="recordDate">
               <el-date-picker
-                v-model="trainingForm.trainingDate"
+                v-model="trainingForm.recordDate"
                 type="date"
                 placeholder="选择日期"
                 format="YYYY-MM-DD"
@@ -233,7 +232,7 @@
         <!-- ==================== 动作列表 ==================== -->
         <el-form-item label="训练动作" class="action-list-form-item">
           <div class="action-list-container">
-            <el-table :data="trainingForm.actions" size="small" border>
+            <el-table :data="trainingForm.details" size="small" border>
               <el-table-column label="动作" min-width="180">
                 <template #default="{ row: act, $index }">
                   <el-select
@@ -271,7 +270,7 @@
               <el-table-column label="重量(kg)" width="110">
                 <template #default="{ row: act }">
                   <el-input-number
-                    v-model="act.weight"
+                    v-model="act.weightKg"
                     :min="0"
                     :max="999"
                     :precision="1"
@@ -364,20 +363,20 @@ interface ActionItem {
   actionId: number | null
   actionName: string
   sets: number
-  weight: number
+  weightKg: number
 }
 
 /** 训练记录 */
 interface TrainingRecord {
   id?: number
-  trainingDate: string
+  recordDate: string
   trainingType: string
   trainingTypeLabel?: string
   startTime: string | null
   endTime: string | null
   durationMinutes: number | null
   note: string
-  actions: ActionItem[]
+  details: ActionItem[]
 }
 
 /** 计划训练日 */
@@ -459,20 +458,20 @@ const dateShortcuts = [
 
 // ==================== 训练表单 ====================
 
-const defaultActions = (): ActionItem[] => [{ actionId: null, actionName: '', sets: 3, weight: 0 }]
+const defaultActions = (): ActionItem[] => [{ actionId: null, actionName: '', sets: 3, weightKg: 0 }]
 
 const trainingForm = reactive({
-  trainingDate: getTodayStr(),
+  recordDate: getTodayStr(),
   trainingType: '',
   startTime: null as string | null,
   endTime: null as string | null,
   durationMinutes: null as number | null,
   note: '',
-  actions: defaultActions()
+  details: defaultActions()
 })
 
 const trainingRules: FormRules = {
-  trainingDate: [{ required: true, message: '请选择训练日期', trigger: 'blur' }],
+  recordDate: [{ required: true, message: '请选择训练日期', trigger: 'blur' }],
   trainingType: [{ required: true, message: '请选择训练类型', trigger: 'change' }]
 }
 
@@ -553,10 +552,12 @@ async function fetchCalendar() {
   calendarLoading.value = true
   try {
     const year = calendarYear.value
-    // 加载全年数据
+    // 并行加载全年12个月的数据
+    const results = await Promise.all(
+      Array.from({ length: 12 }, (_, i) => getCalendar(year, i + 1))
+    ) as any[]
     const allData: [string, number][] = []
-    for (let month = 1; month <= 12; month++) {
-      const res = await getCalendar(year, month) as any
+    for (const res of results) {
       const monthData = Array.isArray(res) ? res : res?.records || res?.list || res || []
       monthData.forEach((item: any) => {
         const date = item.date || item.trainingDate || item.calendarDate
@@ -642,22 +643,22 @@ function onActionSelect(val: number | null, index: number) {
   if (val == null) return
   const selected = actionOptions.value.find(opt => opt.value === val)
   if (selected) {
-    trainingForm.actions[index].actionName = selected.label
+    trainingForm.details[index].actionName = selected.label
   }
 }
 
 // ==================== 动作行操作 ====================
 
 function addActionRow() {
-  trainingForm.actions.push({ actionId: null, actionName: '', sets: 3, weight: 0 })
+  trainingForm.details.push({ actionId: null, actionName: '', sets: 3, weightKg: 0 })
 }
 
 function removeActionRow(index: number) {
-  if (trainingForm.actions.length <= 1) {
+  if (trainingForm.details.length <= 1) {
     ElMessage.warning('至少保留一个动作')
     return
   }
-  trainingForm.actions.splice(index, 1)
+  trainingForm.details.splice(index, 1)
 }
 
 // ==================== 弹窗操作 ====================
@@ -669,25 +670,25 @@ function openTrainingDialog(row?: TrainingRecord) {
   if (row) {
     isEditing.value = true
     editingId.value = row.id ?? null
-    trainingForm.trainingDate = row.trainingDate
+    trainingForm.recordDate = row.recordDate
     trainingForm.trainingType = row.trainingType
     trainingForm.startTime = row.startTime || null
     trainingForm.endTime = row.endTime || null
     trainingForm.durationMinutes = row.durationMinutes ?? null
     trainingForm.note = row.note || ''
-    trainingForm.actions = row.actions?.length
-      ? row.actions.map(a => ({ ...a }))
+    trainingForm.details = row.details?.length
+      ? row.details.map(a => ({ ...a }))
       : defaultActions()
   } else {
     isEditing.value = false
     editingId.value = null
-    trainingForm.trainingDate = getTodayStr()
+    trainingForm.recordDate = getTodayStr()
     trainingForm.trainingType = ''
     trainingForm.startTime = null
     trainingForm.endTime = null
     trainingForm.durationMinutes = null
     trainingForm.note = ''
-    trainingForm.actions = defaultActions()
+    trainingForm.details = defaultActions()
   }
   dialogVisible.value = true
 }
@@ -705,11 +706,11 @@ async function handleLoadPlan() {
   // 从已选训练日加载动作
   const day = planDays.value.find(d => d.id === selectedPlanDay.value)
   if (day && day.actions?.length) {
-    trainingForm.actions = day.actions.map(a => ({
+    trainingForm.details = day.actions.map(a => ({
       actionId: a.actionId,
       actionName: a.actionName || '',
       sets: a.sets || 3,
-      weight: a.weight || 0
+      weightKg: a.weightKg || (a as any).weight || 0
     }))
     ElMessage.success(`已从计划加载 ${day.actions.length} 个动作`)
   } else {
@@ -725,18 +726,18 @@ async function handleTrainingSave() {
   if (!valid) return
 
   // 过滤无效动作（未选择动作的行）
-  const validActions = trainingForm.actions.filter(a => a.actionId != null)
+  const validDetails = trainingForm.details.filter(a => a.actionId != null)
 
   saving.value = true
   try {
     const payload = {
-      trainingDate: trainingForm.trainingDate,
+      recordDate: trainingForm.recordDate,
       trainingType: trainingForm.trainingType,
       startTime: trainingForm.startTime,
       endTime: trainingForm.endTime,
       durationMinutes: trainingForm.durationMinutes,
       note: trainingForm.note || undefined,
-      actions: validActions
+      details: validDetails
     }
 
     if (isEditing.value && editingId.value) {

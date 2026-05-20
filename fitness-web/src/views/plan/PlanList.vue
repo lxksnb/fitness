@@ -51,13 +51,13 @@
           >
             <el-card
               shadow="hover"
-              :class="['plan-card', { 'plan-card--active': plan.active }]"
+              :class="['plan-card', { 'plan-card--active': plan.isActive === 1 }]"
               @click="goEdit(plan.id)"
             >
               <!-- 卡片头部：计划名称 + 激活徽章 -->
               <div class="plan-card-header">
                 <h3 class="plan-name">{{ plan.planName }}</h3>
-                <el-tag v-if="plan.active" type="success" size="small" effect="dark">
+                <el-tag v-if="plan.isActive === 1" type="success" size="small" effect="dark">
                   当前计划
                 </el-tag>
               </div>
@@ -78,16 +78,16 @@
                   <el-icon><Calendar /></el-icon>
                   {{ formatDate(plan.createdAt) }}
                 </span>
-                <span class="meta-item" v-if="plan.dayCount">
+                <span class="meta-item" v-if="plan.trainingDays && plan.trainingDays.length > 0">
                   <el-icon><List /></el-icon>
-                  {{ plan.dayCount }} 天
+                  {{ plan.trainingDays.length }} 天
                 </span>
               </div>
 
               <!-- 操作按钮区 -->
               <div class="plan-card-actions" @click.stop>
                 <el-button
-                  v-if="!plan.active"
+                  v-if="plan.isActive !== 1"
                   type="success"
                   plain
                   size="small"
@@ -148,9 +148,9 @@ interface PlanItem {
   planName: string
   planType: string
   splitType: string
-  active: boolean
+  isActive: number
   createdAt: string
-  dayCount?: number
+  trainingDays?: any[]
 }
 
 // ==================== 状态 ====================

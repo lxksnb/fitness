@@ -37,16 +37,16 @@
       <el-table-column label="图片" width="90" align="center">
         <template #default="{ row }">
           <el-image
-            v-if="row.imageUrl"
-            :src="row.imageUrl"
+            v-if="row.imageUrls && row.imageUrls.length > 0"
+            :src="row.imageUrls[0]"
             fit="cover"
             style="width: 50px; height: 50px; border-radius: 4px"
-            :preview-src-list="[row.imageUrl]"
+            :preview-src-list="row.imageUrls"
           />
           <span v-else class="no-image">--</span>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="动作名称" min-width="160" />
+      <el-table-column prop="actionName" label="动作名称" min-width="160" />
       <el-table-column label="适用部位" min-width="200">
         <template #default="{ row }">
           <template v-if="row.suitableFor && row.suitableFor.length > 0">
@@ -187,12 +187,13 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 /** 动作列表项 */
 interface ActionItem {
   id: number
-  name: string
+  actionName: string
   description?: string
-  imageUrl?: string
+  imageUrls?: string[]
   videoUrl?: string
   suitableFor?: string[]
   createdAt?: string
+  scope?: string
 }
 
 /** 部位字典选项 */
@@ -309,10 +310,10 @@ function openDialog(action?: ActionItem) {
   if (action) {
     isEditing.value = true
     editingId.value = action.id
-    form.name = action.name
+    form.name = action.actionName
     form.description = action.description || ''
     form.suitableFor = action.suitableFor || []
-    form.imageUrls = action.imageUrl ? [action.imageUrl] : []
+    form.imageUrls = action.imageUrls || []
     form.videoUrl = action.videoUrl || ''
   } else {
     isEditing.value = false
@@ -345,10 +346,10 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      name: form.name,
+      actionName: form.name,
       description: form.description || undefined,
       suitableFor: form.suitableFor.length > 0 ? form.suitableFor : undefined,
-      imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined,
+      imageUrls: form.imageUrls.length > 0 ? form.imageUrls : undefined,
       videoUrl: form.videoUrl || undefined
     }
 
@@ -373,7 +374,7 @@ async function handleSave() {
 async function handleDelete(action: ActionItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${action.name}"吗？此操作不可撤销。`,
+      `确定要删除"${action.actionName}"吗？此操作不可撤销。`,
       '删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )

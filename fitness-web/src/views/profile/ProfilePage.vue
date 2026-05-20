@@ -153,9 +153,9 @@
             />
           </el-form-item>
 
-          <el-form-item label="每周变化率(kg)" prop="weeklyChange">
+          <el-form-item label="每周变化率(kg)" prop="weeklyChangeRate">
             <el-input-number
-              v-model="profileForm.weeklyChange"
+              v-model="profileForm.weeklyChangeRate"
               :min="0.1"
               :max="5"
               :precision="1"
@@ -189,6 +189,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getProfile, updateProfile } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 
 // ==================== 类型定义 ====================
 
@@ -205,7 +206,7 @@ interface UserProfile {
   targetType: string
   targetWeightKg: number | null
   targetDate: string | null
-  weeklyChange: number | null
+  weeklyChangeRate: number | null
 }
 
 // ==================== 状态 ====================
@@ -235,7 +236,7 @@ const profileForm = reactive<UserProfile>({
   targetType: 'maintain',
   targetWeightKg: null,
   targetDate: null,
-  weeklyChange: null
+  weeklyChangeRate: null
 })
 
 const profileRules: FormRules = {
@@ -267,7 +268,7 @@ async function fetchProfile() {
     profileForm.targetType = data.targetType || 'maintain'
     profileForm.targetWeightKg = data.targetWeightKg ?? null
     profileForm.targetDate = data.targetDate || null
-    profileForm.weeklyChange = data.weeklyChange ?? null
+    profileForm.weeklyChangeRate = data.weeklyChangeRate ?? data.weeklyChange ?? null
   } catch (err: any) {
     error.value = err.message || '数据加载失败，请稍后重试'
   } finally {
@@ -322,18 +323,18 @@ async function handleSave() {
       targetType: profileForm.targetType,
       targetWeightKg: profileForm.targetWeightKg,
       targetDate: profileForm.targetDate,
-      weeklyChange: profileForm.weeklyChange
+      weeklyChangeRate: profileForm.weeklyChangeRate
     }
     await updateProfile(payload)
     ElMessage.success('个人信息已保存')
 
-    // 更新 localStorage 中的昵称和角色
-    if (profileForm.nickname) {
-      localStorage.setItem('nickname', profileForm.nickname)
-    }
-    if (profileForm.role) {
-      localStorage.setItem('role', profileForm.role)
-    }
+    // 同步用户状态到 userStore，使顶部导航栏立即更新
+    const userStore = useUserStore()
+    userStore.setUser({
+      nickname: profileForm.nickname,
+      role: profileForm.role,
+      userId: userStore.userId
+    })
   } catch (err: any) {
     ElMessage.error(err.message || '保存失败，请重试')
   } finally {

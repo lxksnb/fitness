@@ -52,29 +52,29 @@
               {{ formatDate(row.recordDate) }}
             </template>
           </el-table-column>
-          <el-table-column prop="chest" label="胸围(cm)" width="100" sortable>
-            <template #default="{ row }">{{ row.chest || '--' }}</template>
+          <el-table-column prop="chestCm" label="胸围(cm)" width="100" sortable>
+            <template #default="{ row }">{{ row.chestCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="waist" label="腰围(cm)" width="100" sortable>
-            <template #default="{ row }">{{ row.waist || '--' }}</template>
+          <el-table-column prop="waistCm" label="腰围(cm)" width="100" sortable>
+            <template #default="{ row }">{{ row.waistCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="hip" label="臀围(cm)" width="100" sortable>
-            <template #default="{ row }">{{ row.hip || '--' }}</template>
+          <el-table-column prop="hipCm" label="臀围(cm)" width="100" sortable>
+            <template #default="{ row }">{{ row.hipCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="leftArm" label="左臂(cm)" width="100">
-            <template #default="{ row }">{{ row.leftArm || '--' }}</template>
+          <el-table-column prop="leftArmCm" label="左臂(cm)" width="100">
+            <template #default="{ row }">{{ row.leftArmCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="rightArm" label="右臂(cm)" width="100">
-            <template #default="{ row }">{{ row.rightArm || '--' }}</template>
+          <el-table-column prop="rightArmCm" label="右臂(cm)" width="100">
+            <template #default="{ row }">{{ row.rightArmCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="leftThigh" label="左大腿(cm)" width="110">
-            <template #default="{ row }">{{ row.leftThigh || '--' }}</template>
+          <el-table-column prop="leftThighCm" label="左大腿(cm)" width="110">
+            <template #default="{ row }">{{ row.leftThighCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="rightThigh" label="右大腿(cm)" width="110">
-            <template #default="{ row }">{{ row.rightThigh || '--' }}</template>
+          <el-table-column prop="rightThighCm" label="右大腿(cm)" width="110">
+            <template #default="{ row }">{{ row.rightThighCm || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="neck" label="颈围(cm)" width="100">
-            <template #default="{ row }">{{ row.neck || '--' }}</template>
+          <el-table-column prop="neckCm" label="颈围(cm)" width="100">
+            <template #default="{ row }">{{ row.neckCm || '--' }}</template>
           </el-table-column>
           <el-table-column prop="note" label="备注" min-width="150">
             <template #default="{ row }">{{ row.note || '--' }}</template>
@@ -121,7 +121,7 @@
       :close-on-click-modal="false"
       @closed="resetForm"
     >
-      <el-form ref="formRef" :model="form" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="测量日期" prop="recordDate">
           <el-date-picker
             v-model="form.recordDate"
@@ -136,7 +136,7 @@
           <el-col :span="12">
             <el-form-item label="胸围(cm)">
               <el-input-number
-                v-model="form.chest"
+                v-model="form.chestCm"
                 :min="0"
                 :max="200"
                 :precision="1"
@@ -149,7 +149,7 @@
           <el-col :span="12">
             <el-form-item label="腰围(cm)">
               <el-input-number
-                v-model="form.waist"
+                v-model="form.waistCm"
                 :min="0"
                 :max="200"
                 :precision="1"
@@ -164,7 +164,7 @@
           <el-col :span="12">
             <el-form-item label="左臂(cm)">
               <el-input-number
-                v-model="form.leftArm"
+                v-model="form.leftArmCm"
                 :min="0"
                 :max="100"
                 :precision="1"
@@ -177,7 +177,7 @@
           <el-col :span="12">
             <el-form-item label="右臂(cm)">
               <el-input-number
-                v-model="form.rightArm"
+                v-model="form.rightArmCm"
                 :min="0"
                 :max="100"
                 :precision="1"
@@ -192,7 +192,7 @@
           <el-col :span="12">
             <el-form-item label="左大腿(cm)">
               <el-input-number
-                v-model="form.leftThigh"
+                v-model="form.leftThighCm"
                 :min="0"
                 :max="100"
                 :precision="1"
@@ -205,7 +205,7 @@
           <el-col :span="12">
             <el-form-item label="右大腿(cm)">
               <el-input-number
-                v-model="form.rightThigh"
+                v-model="form.rightThighCm"
                 :min="0"
                 :max="100"
                 :precision="1"
@@ -220,7 +220,7 @@
           <el-col :span="12">
             <el-form-item label="臀围(cm)">
               <el-input-number
-                v-model="form.hip"
+                v-model="form.hipCm"
                 :min="0"
                 :max="200"
                 :precision="1"
@@ -233,7 +233,7 @@
           <el-col :span="12">
             <el-form-item label="颈围(cm)">
               <el-input-number
-                v-model="form.neck"
+                v-model="form.neckCm"
                 :min="0"
                 :max="100"
                 :precision="1"
@@ -272,7 +272,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import { getMeasurements, saveMeasurement } from '@/api/measurement'
 import VChart from 'vue-echarts'
 import 'echarts'
@@ -283,14 +283,14 @@ import 'echarts'
 interface MeasurementRecord {
   id?: number
   recordDate: string
-  chest: number | null
-  waist: number | null
-  leftArm: number | null
-  rightArm: number | null
-  leftThigh: number | null
-  rightThigh: number | null
-  hip: number | null
-  neck: number | null
+  chestCm: number | null
+  waistCm: number | null
+  leftArmCm: number | null
+  rightArmCm: number | null
+  leftThighCm: number | null
+  rightThighCm: number | null
+  hipCm: number | null
+  neckCm: number | null
   note: string
 }
 
@@ -304,14 +304,14 @@ interface MeasureField {
 }
 
 const measureFields = ref<MeasureField[]>([
-  { key: 'chest', label: '胸围', visible: true, color: '#f56c6c' },
-  { key: 'waist', label: '腰围', visible: true, color: '#409eff' },
-  { key: 'hip', label: '臀围', visible: true, color: '#67c23a' },
-  { key: 'leftArm', label: '左臂', visible: false, color: '#e6a23c' },
-  { key: 'rightArm', label: '右臂', visible: false, color: '#e6a23c' },
-  { key: 'leftThigh', label: '左大腿', visible: false, color: '#909399' },
-  { key: 'rightThigh', label: '右大腿', visible: false, color: '#909399' },
-  { key: 'neck', label: '颈围', visible: false, color: '#c0c4cc' }
+  { key: 'chestCm', label: '胸围', visible: true, color: '#f56c6c' },
+  { key: 'waistCm', label: '腰围', visible: true, color: '#409eff' },
+  { key: 'hipCm', label: '臀围', visible: true, color: '#67c23a' },
+  { key: 'leftArmCm', label: '左臂', visible: false, color: '#e6a23c' },
+  { key: 'rightArmCm', label: '右臂', visible: false, color: '#e6a23c' },
+  { key: 'leftThighCm', label: '左大腿', visible: false, color: '#909399' },
+  { key: 'rightThighCm', label: '右大腿', visible: false, color: '#909399' },
+  { key: 'neckCm', label: '颈围', visible: false, color: '#c0c4cc' }
 ])
 
 // ==================== 状态 ====================
@@ -354,16 +354,20 @@ const dateShortcuts = [
 
 const form = reactive({
   recordDate: getTodayStr(),
-  chest: null as number | null,
-  waist: null as number | null,
-  leftArm: null as number | null,
-  rightArm: null as number | null,
-  leftThigh: null as number | null,
-  rightThigh: null as number | null,
-  hip: null as number | null,
-  neck: null as number | null,
+  chestCm: null as number | null,
+  waistCm: null as number | null,
+  leftArmCm: null as number | null,
+  rightArmCm: null as number | null,
+  leftThighCm: null as number | null,
+  rightThighCm: null as number | null,
+  hipCm: null as number | null,
+  neckCm: null as number | null,
   note: ''
 })
+
+const formRules: FormRules = {
+  recordDate: [{ required: true, message: '请选择测量日期', trigger: 'blur' }]
+}
 
 // ==================== 工具函数 ====================
 
@@ -474,26 +478,26 @@ function openDialog(row?: MeasurementRecord) {
   if (row) {
     isEditing.value = true
     form.recordDate = row.recordDate
-    form.chest = row.chest
-    form.waist = row.waist
-    form.leftArm = row.leftArm
-    form.rightArm = row.rightArm
-    form.leftThigh = row.leftThigh
-    form.rightThigh = row.rightThigh
-    form.hip = row.hip
-    form.neck = row.neck
+    form.chestCm = row.chestCm
+    form.waistCm = row.waistCm
+    form.leftArmCm = row.leftArmCm
+    form.rightArmCm = row.rightArmCm
+    form.leftThighCm = row.leftThighCm
+    form.rightThighCm = row.rightThighCm
+    form.hipCm = row.hipCm
+    form.neckCm = row.neckCm
     form.note = row.note || ''
   } else {
     isEditing.value = false
     form.recordDate = getTodayStr()
-    form.chest = null
-    form.waist = null
-    form.leftArm = null
-    form.rightArm = null
-    form.leftThigh = null
-    form.rightThigh = null
-    form.hip = null
-    form.neck = null
+    form.chestCm = null
+    form.waistCm = null
+    form.leftArmCm = null
+    form.rightArmCm = null
+    form.leftThighCm = null
+    form.rightThighCm = null
+    form.hipCm = null
+    form.neckCm = null
     form.note = ''
   }
   dialogVisible.value = true
@@ -508,7 +512,7 @@ async function handleSave() {
   try {
     const payload: any = { recordDate: form.recordDate }
     // 只传有值的字段
-    const fieldKeys = ['chest', 'waist', 'leftArm', 'rightArm', 'leftThigh', 'rightThigh', 'hip', 'neck']
+    const fieldKeys = ['chestCm', 'waistCm', 'leftArmCm', 'rightArmCm', 'leftThighCm', 'rightThighCm', 'hipCm', 'neckCm']
     fieldKeys.forEach(key => {
       const val = (form as any)[key]
       if (val != null) payload[key] = val

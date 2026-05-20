@@ -127,14 +127,14 @@
           </div>
         </template>
         <el-table v-if="waterRecords.length > 0" :data="waterRecords" stripe border style="width: 100%" size="small">
-          <el-table-column prop="time" label="时间" width="120">
+          <el-table-column prop="recordedAt" label="时间" width="120">
             <template #default="{ row }">
-              {{ row.time || row.createTime || '--' }}
+              {{ row.recordedAt || '--' }}
             </template>
           </el-table-column>
           <el-table-column label="水量" width="120" sortable>
             <template #default="{ row }">
-              <span class="amount-cell">{{ row.amountMl || row.amount }} ml</span>
+              <span class="amount-cell">{{ row.amountMl }} ml</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="80" fixed="right">
@@ -171,10 +171,8 @@ import { getTodayWater, getWaterList, saveWater } from '@/api/water'
 /** 饮水记录 */
 interface WaterRecord {
   id?: number
-  time: string
-  createTime?: string
+  recordedAt: string
   amountMl?: number
-  amount?: number
 }
 
 // ==================== 状态 ====================
@@ -270,9 +268,8 @@ async function quickAdd(amountMl: number) {
   adding.value = true
   try {
     await saveWater({
-      date: selectedDate.value,
-      amountMl,
-      amount: amountMl
+      recordDate: selectedDate.value,
+      amountMl
     })
     // 乐观更新
     currentMl.value += amountMl
@@ -280,7 +277,7 @@ async function quickAdd(amountMl: number) {
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
     waterRecords.value.unshift({
       id: Date.now(),
-      time: timeStr,
+      recordedAt: timeStr,
       amountMl
     })
     ElMessage.success(`已添加 ${amountMl}ml 饮水`)
@@ -299,7 +296,7 @@ async function handleDeleteRecord(id: number) {
     await saveWater({ id, delete: true })
     waterRecords.value = waterRecords.value.filter(r => r.id !== id)
     // 重新计算总量
-    currentMl.value = waterRecords.value.reduce((sum, r) => sum + (r.amountMl || r.amount || 0), 0)
+    currentMl.value = waterRecords.value.reduce((sum, r) => sum + (r.amountMl || 0), 0)
     ElMessage.success('记录已删除')
   } catch (err: any) {
     ElMessage.error(err.message || '删除失败，请重试')

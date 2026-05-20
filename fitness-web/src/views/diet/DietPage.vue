@@ -365,7 +365,7 @@ function mealTagType(type: string): string {
   const map: Record<string, string> = {
     breakfast: 'success',
     lunch: 'warning',
-    dinner: '',
+    dinner: 'danger',
     snack: 'info'
   }
   return map[type] || ''
@@ -418,7 +418,10 @@ async function searchFoodsRemote(keyword: string) {
   foodSearchLoading.value = true
   try {
     const res = await searchFoods(keyword) as any
-    foodOptions.value = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as FoodOption[]
+    foodOptions.value = (Array.isArray(res) ? res : (res?.records || res?.list || [])).map((item: any) => ({
+      id: item.id,
+      name: item.foodName || item.name
+    }))
   } catch {
     foodOptions.value = []
   } finally {
@@ -438,11 +441,11 @@ async function onFoodSelected(foodId: number | null) {
     const res = await getFoodDetail(foodId) as any
     selectedFoodDetail.value = res
     // 提取营养单位列表
-    const units = res?.nutritionEntries || res?.units || []
+    const units = res?.nutritions || res?.nutritionEntries || res?.units || []
     foodUnits.value = Array.isArray(units) ? units : []
 
     // 填充食物名称
-    form.foodName = res?.name || form.foodName
+    form.foodName = res?.foodName || res?.name || form.foodName
 
     // 如果只有一个单位，自动选择
     if (foodUnits.value.length === 1) {
@@ -520,7 +523,7 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      date: selectedDate.value,
+      recordDate: selectedDate.value,
       mealType: form.mealType,
       foodName: form.foodName,
       carbGrams: form.carbGrams,
