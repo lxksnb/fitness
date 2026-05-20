@@ -207,10 +207,11 @@
                         filterable
                         remote
                         reserve-keyword
-                        placeholder="搜索动作名称"
+                        placeholder="搜索或选择动作"
                         :remote-method="(kw: string) => searchActionsRemote(kw)"
                         :loading="actionSearchLoading"
                         style="width: 100%"
+                        @visible-change="(visible: boolean) => { if (visible) searchActionsRemote('') }"
                         @update:model-value="(val: number) => onActionSelect(val, dayIndex, $index)"
                         @change="(val: number) => onActionSelect(val, dayIndex, $index)"
                       >
@@ -894,13 +895,11 @@ const actionSearchResults = ref<any[]>([])
 const actionSearchLoading = ref(false)
 
 async function searchActionsRemote(keyword: string) {
-  if (!keyword || keyword.trim().length === 0) {
-    actionSearchResults.value = []
-    return
-  }
   actionSearchLoading.value = true
   try {
-    const res = await searchActions(keyword.trim()) as any
+    // 空关键词时加载全部动作(下拉选择), 有关键词时远程搜索
+    const kw = keyword?.trim() || ''
+    const res = await searchActions(kw || undefined) as any
     actionSearchResults.value = Array.isArray(res) ? res : (res?.records || res?.list || [])
   } catch {
     actionSearchResults.value = []
