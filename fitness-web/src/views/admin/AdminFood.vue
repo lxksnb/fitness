@@ -142,29 +142,38 @@
           </div>
 
           <el-row :gutter="12">
+            <el-col :span="12">
+              <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
+                <el-select v-model="entry.unitType" placeholder="选择单位" style="width: 100%">
+                  <el-option
+                    v-for="item in unitTypeOptions"
+                    :key="item.dictValue"
+                    :label="item.dictLabel"
+                    :value="item.dictLabel"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
             <el-col :span="8">
-              <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
-                <el-input v-model="entry.unitType" placeholder="如：每100g" />
+              <el-form-item label="单位重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
+                <el-input-number v-model="entry.servingWeightG" :min="1" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="4">
-              <el-form-item label="重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
-                <el-input-number v-model="entry.servingWeightG" :min="1" controls-position="right" style="width: 100%" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
+          </el-row>
+          <el-row :gutter="12">
+            <el-col :span="6">
               <el-form-item label="碳水(g)">
-                <el-input-number v-model="entry.carbGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
+                <el-input-number v-model="entry.carbGrams" :min="0" :precision="1" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="6">
               <el-form-item label="蛋白(g)">
-                <el-input-number v-model="entry.proteinGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
+                <el-input-number v-model="entry.proteinGrams" :min="0" :precision="1" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="6">
               <el-form-item label="脂肪(g)">
-                <el-input-number v-model="entry.fatGrams" :min="0" :precision="1" controls-position="right" style="width: 100%" />
+                <el-input-number v-model="entry.fatGrams" :min="0" :precision="1" style="width: 100%" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -206,6 +215,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getAdminFoods, createAdminFood, updateAdminFood, deleteAdminFood } from '@/api/admin'
+import { getDict } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
 // ==================== 类型定义 ====================
@@ -254,6 +264,9 @@ const total = ref(0)
 
 /** 表格数据 */
 const tableData = ref<FoodItem[]>([])
+
+/** 单位类型下拉选项（从字典 food_unit_type 加载） */
+const unitTypeOptions = ref<Array<{ dictLabel: string; dictValue: string }>>([])
 
 // ==================== 表单 ====================
 
@@ -456,10 +469,23 @@ async function handleDelete(food: FoodItem) {
   }
 }
 
+// ==================== 字典数据 ====================
+
+/** 加载食物单位类型字典 */
+async function loadUnitTypeOptions() {
+  try {
+    const res = await getDict('food_unit_type') as any
+    unitTypeOptions.value = Array.isArray(res) ? res : []
+  } catch {
+    unitTypeOptions.value = []
+  }
+}
+
 // ==================== 生命周期 ====================
 
 onMounted(() => {
   fetchList()
+  loadUnitTypeOptions()
 })
 </script>
 
