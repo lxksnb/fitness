@@ -208,10 +208,10 @@
                         remote
                         reserve-keyword
                         placeholder="搜索或选择动作"
-                        :remote-method="(kw: string) => searchActionsRemote(kw)"
+                        :remote-method="(kw: string) => searchActionsRemote(kw, dayIndex)"
                         :loading="actionSearchLoading"
                         style="width: 100%"
-                        @visible-change="(visible: boolean) => { if (visible) searchActionsRemote('') }"
+                        @visible-change="(visible: boolean) => { if (visible) searchActionsRemote('', dayIndex) }"
                         @update:model-value="(val: number) => onActionSelect(val, dayIndex, $index)"
                         @change="(val: number) => onActionSelect(val, dayIndex, $index)"
                       >
@@ -894,12 +894,13 @@ const isRestRatioValid = computed(() =>
 const actionSearchResults = ref<any[]>([])
 const actionSearchLoading = ref(false)
 
-async function searchActionsRemote(keyword: string) {
+async function searchActionsRemote(keyword: string, dayIndex?: number) {
   actionSearchLoading.value = true
   try {
-    // 空关键词时加载全部动作(下拉选择), 有关键词时远程搜索
+    // 获取当前训练日的训练部位, 用于过滤动作
+    const trainingType = dayIndex !== undefined ? formData.trainingDays[dayIndex]?.trainingType : undefined
     const kw = keyword?.trim() || ''
-    const res = await searchActions(kw || undefined) as any
+    const res = await searchActions(kw || undefined, trainingType || undefined) as any
     actionSearchResults.value = Array.isArray(res) ? res : (res?.records || res?.list || [])
   } catch {
     actionSearchResults.value = []
