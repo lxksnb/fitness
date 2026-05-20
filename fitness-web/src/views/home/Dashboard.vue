@@ -10,7 +10,7 @@
         </h2>
         <p v-if="dashboard?.targetCalories" class="welcome-sub">
           <span class="welcome-target">
-            <i class="welcome-dot" /> 今日目标 {{ dashboard.targetCalories }} kcal
+            <i class="welcome-dot" /> 今日目标 {{ formatNum(dashboard.targetCalories, 0) }} kcal
           </span>
           <template v-if="dashboard.targetCarb">
             <span class="welcome-sep">|</span>
@@ -171,9 +171,7 @@
           <template v-if="weightChartOption">
             <v-chart :option="weightChartOption" style="height: 320px" autoresize />
           </template>
-          <el-empty v-else description="暂无体重数据，快去记录吧" :image-size="120">
-            <el-button type="primary" size="small" @click="$router.push('/weight')">记录体重</el-button>
-          </el-empty>
+          <el-empty v-else description="暂无体重数据，请先记录体重" :image-size="80" />
         </div>
       </div>
 
@@ -228,8 +226,21 @@
               >
                 已完成
               </span>
+              <span
+                v-else-if="dashboard.scheduledDayType === 'REST'"
+                class="section-badge section-badge--green"
+              >
+                休息日
+              </span>
+              <span
+                v-else-if="dashboard.scheduledTrainingType"
+                class="section-badge section-badge--blue"
+              >
+                今日计划
+              </span>
             </div>
             <div class="section-body">
+              <!-- 有训练记录 -->
               <template v-if="dashboard.todayTraining">
                 <div class="training-detail">
                   <div class="training-type-row">
@@ -252,6 +263,7 @@
                   </div>
                 </div>
               </template>
+              <!-- 有训练类型但无记录 -->
               <template v-else-if="dashboard.todayTrainingType">
                 <div class="training-detail">
                   <div class="training-type-row">
@@ -261,6 +273,28 @@
                   </div>
                 </div>
               </template>
+              <!-- 计划中的训练日但未记录 -->
+              <template v-else-if="dashboard.scheduledTrainingType">
+                <div class="training-detail">
+                  <div class="training-type-row">
+                    <span class="training-plan-label">今日计划：</span>
+                    <el-tag type="warning" size="default" effect="dark">
+                      {{ dashboard.scheduledTrainingType }}
+                    </el-tag>
+                  </div>
+                </div>
+              </template>
+              <!-- 休息日 -->
+              <template v-else-if="dashboard.scheduledDayType === 'REST'">
+                <div class="training-detail">
+                  <div class="training-type-row">
+                    <el-tag type="success" size="default" effect="dark">
+                      今日休息
+                    </el-tag>
+                  </div>
+                </div>
+              </template>
+              <!-- 无计划也无记录 -->
               <el-empty v-else description="今日暂无训练" :image-size="80" />
               <div class="card-action">
                 <el-button type="primary" size="small" @click="$router.push('/training')">
@@ -361,6 +395,10 @@ interface DashboardData {
   waterTarget: number
   streakDays: number
   todayTrainingType: string | null
+  scheduledTrainingType: string | null
+  scheduledDayType: string | null
+  scheduledDayOrder: number | null
+  totalPlanDays: number | null
   weightTrend: WeightTrendItem[]
   todayDietRecords: DietRecordItem[]
   todayTraining: TrainingItem | null
@@ -477,11 +515,12 @@ const statCards = computed(() => {
     },
     {
       label: '今日训练',
-      value: d.todayTrainingType || (d.todayTraining ? '已完成' : '暂无'),
+      value: d.todayTrainingType || d.scheduledTrainingType
+        || (d.scheduledDayType === 'REST' ? '休息日' : '暂无计划'),
       sub: d.todayTraining?.durationMinutes
         ? `${d.todayTraining.durationMinutes} 分钟`
-        : (d.todayTrainingType ? '查看详情' : '未训练'),
-      color: d.todayTrainingType || d.todayTraining ? '#4da6ff' : '#5c6068',
+        : (d.scheduledTrainingType ? '计划训练' : (d.todayTrainingType ? '已完成' : '')),
+      color: d.todayTrainingType || d.scheduledTrainingType ? '#4da6ff' : '#5c6068',
       theme: 'training',
       icon: CARD_THEMES.training.icon,
       glow: CARD_THEMES.training.glow
@@ -1032,6 +1071,11 @@ onMounted(() => {
     color: #4da6ff;
     background: rgba(77, 166, 255, 0.1);
   }
+
+  &--green {
+    color: #3fb950;
+    background: rgba(63, 185, 80, 0.1);
+  }
 }
 
 .section-body {
@@ -1181,6 +1225,14 @@ onMounted(() => {
 
 .training-type-row {
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.training-plan-label {
+  font-size: 13px;
+  color: #9ca0a8;
 }
 
 .training-meta {

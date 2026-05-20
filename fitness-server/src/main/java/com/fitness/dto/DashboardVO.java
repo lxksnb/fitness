@@ -55,6 +55,18 @@ public class DashboardVO {
     /** 今日训练类型 */
     private String todayTrainingType;
 
+    /** 计划中今日排定的训练类型(如CHEST) */
+    private String scheduledTrainingType;
+
+    /** 计划中今日排定的日类型(TRAINING/REST) */
+    private String scheduledDayType;
+
+    /** 计划中今日排定的天序号 */
+    private Integer scheduledDayOrder;
+
+    /** 计划总天数 */
+    private Integer totalPlanDays;
+
     /** 体重趋势数据(近30天) */
     private List<WeightTrendVO> weightTrend;
 
@@ -184,6 +196,38 @@ public class DashboardVO {
 
     public void setTodayTrainingType(String todayTrainingType) {
         this.todayTrainingType = todayTrainingType;
+    }
+
+    public String getScheduledTrainingType() {
+        return scheduledTrainingType;
+    }
+
+    public void setScheduledTrainingType(String scheduledTrainingType) {
+        this.scheduledTrainingType = scheduledTrainingType;
+    }
+
+    public String getScheduledDayType() {
+        return scheduledDayType;
+    }
+
+    public void setScheduledDayType(String scheduledDayType) {
+        this.scheduledDayType = scheduledDayType;
+    }
+
+    public Integer getScheduledDayOrder() {
+        return scheduledDayOrder;
+    }
+
+    public void setScheduledDayOrder(Integer scheduledDayOrder) {
+        this.scheduledDayOrder = scheduledDayOrder;
+    }
+
+    public Integer getTotalPlanDays() {
+        return totalPlanDays;
+    }
+
+    public void setTotalPlanDays(Integer totalPlanDays) {
+        this.totalPlanDays = totalPlanDays;
     }
 
     public List<WeightTrendVO> getWeightTrend() {

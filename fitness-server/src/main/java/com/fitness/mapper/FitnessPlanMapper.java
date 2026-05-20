@@ -13,4 +13,5 @@ public interface FitnessPlanMapper {
     int updateById(FitnessPlan plan);
     int deleteById(Long id);
     int deactivateByUser(Long userId);
+    int activateById(Long id);
 }

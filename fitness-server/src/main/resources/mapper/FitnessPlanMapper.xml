@@ -9,6 +9,7 @@
         <result column="plan_type" property="planType"/>
         <result column="split_type" property="splitType"/>
         <result column="is_active" property="isActive"/>
+        <result column="activated_at" property="activatedAt"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -35,5 +36,8 @@
     </delete>
     <update id="deactivateByUser">
         UPDATE fitness_plan SET is_active = 0 WHERE user_id = #{userId}
+    </update>
+    <update id="activateById">
+        UPDATE fitness_plan SET is_active = 1, activated_at = NOW() WHERE id = #{id}
     </update>
 </mapper>

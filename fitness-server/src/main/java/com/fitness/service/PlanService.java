@@ -192,10 +192,9 @@ public class PlanService {
         if (plan == null || !plan.getUserId().equals(userId)) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
-        // 先将该用户所有计划设为未激活
+        // 先将该用户所有计划设为未激活, 再激活指定计划(同时记录激活时间)
         planMapper.deactivateByUser(userId);
-        plan.setIsActive(1);
-        planMapper.updateById(plan);
+        planMapper.activateById(id);
     }
 
     /**

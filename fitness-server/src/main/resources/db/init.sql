@@ -125,6 +125,7 @@ CREATE TABLE fitness_plan (
     plan_type VARCHAR(20) NOT NULL COMMENT '计划目标: CUT减脂 / BULK增肌 / MAINTAIN维持',
     split_type VARCHAR(50) NOT NULL COMMENT '分化类型: FULL_BODY全身 / THREE_DAY三分化 / FOUR_DAY四分化 / FIVE_DAY五分化 / PUSH_PULL_LEGS推拉腿 / CUSTOM自定义',
     is_active TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否激活: 1激活 / 0未激活, 同一用户同时只能激活一个计划',
+    activated_at DATETIME COMMENT '计划激活时间, 用于计算训练日轮换',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (user_id) REFERENCES sys_user(id)

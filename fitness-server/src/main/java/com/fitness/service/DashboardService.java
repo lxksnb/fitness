@@ -108,7 +108,21 @@ public class DashboardService {
             }
         }
 
-        // ---- 5. 今日训练 ----
+        // ---- 5. 今日训练(基于计划轮换) ----
+        if (activePlan != null) {
+            // 根据计划激活日期计算今天应该是第几天
+            List<PlanTrainingDay> days = dayMapper.selectByPlanId(activePlan.getId());
+            if (days != null && !days.isEmpty()) {
+                int todayDayIndex = calcTodayDayIndex(activePlan.getActivatedAt(), days.size());
+                PlanTrainingDay todayDay = days.get(todayDayIndex);
+                vo.setScheduledTrainingType(todayDay.getTrainingType());
+                vo.setScheduledDayType(todayDay.getDayType());
+                vo.setScheduledDayOrder(todayDay.getDayOrder());
+                vo.setTotalPlanDays(days.size());
+            }
+        }
+
+        // 查询今日已完成的训练记录（覆盖计划信息）
         List<TrainingRecord> todayTraining = trainMapper.selectByUserAndDate(userId, today);
         if (todayTraining != null && !todayTraining.isEmpty()) {
             vo.setTodayTrainingType(todayTraining.get(0).getTrainingType());
@@ -173,6 +187,21 @@ public class DashboardService {
         }
 
         return streak;
+    }
+
+    /**
+     * 根据激活日期和总天数计算今天对应的训练日索引
+     * 轮换规则: (今天 - 激活日) % 总天数 得到0-based索引
+     *
+     * @param activatedAt 计划激活时间
+     * @param totalDays 计划总天数
+     * @return 今天对应的训练日索引(0-based)
+     */
+    private int calcTodayDayIndex(Date activatedAt, int totalDays) {
+        if (activatedAt == null || totalDays <= 0) return 0;
+        long diffDays = (System.currentTimeMillis() - activatedAt.getTime()) / (24 * 60 * 60 * 1000);
+        int index = (int) (diffDays % totalDays);
+        return Math.max(0, Math.min(index, totalDays - 1));
     }
 
     /**
