@@ -81,6 +81,7 @@
           <el-menu-item index="/admin/actions">动作库管理</el-menu-item>
           <el-menu-item index="/admin/templates">模板管理</el-menu-item>
           <el-menu-item index="/admin/users">用户管理</el-menu-item>
+          <el-menu-item index="/admin/dict">字典管理</el-menu-item>
         </el-sub-menu>
       </template>
     </el-menu>

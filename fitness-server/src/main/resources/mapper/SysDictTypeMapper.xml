@@ -24,4 +24,7 @@
         UPDATE sys_dict_type SET dict_code = #{dictCode}, dict_name = #{dictName}, status = #{status}
         WHERE id = #{id}
     </update>
+    <delete id="deleteById">
+        DELETE FROM sys_dict_type WHERE id = #{id}
+    </delete>
 </mapper>

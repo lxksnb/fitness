@@ -43,7 +43,8 @@ const router = createRouter({
         { path: 'admin/foods', name: 'AdminFoods', component: () => import('@/views/admin/AdminFood.vue'), meta: { admin: true } },
         { path: 'admin/actions', name: 'AdminActions', component: () => import('@/views/admin/AdminAction.vue'), meta: { admin: true } },
         { path: 'admin/templates', name: 'AdminTemplates', component: () => import('@/views/admin/AdminTemplate.vue'), meta: { admin: true } },
-        { path: 'admin/users', name: 'AdminUsers', component: () => import('@/views/admin/AdminUsers.vue'), meta: { admin: true } }
+        { path: 'admin/users', name: 'AdminUsers', component: () => import('@/views/admin/AdminUsers.vue'), meta: { admin: true } },
+        { path: 'admin/dict', name: 'AdminDict', component: () => import('@/views/admin/AdminDict.vue'), meta: { admin: true } }
       ]
     }
   ]

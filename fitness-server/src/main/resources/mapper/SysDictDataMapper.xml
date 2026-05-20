@@ -29,4 +29,7 @@
         UPDATE sys_dict_data SET dict_label = #{dictLabel}, dict_value = #{dictValue}, sort = #{sort}, status = #{status}
         WHERE id = #{id}
     </update>
+    <delete id="deleteById">
+        DELETE FROM sys_dict_data WHERE id = #{id}
+    </delete>
 </mapper>

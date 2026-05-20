@@ -10,4 +10,5 @@ public interface SysDictTypeMapper {
     List<SysDictType> selectAll();
     int insert(SysDictType dictType);
     int updateById(SysDictType dictType);
+    int deleteById(Long id);
 }

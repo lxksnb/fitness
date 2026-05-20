@@ -79,3 +79,45 @@ export function getAdminUsers(params?: { keyword?: string }) {
 export function updateUserStatus(id: number, status: 'ACTIVE' | 'DISABLED') {
   return request.put(`/admin/users/${id}/status`, null, { params: { status } })
 }
+
+// ---------- 字典管理 ----------
+
+/** 获取所有字典类型 */
+export function getDictTypes() {
+  return request.get('/admin/dict/types')
+}
+
+/** 新增字典类型 */
+export function createDictType(data: any) {
+  return request.post('/admin/dict/types', data)
+}
+
+/** 更新字典类型 */
+export function updateDictType(id: number, data: any) {
+  return request.put(`/admin/dict/types/${id}`, data)
+}
+
+/** 删除字典类型 */
+export function deleteDictType(id: number) {
+  return request.delete(`/admin/dict/types/${id}`)
+}
+
+/** 获取字典数据 */
+export function getDictData(typeId: number) {
+  return request.get(`/admin/dict/types/${typeId}/data`)
+}
+
+/** 新增字典数据 */
+export function createDictData(typeId: number, data: any) {
+  return request.post(`/admin/dict/types/${typeId}/data`, data)
+}
+
+/** 更新字典数据 */
+export function updateDictData(id: number, data: any) {
+  return request.put(`/admin/dict/data/${id}`, data)
+}
+
+/** 删除字典数据 */
+export function deleteDictData(id: number) {
+  return request.delete(`/admin/dict/data/${id}`)
+}

@@ -332,18 +332,23 @@ function getSuitableLabel(code: string): string {
 /** 获取适用部位字典 */
 async function fetchSuitableOptions() {
   try {
-    const res = await getDict('suitable_for') as any
-    suitableOptions.value = Array.isArray(res) ? res : (res?.list || res?.records || [])
+    const res = await getDict('training_type') as any
+    const list: any[] = Array.isArray(res) ? res : (res?.list || res?.records || [])
+    // 字典API返回 { dictLabel, dictValue }，映射为 { code, name }
+    suitableOptions.value = list.map((item: any) => ({
+      code: item.dictValue,
+      name: item.dictLabel
+    }))
   } catch {
     // 默认部位选项兜底
     suitableOptions.value = [
-      { code: 'chest', name: '胸部' },
-      { code: 'back', name: '背部' },
-      { code: 'legs', name: '腿部' },
-      { code: 'shoulders', name: '肩部' },
-      { code: 'arms', name: '手臂' },
-      { code: 'core', name: '核心' },
-      { code: 'full_body', name: '全身' }
+      { code: 'CHEST', name: '练胸' },
+      { code: 'BACK', name: '练背' },
+      { code: 'LEGS', name: '练腿' },
+      { code: 'SHOULDERS', name: '练肩' },
+      { code: 'ARMS', name: '练手臂' },
+      { code: 'CORE', name: '核心' },
+      { code: 'CARDIO', name: '有氧' }
     ]
   }
 }
