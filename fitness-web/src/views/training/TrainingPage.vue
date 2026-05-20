@@ -191,8 +191,8 @@
               <el-time-picker
                 v-model="trainingForm.startTime"
                 placeholder="开始时间"
-                format="HH:mm"
-                value-format="HH:mm"
+                format="HH:mm:00"
+                value-format="HH:mm:00"
                 style="width: 100%"
               />
             </el-form-item>
@@ -202,8 +202,8 @@
               <el-time-picker
                 v-model="trainingForm.endTime"
                 placeholder="结束时间"
-                format="HH:mm"
-                value-format="HH:mm"
+                format="HH:mm:00"
+                value-format="HH:mm:00"
                 style="width: 100%"
               />
             </el-form-item>
