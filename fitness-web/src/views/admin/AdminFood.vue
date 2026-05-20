@@ -141,10 +141,10 @@
             </el-button>
           </div>
 
-          <el-row :gutter="12">
+          <el-row :gutter="16" style="margin-bottom: 8px">
             <el-col :span="12">
-              <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
-                <el-select v-model="entry.unitType" placeholder="选择单位" style="width: 100%">
+              <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '请选择', trigger: 'change' }]" style="margin-bottom: 0">
+                <el-select v-model="entry.unitType" placeholder="选择单位类型" style="width: 100%" @change="onUnitTypeChange(index)">
                   <el-option
                     v-for="item in unitTypeOptions"
                     :key="item.dictValue"
@@ -154,26 +154,26 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
-              <el-form-item label="单位重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]">
-                <el-input-number v-model="entry.servingWeightG" :min="1" style="width: 100%" />
+            <el-col :span="10" v-if="entry.unitType !== '每100g'">
+              <el-form-item label="单位重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]" style="margin-bottom: 0">
+                <el-input-number v-model="entry.servingWeightG" :min="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="12">
-            <el-col :span="6">
-              <el-form-item label="碳水(g)">
-                <el-input-number v-model="entry.carbGrams" :min="0" :precision="1" style="width: 100%" />
+          <el-row :gutter="16">
+            <el-col :span="7">
+              <el-form-item label="碳水(g)" style="margin-bottom: 0">
+                <el-input-number v-model="entry.carbGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="6">
-              <el-form-item label="蛋白(g)">
-                <el-input-number v-model="entry.proteinGrams" :min="0" :precision="1" style="width: 100%" />
+            <el-col :span="7">
+              <el-form-item label="蛋白(g)" style="margin-bottom: 0">
+                <el-input-number v-model="entry.proteinGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
-            <el-col :span="6">
-              <el-form-item label="脂肪(g)">
-                <el-input-number v-model="entry.fatGrams" :min="0" :precision="1" style="width: 100%" />
+            <el-col :span="7">
+              <el-form-item label="脂肪(g)" style="margin-bottom: 0">
+                <el-input-number v-model="entry.fatGrams" :min="0" :precision="1" :controls="false" style="width: 100%" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -336,7 +336,7 @@ async function fetchList() {
 /** 添加营养单位行 */
 function addNutritionEntry() {
   form.nutritionEntries.push({
-    unitType: `每份(${form.nutritionEntries.length + 1})`,
+    unitType: '每100g',
     servingWeightG: 100,
     carbGrams: 0,
     proteinGrams: 0,
@@ -352,6 +352,13 @@ function removeNutritionEntry(index: number) {
     return
   }
   form.nutritionEntries.splice(index, 1)
+}
+
+/** 单位类型变更: 选"每100g"时自动固定重量为100并隐藏输入框 */
+function onUnitTypeChange(index: number) {
+  if (form.nutritionEntries[index].unitType === '每100g') {
+    form.nutritionEntries[index].servingWeightG = 100
+  }
 }
 
 // ==================== 弹窗操作 ====================
