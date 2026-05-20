@@ -124,16 +124,18 @@ async function handleRegister() {
 
 <style scoped>
 /**
- * 注册页样式: 全屏居中灰色背景
+ * 注册页样式: 全屏居中薄荷绿背景，白色卡片
  */
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #f5faf7 0%, #e8f5ef 100%);
 }
 .register-card {
   width: 460px;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(56, 181, 137, 0.1);
 }
 </style>

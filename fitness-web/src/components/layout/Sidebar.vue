@@ -1,5 +1,5 @@
 <template>
-  <!-- 侧边栏：Dark Iron 暗黑美学 —— 深色背景 + 琥珀金活跃色 -->
+  <!-- 侧边栏：薄荷绿清新主题 —— 白色背景 + 薄荷绿活跃色 -->
   <div class="sidebar">
     <!-- 品牌标识区 -->
     <div class="sidebar-brand">
@@ -10,9 +10,9 @@
     <!-- 导航菜单 -->
     <el-menu
       :default-active="route.path"
-      background-color="#21252b"
-      text-color="#9ca0a8"
-      active-text-color="#f0a500"
+      background-color="#ffffff"
+      text-color="#2d3436"
+      active-text-color="#38b589"
       router
       class="sidebar-menu"
     >
@@ -95,9 +95,9 @@
 
 <script setup lang="ts">
 /**
- * 侧边栏组件 —— Dark Iron 暗黑美学
- * - 深色背景 (#21252b) 区分于主背景
- * - 琥珀金 (#f0a500) 活跃菜单项
+ * 侧边栏组件 —— 薄荷绿清新主题
+ * - 白色背景 (#ffffff) 区分于主背景
+ * - 薄荷绿 (#38b589) 活跃菜单项
  * - 当前路由高亮对应菜单项，管理员角色显示管理菜单
  */
 import { useRoute } from 'vue-router'
@@ -109,15 +109,15 @@ const userStore = useUserStore()
 
 <style scoped lang="scss">
 /**
- * 侧边栏样式 —— Dark Iron 暗黑美学
- * 品牌标识区琥珀渐变文字 + 底部发光装饰线
+ * 侧边栏样式 —— 薄荷绿清新主题
+ * 品牌标识区薄荷绿文字 + 底部薄荷装饰线
  */
 
 .sidebar {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #21252b;
+  background-color: #ffffff;
   overflow: hidden;
 }
 
@@ -129,10 +129,10 @@ const userStore = useUserStore()
   justify-content: center;
   gap: 8px;
   padding: 20px 16px 16px;
-  border-bottom: 1px solid #333840;
+  border-bottom: 1px solid #e0e8e4;
   position: relative;
 
-  // 底部琥珀光泽线
+  // 底部薄荷光泽线
   &::after {
     content: '';
     position: absolute;
@@ -143,9 +143,9 @@ const userStore = useUserStore()
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(240, 165, 0, 0.5) 20%,
-      rgba(240, 165, 0, 0.6) 50%,
-      rgba(240, 165, 0, 0.5) 80%,
+      rgba(56, 181, 137, 0.5) 20%,
+      rgba(56, 181, 137, 0.6) 50%,
+      rgba(56, 181, 137, 0.5) 80%,
       transparent 100%
     );
   }
@@ -153,13 +153,13 @@ const userStore = useUserStore()
 
 .sidebar-logo {
   font-size: 22px;
-  filter: drop-shadow(0 0 6px rgba(240, 165, 0, 0.3));
+  filter: drop-shadow(0 0 6px rgba(56, 181, 137, 0.3));
 }
 
 .sidebar-title {
   font-size: 17px;
   font-weight: 700;
-  background: linear-gradient(135deg, #f0a500, #d48900);
+  background: linear-gradient(135deg, #38b589, #2d9e73);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -185,7 +185,7 @@ const userStore = useUserStore()
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #333840;
+    background: #e0e8e4;
     border-radius: 2px;
   }
 
@@ -200,16 +200,16 @@ const userStore = useUserStore()
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.04) !important;
+      background-color: rgba(56, 181, 137, 0.06) !important;
     }
 
     &.is-active {
       background: linear-gradient(
         90deg,
-        rgba(240, 165, 0, 0.08) 0%,
-        rgba(240, 165, 0, 0.02) 100%
+        rgba(56, 181, 137, 0.08) 0%,
+        rgba(56, 181, 137, 0.02) 100%
       ) !important;
-      border-left: 3px solid #f0a500;
+      border-left: 3px solid #38b589;
       font-weight: 600;
     }
   }
@@ -224,13 +224,13 @@ const userStore = useUserStore()
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.04) !important;
+      background-color: rgba(56, 181, 137, 0.06) !important;
     }
   }
 
   // 子菜单展开时的标题
   :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
-    color: #f0a500 !important;
+    color: #38b589 !important;
   }
 
   // 子菜单内嵌菜单
@@ -262,8 +262,8 @@ const userStore = useUserStore()
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(240, 165, 0, 0.2) 30%,
-    rgba(240, 165, 0, 0.15) 70%,
+    rgba(56, 181, 137, 0.2) 30%,
+    rgba(56, 181, 137, 0.15) 70%,
     transparent 100%
   );
 }

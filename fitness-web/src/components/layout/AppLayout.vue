@@ -1,5 +1,5 @@
 <template>
-  <!-- 主布局：Dark Iron 暗黑美学 —— 左侧深色侧边栏 + 右侧暗色内容区 -->
+  <!-- 主布局：薄荷绿清新主题 —— 白色侧边栏 + 浅薄荷绿内容区 -->
   <el-container class="app-layout">
     <!-- 侧边栏 -->
     <el-aside width="220px" class="app-aside">
@@ -22,9 +22,9 @@
 
 <script setup lang="ts">
 /**
- * 主布局组件 —— Dark Iron 暗黑美学
- * 左侧侧边栏 + 右侧(顶部栏 + 内容区) 的结构
- * 全部使用深色背景，琥珀金作为点缀
+ * 主布局组件 —— 薄荷绿清新主题
+ * 左侧白色侧边栏 + 右侧(白色顶部栏 + 浅薄荷绿内容区) 的结构
+ * 全部使用浅色背景，薄荷绿作为点缀
  */
 import Sidebar from './Sidebar.vue'
 import HeaderBar from './HeaderBar.vue'
@@ -32,8 +32,8 @@ import HeaderBar from './HeaderBar.vue'
 
 <style scoped lang="scss">
 /**
- * 布局样式 —— Dark Iron 暗黑美学
- * 全屏高度布局，深色背景体系
+ * 布局样式 —— 薄荷绿清新主题
+ * 全屏高度布局，浅薄荷绿背景体系
  */
 
 .app-layout {
@@ -44,17 +44,17 @@ import HeaderBar from './HeaderBar.vue'
 // ==================== 侧边栏容器 ====================
 
 .app-aside {
-  background-color: #21252b !important;
-  border-right: 1px solid #333840;
+  background-color: #ffffff !important;
+  border-right: 1px solid #e0e8e4;
   overflow: hidden;
   transition: width 0.3s ease;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
 }
 
 // ==================== 主区域 ====================
 
 .app-main {
-  background-color: #1a1d23;
+  background-color: #f5faf7;
   overflow: hidden;
 }
 
@@ -63,8 +63,8 @@ import HeaderBar from './HeaderBar.vue'
 .app-header {
   --el-header-height: 52px;
   height: 52px;
-  background: #1e2128;
-  border-bottom: 1px solid #333840;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e8e4;
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -72,7 +72,7 @@ import HeaderBar from './HeaderBar.vue'
   position: relative;
   z-index: 10;
 
-  // 底部微光琥珀线
+  // 底部微光薄荷线
   &::after {
     content: '';
     position: absolute;
@@ -83,8 +83,8 @@ import HeaderBar from './HeaderBar.vue'
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(240, 165, 0, 0.15) 40%,
-      rgba(240, 165, 0, 0.08) 60%,
+      rgba(56, 181, 137, 0.15) 40%,
+      rgba(56, 181, 137, 0.08) 60%,
       transparent 100%
     );
   }
@@ -93,7 +93,7 @@ import HeaderBar from './HeaderBar.vue'
 // ==================== 内容区 ====================
 
 .app-content {
-  background-color: #1a1d23;
+  background-color: #f5faf7;
   padding: 20px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -108,11 +108,11 @@ import HeaderBar from './HeaderBar.vue'
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #333840;
+    background: #c0d4c8;
     border-radius: 3px;
 
     &:hover {
-      background: #f0a500;
+      background: #38b589;
     }
   }
 }

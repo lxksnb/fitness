@@ -1,5 +1,5 @@
 <template>
-  <!-- 首页看板：Dark Iron 暗黑健身美学 —— 聚合体重、热量、训练、营养进度、趋势图 -->
+  <!-- 首页看板：薄荷绿清新健身美学 —— 聚合体重、热量、训练、营养进度、趋势图 -->
   <div class="dashboard">
     <!-- ==================== 欢迎栏 ==================== -->
     <div class="welcome-bar">
@@ -311,11 +311,11 @@
 
 <script setup lang="ts">
 /**
- * 首页看板组件 —— Dark Iron 暗黑健身美学
+ * 首页看板组件 —— 薄荷绿清新健身美学
  * 聚合展示用户今日体重变化、热量摄入、营养进度、体重趋势图、
  * 今日饮食记录、今日训练等核心数据
  *
- * 设计理念：黄昏健身房的暗黑美学，琥珀金为主强调色，冷蓝用于数据
+ * 设计理念：清爽自然的薄荷绿风格，高对比度确保可读性
  */
 import { ref, computed, onMounted, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
@@ -459,21 +459,21 @@ function mealTagType(type: string): string {
 
 // ==================== 统计卡片 ====================
 
-/** Dark Iron 主题色常量 */
+/** 薄荷绿主题色常量 */
 const CARD_THEMES = {
   weight: {
-    color: '#f0a500',
-    glow: 'rgba(240, 165, 0, 0.06)',
+    color: '#38b589',
+    glow: 'rgba(56, 181, 137, 0.06)',
     icon: shallowRef(ScaleToOriginal)
   },
   calories: {
-    color: '#f0a500',
-    glow: 'rgba(240, 165, 0, 0.06)',
+    color: '#f39c12',
+    glow: 'rgba(243, 156, 18, 0.06)',
     icon: shallowRef(Apple)
   },
   training: {
-    color: '#4da6ff',
-    glow: 'rgba(77, 166, 255, 0.06)',
+    color: '#74b9ff',
+    glow: 'rgba(116, 185, 255, 0.06)',
     icon: shallowRef(Trophy)
   },
   streak: {
@@ -495,7 +495,7 @@ const statCards = computed(() => {
       sub: d.weightChange != null
         ? `较昨日 ${formatChange(d.weightChange)} kg`
         : (d.todayWeight != null ? '暂无昨日数据' : '暂无数据'),
-      color: d.weightChange != null && d.weightChange > 0 ? '#f85149' : '#3fb950',
+      color: d.weightChange != null && d.weightChange > 0 ? '#e74c3c' : '#27ae60',
       theme: 'weight',
       icon: CARD_THEMES.weight.icon,
       glow: CARD_THEMES.weight.glow
@@ -507,8 +507,8 @@ const statCards = computed(() => {
         : (d.actualCalories != null ? `${formatNum(d.actualCalories, 0)}` : '--'),
       sub: 'kcal',
       color: d.actualCalories != null && d.targetCalories != null && d.actualCalories > d.targetCalories
-        ? '#f85149'
-        : '#f0a500',
+        ? '#e74c3c'
+        : '#f39c12',
       theme: 'calories',
       icon: CARD_THEMES.calories.icon,
       glow: CARD_THEMES.calories.glow
@@ -520,7 +520,7 @@ const statCards = computed(() => {
       sub: d.todayTraining?.durationMinutes
         ? `${d.todayTraining.durationMinutes} 分钟`
         : (d.scheduledTrainingType ? '计划训练' : (d.todayTrainingType ? '已完成' : '')),
-      color: d.todayTrainingType || d.scheduledTrainingType ? '#4da6ff' : '#5c6068',
+      color: d.todayTrainingType || d.scheduledTrainingType ? '#74b9ff' : '#b2bec3',
       theme: 'training',
       icon: CARD_THEMES.training.icon,
       glow: CARD_THEMES.training.glow
@@ -529,7 +529,7 @@ const statCards = computed(() => {
       label: '连续打卡',
       value: (d.streakDays ?? 0) > 0 ? `${d.streakDays} 天` : '-- 天',
       sub: (d.streakDays ?? 0) > 0 ? (d.streakDays! >= 7 ? '太厉害了！' : '继续加油！') : '今天开始锻炼吧',
-      color: (d.streakDays ?? 0) >= 7 ? '#f0a500' : (d.streakDays ?? 0) > 0 ? '#a371f7' : '#5c6068',
+      color: (d.streakDays ?? 0) >= 7 ? '#f39c12' : (d.streakDays ?? 0) > 0 ? '#a371f7' : '#b2bec3',
       theme: 'streak',
       icon: CARD_THEMES.streak.icon,
       glow: CARD_THEMES.streak.glow
@@ -553,7 +553,7 @@ const nutritionBars = computed(() => {
   const d = dashboard.value
   const bars: NutritionBar[] = []
 
-  // 碳水 —— 琥珀金
+  // 碳水 —— 薄荷绿
   if (d.targetCarb != null && d.targetCarb > 0) {
     bars.push({
       name: '碳水',
@@ -561,8 +561,8 @@ const nutritionBars = computed(() => {
       target: formatNum(d.targetCarb, 0),
       unit: 'g',
       percent: Math.min(Math.round(((d.actualCarb ?? 0) / d.targetCarb) * 100), 100),
-      color: '#f0a500',
-      gradient: 'linear-gradient(90deg, #f0a500, #d48900)',
+      color: '#38b589',
+      gradient: 'linear-gradient(90deg, #38b589, #2d9e73)',
       icon: nutritionIcons['碳水']
     })
   }
@@ -581,7 +581,7 @@ const nutritionBars = computed(() => {
     })
   }
 
-  // 脂肪 —— 冷蓝
+  // 脂肪 —— 暖橙
   if (d.targetFat != null && d.targetFat > 0) {
     bars.push({
       name: '脂肪',
@@ -589,13 +589,13 @@ const nutritionBars = computed(() => {
       target: formatNum(d.targetFat, 0),
       unit: 'g',
       percent: Math.min(Math.round(((d.actualFat ?? 0) / d.targetFat) * 100), 100),
-      color: '#4da6ff',
-      gradient: 'linear-gradient(90deg, #4da6ff, #2e7fd9)',
+      color: '#f39c12',
+      gradient: 'linear-gradient(90deg, #f39c12, #e67e22)',
       icon: nutritionIcons['脂肪']
     })
   }
 
-  // 饮水 —— 青色（始终显示，默认目标 2000ml）
+  // 饮水 —— 蓝色（始终显示，默认目标 2000ml）
   bars.push({
     name: '饮水',
     actual: String(d.waterTotal ?? 0),
@@ -604,8 +604,8 @@ const nutritionBars = computed(() => {
     percent: (d.waterTarget ?? 2000) > 0
       ? Math.min(Math.round(((d.waterTotal ?? 0) / (d.waterTarget ?? 2000)) * 100), 100)
       : 0,
-    color: '#39d1d9',
-    gradient: 'linear-gradient(90deg, #39d1d9, #2ab8c0)',
+    color: '#74b9ff',
+    gradient: 'linear-gradient(90deg, #74b9ff, #0984e3)',
     icon: nutritionIcons['饮水']
   })
 
@@ -626,18 +626,18 @@ interface NutritionBar {
 
 // ==================== 体重趋势图 ====================
 
-/** Dark Iron 主题 ECharts 颜色常量 */
+/** 薄荷绿主题 ECharts 颜色常量 */
 const chartColors = {
-  bg: '#1a1d23',
-  line: '#f0a500',
-  fill: 'rgba(240, 165, 0, 0.12)',
-  grid: 'rgba(255, 255, 255, 0.05)',
-  text: '#9ca0a8',
-  average: '#4da6ff',
-  point: '#f0a500'
+  bg: '#ffffff',
+  line: '#38b589',
+  fill: 'rgba(56, 181, 137, 0.12)',
+  grid: '#e0e8e4',
+  text: '#636e72',
+  average: '#74b9ff',
+  point: '#38b589'
 }
 
-/** ECharts 体重趋势折线图配置 —— Dark Iron 暗黑主题 */
+/** ECharts 体重趋势折线图配置 —— 薄荷绿清新主题 */
 const weightChartOption = computed(() => {
   if (!dashboard.value?.weightTrend?.length) return null
 
@@ -657,28 +657,28 @@ const weightChartOption = computed(() => {
   const padding = Math.max((weightMax - weightMin) * 0.2, 1)
 
   return {
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffff',
     tooltip: {
       trigger: 'axis' as const,
-      backgroundColor: '#252830',
-      borderColor: '#333840',
+      backgroundColor: '#ffffff',
+      borderColor: '#38b589',
       borderWidth: 1,
-      textStyle: { color: '#e8e8ed', fontSize: 13 },
+      textStyle: { color: '#2d3436', fontSize: 13 },
       axisPointer: {
         type: 'line' as const,
-        lineStyle: { color: '#333840', type: 'dashed' as const }
+        lineStyle: { color: '#e0e8e4', type: 'dashed' as const }
       },
       formatter: (params: any) => {
         const p = Array.isArray(params) ? params[0] : params
         if (!p) return ''
-        return `<div style="font-size:13px;color:#9ca0a8">${p.axisValue}</div>
-          <div style="font-weight:700;margin-top:6px;color:#f0a500;font-size:16px;font-family:'JetBrains Mono',monospace">${p.value} kg</div>`
+        return `<div style="font-size:13px;color:#636e72">${p.axisValue}</div>
+          <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${p.value} kg</div>`
       }
     },
     legend: {
       data: ['体重', '平均值'],
       bottom: 0,
-      textStyle: { color: '#9ca0a8', fontSize: 11 },
+      textStyle: { color: '#636e72', fontSize: 11 },
       itemWidth: 12,
       itemHeight: 2
     },
@@ -686,35 +686,35 @@ const weightChartOption = computed(() => {
       left: '3%',
       right: '4%',
       bottom: '10%',
-      top: '6%',
+      top: '10%',
       containLabel: true,
-      borderColor: 'rgba(255,255,255,0.05)'
+      borderColor: '#e0e8e4'
     },
     xAxis: {
       type: 'category' as const,
       data: dates,
       boundaryGap: false,
       axisLabel: {
-        color: '#5c6068',
+        color: '#b2bec3',
         fontSize: 10
       },
-      axisLine: { lineStyle: { color: '#333840' } },
+      axisLine: { lineStyle: { color: '#e0e8e4' } },
       axisTick: { show: false },
       splitLine: { show: false }
     },
     yAxis: {
       type: 'value' as const,
       name: 'kg',
-      nameTextStyle: { color: '#5c6068', fontSize: 11 },
+      nameTextStyle: { color: '#b2bec3', fontSize: 11 },
       min: Math.floor(weightMin - padding * 10) / 10,
       max: Math.ceil(weightMax + padding * 10) / 10,
       interval: Math.max(Math.round((weightMax - weightMin) / 5 * 10) / 10, 0.5),
       axisLabel: {
-        color: '#5c6068',
+        color: '#b2bec3',
         fontSize: 10
       },
       splitLine: {
-        lineStyle: { color: 'rgba(255, 255, 255, 0.05)', type: 'dashed' as const }
+        lineStyle: { color: '#e0e8e4', type: 'dashed' as const }
       }
     },
     series: [
@@ -730,10 +730,10 @@ const weightChartOption = computed(() => {
           focus: 'series' as const,
           itemStyle: { borderWidth: 3 }
         },
-        lineStyle: { color: '#f0a500', width: 2.5 },
+        lineStyle: { color: '#38b589', width: 2.5 },
         itemStyle: {
-          color: '#f0a500',
-          borderColor: '#1a1d23',
+          color: '#38b589',
+          borderColor: '#ffffff',
           borderWidth: 2
         },
         areaStyle: {
@@ -744,9 +744,9 @@ const weightChartOption = computed(() => {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(240, 165, 0, 0.2)' },
-              { offset: 0.5, color: 'rgba(240, 165, 0, 0.06)' },
-              { offset: 1, color: 'rgba(240, 165, 0, 0.01)' }
+              { offset: 0, color: 'rgba(56, 181, 137, 0.2)' },
+              { offset: 0.5, color: 'rgba(56, 181, 137, 0.06)' },
+              { offset: 1, color: 'rgba(56, 181, 137, 0.01)' }
             ]
           }
         },
@@ -757,9 +757,9 @@ const weightChartOption = computed(() => {
             {
               type: 'average' as const,
               name: '平均值',
-              lineStyle: { color: '#4da6ff', type: 'dashed' as const, width: 1.5 },
+              lineStyle: { color: '#74b9ff', type: 'dashed' as const, width: 1.5 },
               label: {
-                color: '#4da6ff',
+                color: '#74b9ff',
                 fontSize: 10,
                 formatter: '均值 {c} kg',
                 position: 'insideEndTop' as const
@@ -781,11 +781,11 @@ onMounted(() => {
 
 <style scoped lang="scss">
 /**
- * 首页看板样式 —— Dark Iron 暗黑健身美学
+ * 首页看板样式 —— 薄荷绿清新健身美学
  * 设计理念：
- *   - 深炭灰底色营造黄昏健身房氛围
- *   - 琥珀金 (#f0a500) 作为主强调色，用于热量/体重
- *   - 冷蓝 (#4da6ff) 用于数据和图表
+ *   - 极淡薄荷绿底色营造清爽氛围
+ *   - 薄荷绿 (#38b589) 作为主强调色，用于体重/碳水
+ *   - 浅蓝 (#74b9ff) 用于数据和图表
  *   - 数字使用等宽字体增强数据感
  *   - 微动效：呼吸发光、卡片悬停抬升、交错加载
  */
@@ -816,14 +816,14 @@ onMounted(() => {
   align-items: center;
   padding: 20px 24px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, rgba(240, 165, 0, 0.06) 0%, rgba(240, 165, 0, 0.01) 100%);
-  border: 1px solid #333840;
+  background: #ffffff;
+  border: 1px solid #e0e8e4;
   border-radius: 12px;
-  border-bottom: 2px solid rgba(240, 165, 0, 0.3);
+  border-left: 4px solid #38b589;
   position: relative;
   overflow: hidden;
 
-  // 底部琥珀光泽线
+  // 底部薄荷光泽线
   &::after {
     content: '';
     position: absolute;
@@ -831,7 +831,7 @@ onMounted(() => {
     left: 20%;
     right: 20%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(240, 165, 0, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(56, 181, 137, 0.4), transparent);
   }
 }
 
@@ -840,23 +840,23 @@ onMounted(() => {
     margin: 0 0 6px 0;
     font-size: 22px;
     font-weight: 700;
-    color: #e8e8ed;
+    color: #2d3436;
     letter-spacing: -0.3px;
   }
 
   .welcome-greeting {
-    color: #9ca0a8;
+    color: #636e72;
     font-weight: 400;
   }
 
   .welcome-name {
-    color: #f0a500;
+    color: #38b589;
   }
 
   .welcome-sub {
     margin: 0;
     font-size: 13px;
-    color: #9ca0a8;
+    color: #636e72;
     line-height: 1.6;
     display: flex;
     align-items: center;
@@ -865,7 +865,7 @@ onMounted(() => {
   }
 
   .welcome-target {
-    color: #e8e8ed;
+    color: #2d3436;
     font-weight: 500;
   }
 
@@ -874,20 +874,20 @@ onMounted(() => {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #3fb950;
+    background: #27ae60;
     margin-right: 4px;
-    box-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
+    box-shadow: 0 0 6px rgba(39, 174, 96, 0.4);
   }
 
   .welcome-sep {
-    color: #5c6068;
+    color: #b2bec3;
     margin: 0 4px;
   }
 
   .welcome-macro {
-    color: #9ca0a8;
+    color: #636e72;
     font-size: 12px;
-    background: rgba(255, 255, 255, 0.04);
+    background: #f0f9f5;
     padding: 2px 8px;
     border-radius: 4px;
   }
@@ -895,7 +895,7 @@ onMounted(() => {
   .welcome-hint {
     opacity: 0.6;
     font-style: italic;
-    color: #5c6068;
+    color: #b2bec3;
   }
 }
 
@@ -903,9 +903,9 @@ onMounted(() => {
   flex-shrink: 0;
 
   .welcome-tag {
-    background: rgba(63, 185, 80, 0.12) !important;
-    border: 1px solid rgba(63, 185, 80, 0.25) !important;
-    color: #3fb950 !important;
+    background: rgba(39, 174, 96, 0.12) !important;
+    border: 1px solid rgba(39, 174, 96, 0.25) !important;
+    color: #27ae60 !important;
     font-weight: 500;
   }
 }
@@ -920,8 +920,8 @@ onMounted(() => {
 
 .stat-card {
   flex: 1;
-  background: linear-gradient(180deg, #252830 0%, #1e2128 100%);
-  border: 1px solid #333840;
+  background: #ffffff;
+  border: 1px solid #e0e8e4;
   border-radius: 12px;
   padding: 18px 16px;
   position: relative;
@@ -930,9 +930,9 @@ onMounted(() => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    border-color: rgba(240, 165, 0, 0.4);
+    border-color: rgba(56, 181, 137, 0.4);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(56, 181, 137, 0.1);
 
     .stat-card-glow {
       opacity: 1;
@@ -949,7 +949,7 @@ onMounted(() => {
   position: absolute;
   top: 14px;
   right: 14px;
-  color: #5c6068;
+  color: #b2bec3;
   opacity: 0.5;
   transition: all 0.3s ease;
 }
@@ -973,13 +973,13 @@ onMounted(() => {
 }
 
 .stat-card--weight {
-  .stat-card-icon { color: #f0a500; opacity: 0.6; }
+  .stat-card-icon { color: #38b589; opacity: 0.6; }
 }
 .stat-card--calories {
-  .stat-card-icon { color: #f0a500; opacity: 0.6; }
+  .stat-card-icon { color: #f39c12; opacity: 0.6; }
 }
 .stat-card--training {
-  .stat-card-icon { color: #4da6ff; opacity: 0.6; }
+  .stat-card-icon { color: #74b9ff; opacity: 0.6; }
 }
 .stat-card--streak {
   .stat-card-icon { color: #a371f7; opacity: 0.6; }
@@ -988,8 +988,8 @@ onMounted(() => {
 // 骨架卡片
 .stat-card-skeleton {
   flex: 1;
-  background: linear-gradient(180deg, #252830 0%, #1e2128 100%);
-  border: 1px solid #333840;
+  background: #ffffff;
+  border: 1px solid #e0e8e4;
   border-radius: 12px;
   padding: 18px 16px;
 
@@ -1002,7 +1002,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 12px;
-  color: #9ca0a8;
+  color: #636e72;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1020,7 +1020,7 @@ onMounted(() => {
 
 .stat-sub {
   font-size: 12px;
-  color: #5c6068;
+  color: #b2bec3;
   font-weight: 400;
 }
 
@@ -1031,16 +1031,16 @@ onMounted(() => {
 }
 
 .section-card {
-  background: linear-gradient(180deg, #252830 0%, #1e2128 100%);
-  border: 1px solid #333840;
+  background: #ffffff;
+  border: 1px solid #e0e8e4;
   border-radius: 12px;
   margin-bottom: 20px;
   overflow: hidden;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: rgba(240, 165, 0, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    border-color: rgba(56, 181, 137, 0.25);
+    box-shadow: 0 4px 20px rgba(56, 181, 137, 0.1);
   }
 }
 
@@ -1049,32 +1049,32 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 20px;
-  border-bottom: 1px solid #333840;
+  border-bottom: 1px solid #e0e8e4;
 }
 
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #e8e8ed;
+  color: #2d3436;
 }
 
 .section-badge {
   font-size: 11px;
-  color: #f0a500;
-  background: rgba(240, 165, 0, 0.1);
+  color: #38b589;
+  background: rgba(56, 181, 137, 0.1);
   padding: 3px 10px;
   border-radius: 20px;
   font-weight: 500;
   letter-spacing: 0.3px;
 
   &--blue {
-    color: #4da6ff;
-    background: rgba(77, 166, 255, 0.1);
+    color: #74b9ff;
+    background: rgba(116, 185, 255, 0.1);
   }
 
   &--green {
-    color: #3fb950;
-    background: rgba(63, 185, 80, 0.1);
+    color: #27ae60;
+    background: rgba(39, 174, 96, 0.1);
   }
 }
 
@@ -1101,7 +1101,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f0f9f5;
   border-radius: 8px;
   flex-shrink: 0;
 }
@@ -1110,7 +1110,7 @@ onMounted(() => {
   width: 50px;
   font-size: 13px;
   font-weight: 500;
-  color: #9ca0a8;
+  color: #636e72;
   flex-shrink: 0;
 }
 
@@ -1123,7 +1123,7 @@ onMounted(() => {
 
 .nutrition-progress-bar {
   height: 10px;
-  background: #1e2128;
+  background: #e8f5ef;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -1146,7 +1146,7 @@ onMounted(() => {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.3) 50%,
       transparent 100%
     );
     animation: nutrition-shimmer 2.5s ease-in-out infinite;
@@ -1170,7 +1170,7 @@ onMounted(() => {
 
 .nutrition-progress-text {
   font-size: 11px;
-  color: #5c6068;
+  color: #b2bec3;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
@@ -1192,7 +1192,7 @@ onMounted(() => {
   padding: 10px 0;
 
   &:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #e0e8e4;
   }
 }
 
@@ -1203,7 +1203,7 @@ onMounted(() => {
 .diet-name {
   flex: 1;
   font-size: 13px;
-  color: #e8e8ed;
+  color: #2d3436;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1211,7 +1211,7 @@ onMounted(() => {
 
 .diet-cal {
   font-size: 12px;
-  color: #f0a500;
+  color: #38b589;
   flex-shrink: 0;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   font-weight: 500;
@@ -1232,7 +1232,7 @@ onMounted(() => {
 
 .training-plan-label {
   font-size: 13px;
-  color: #9ca0a8;
+  color: #636e72;
 }
 
 .training-meta {
@@ -1240,22 +1240,22 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   font-size: 13px;
-  color: #9ca0a8;
+  color: #636e72;
 }
 
 .training-meta-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #9ca0a8;
+  color: #636e72;
 
   .el-icon {
-    color: #4da6ff;
+    color: #74b9ff;
   }
 }
 
 .training-meta-note {
-  color: #5c6068;
+  color: #b2bec3;
   font-size: 12px;
   font-style: italic;
 }
@@ -1266,14 +1266,14 @@ onMounted(() => {
   margin-top: 16px;
   text-align: center;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid #e0e8e4;
 }
 
 // ==================== 错误卡片 ====================
 
 .error-card {
-  background: linear-gradient(180deg, #252830 0%, #1e2128 100%);
-  border: 1px solid #333840;
+  background: #ffffff;
+  border: 1px solid #e0e8e4;
   border-radius: 12px;
   padding: 40px 20px;
   text-align: center;

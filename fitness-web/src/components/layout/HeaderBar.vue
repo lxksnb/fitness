@@ -1,5 +1,5 @@
 <template>
-  <!-- 顶部栏：Dark Iron 暗黑美学 —— 极简风格 + 琥珀金点缀 -->
+  <!-- 顶部栏：薄荷绿清新主题 —— 极简白色 + 薄荷绿点缀 -->
   <div class="header-bar">
     <!-- 欢迎信息 -->
     <div class="header-user">
@@ -28,10 +28,10 @@
 
 <script setup lang="ts">
 /**
- * 顶部栏组件 —— Dark Iron 暗黑美学
- * - 极简设计，深色背景
- * - 用户头像琥珀金环
- * - 底部琥珀色微光分割线
+ * 顶部栏组件 —— 薄荷绿清新主题
+ * - 极简设计，白色背景
+ * - 用户头像薄荷绿环
+ * - 底部薄荷色微光分割线
  */
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
@@ -49,8 +49,8 @@ function handleLogout() {
 
 <style scoped lang="scss">
 /**
- * 顶部栏样式 —— Dark Iron 暗黑美学
- * 24px 高度，琥珀金底线，圆形头像琥珀环
+ * 顶部栏样式 —— 薄荷绿清新主题
+ * 24px 高度，薄荷绿底线，圆形头像薄荷绿环
  */
 
 .header-bar {
@@ -73,43 +73,43 @@ function handleLogout() {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f0a500, #d48900);
+  background: linear-gradient(135deg, #38b589, #2d9e73);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 
-  // 琥珀光环
+  // 薄荷绿光环
   &::after {
     content: '';
     position: absolute;
     inset: -2px;
     border-radius: 50%;
-    border: 2px solid rgba(240, 165, 0, 0.3);
+    border: 2px solid rgba(56, 181, 137, 0.3);
     transition: border-color 0.3s ease;
   }
 
   &:hover::after {
-    border-color: rgba(240, 165, 0, 0.6);
+    border-color: rgba(56, 181, 137, 0.6);
   }
 }
 
 .header-avatar-text {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1d23;
+  color: #ffffff;
   letter-spacing: 0.5px;
 }
 
 .header-greeting {
   font-size: 13px;
-  color: #9ca0a8;
+  color: #636e72;
 }
 
 .header-nickname {
   font-size: 14px;
   font-weight: 600;
-  color: #e8e8ed;
+  color: #2d3436;
 }
 
 // ==================== 操作按钮区 ====================
@@ -121,7 +121,7 @@ function handleLogout() {
 }
 
 .header-action-btn {
-  color: #9ca0a8 !important;
+  color: #636e72 !important;
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 6px;
@@ -132,13 +132,13 @@ function handleLogout() {
   }
 
   &:hover {
-    color: #f0a500 !important;
-    background-color: rgba(240, 165, 0, 0.06) !important;
+    color: #38b589 !important;
+    background-color: rgba(56, 181, 137, 0.06) !important;
   }
 
   &--danger:hover {
-    color: #f85149 !important;
-    background-color: rgba(248, 81, 73, 0.06) !important;
+    color: #e74c3c !important;
+    background-color: rgba(231, 76, 60, 0.06) !important;
   }
 }
 </style>

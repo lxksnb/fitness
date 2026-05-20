@@ -1,41 +1,42 @@
-// ===== Dark Iron 健身暗黑主题 =====
-// 设计理念：黄昏健身房的暗黑美学 —— 力量、专注、无干扰
-// 使用 SCSS 变量 + CSS 自定义属性双层体系，覆盖 Element Plus 暗黑主题
+// ===== 薄荷绿清新健身主题 =====
+// 设计理念：清爽、自然、充满活力的健身体验
+// 使用 SCSS 变量 + CSS 自定义属性双层体系，覆盖 Element Plus 浅色主题
 
 // ==================== 主题色板 ====================
 
-// 背景层级 (由深到浅)
-$bg-primary: #1a1d23;        // 主背景 - 深炭灰 (黄昏健身房地板)
-$bg-secondary: #21252b;      // 次级背景 - 侧边栏/表头
-$bg-card: #252830;            // 卡片背景 - 哑光黑
-$bg-card-hover: #2a2e36;     // 卡片悬停 - 微亮
-$bg-input: #1e2128;           // 输入框背景 - 嵌入感
-$border-color: #333840;       // 边框色 - 低调分隔
-$border-hover: #f0a500;       // 悬停边框 - 琥珀金 (杠铃片光泽)
+// 背景层级 (由浅到深)
+$bg-primary: #f5faf7;          // 页面主背景 - 极淡薄荷绿底
+$bg-secondary: #f8fdfa;        // 次级背景 - 表头/浅色区
+$bg-card: #ffffff;              // 卡片背景 - 纯白
+$bg-card-hover: #f0f9f5;       // 卡片悬停 - 微薄荷
+$bg-input: #ffffff;             // 输入框背景
+$border-color: #e0e8e4;        // 边框色 - 淡薄荷灰
+$border-hover: #38b589;         // 悬停边框 - 薄荷绿主色
 
 // 文字层级
-$text-primary: #e8e8ed;       // 主文字 - 高对比白
-$text-secondary: #9ca0a8;     // 次级文字 - 中灰
-$text-muted: #5c6068;         // 弱化文字 - 深灰
+$text-primary: #2d3436;         // 主文字 - 深灰 (非纯黑，保护视力)
+$text-secondary: #636e72;       // 次级文字 - 中灰
+$text-muted: #b2bec3;           // 弱化文字 - 浅灰
 
-// 语义强调色 —— 各有专属语义，不混用
-$accent-amber: #f0a500;       // 琥珀金 - 能量/热量/警告 (杠铃片暖光)
-$accent-blue: #4da6ff;        // 冷蓝 - 数据/图表 (钢片冷光)
-$accent-green: #3fb950;       // 翠绿 - 完成/达标
-$accent-red: #f85149;         // 红色 - 超标/删除/警告
-$accent-purple: #a371f7;      // 紫色 - 蛋白质
-$accent-cyan: #39d1d9;        // 青色 - 饮水
+// 语义强调色
+$accent-mint: #38b589;          // 薄荷绿 - 主强调色
+$accent-mint-dark: #2d9e73;     // 深薄荷 - 悬停/按下
+$accent-mint-light: #e8f5ef;    // 浅薄荷 - 背景高亮
+$accent-blue: #74b9ff;          // 信息蓝
+$accent-green: #27ae60;         // 成功绿
+$accent-red: #e74c3c;           // 危险红
+$accent-orange: #f39c12;        // 警告橙
+$accent-purple: #a371f7;        // 紫色 (蛋白质等)
 
 // 渐变色
-$gradient-amber: linear-gradient(135deg, #f0a500, #d48900);
-$gradient-blue: linear-gradient(135deg, #4da6ff, #2e7fd9);
-$gradient-card: linear-gradient(180deg, #252830 0%, #1e2128 100%);
+$gradient-mint: linear-gradient(135deg, #38b589, #2d9e73);
+$gradient-card: linear-gradient(180deg, #ffffff 0%, #f8fdfa 100%);
 
 // 阴影体系
-$shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-$shadow-card-hover: 0 4px 16px rgba(240, 165, 0, 0.08);
-$shadow-glow: 0 0 20px rgba(240, 165, 0, 0.15);
-$shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4);
+$shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+$shadow-card-hover: 0 4px 20px rgba(56, 181, 137, 0.12);
+$shadow-glow: 0 0 20px rgba(56, 181, 137, 0.1);
+$shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.08);
 
 // 圆角体系
 $radius-sm: 6px;
@@ -43,7 +44,6 @@ $radius-md: 10px;
 $radius-lg: 16px;
 
 // 字体体系
-$font-display: 'DIN Alternate', 'Bahnschrift', 'Arial Narrow', sans-serif;
 $font-body: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 $font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
@@ -52,7 +52,7 @@ $transition-fast: 0.15s ease;
 $transition-normal: 0.25s ease;
 $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-// ==================== Element Plus 暗黑主题 CSS 变量覆盖 ====================
+// ==================== Element Plus 薄荷绿 CSS 变量覆盖 ====================
 
 :root {
   // ---- 背景 ----
@@ -73,34 +73,34 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --el-border-color-extra-light: #{rgba($border-color, 0.2)};
   --el-border-color-hover: #{$border-hover};
 
-  // ---- 主色 (琥珀金) ----
-  --el-color-primary: #{$accent-amber};
-  --el-color-primary-light-3: #f7b81a;
-  --el-color-primary-light-5: #f9c94d;
-  --el-color-primary-light-7: #fcd97f;
-  --el-color-primary-light-8: #fce3a5;
-  --el-color-primary-light-9: #fdead2;
-  --el-color-primary-dark-2: #d48900;
+  // ---- 主色 (薄荷绿) ----
+  --el-color-primary: #{$accent-mint};
+  --el-color-primary-light-3: #5ec59f;
+  --el-color-primary-light-5: #82d4b5;
+  --el-color-primary-light-7: #a6e2cc;
+  --el-color-primary-light-8: #bdebd8;
+  --el-color-primary-light-9: #d2f0e5;
+  --el-color-primary-dark-2: #2d9e73;
 
-  // ---- 成功色 (翠绿) ----
+  // ---- 成功色 ----
   --el-color-success: #{$accent-green};
-  --el-color-success-light-3: #65c872;
-  --el-color-success-light-5: #8cd695;
+  --el-color-success-light-3: #55c274;
+  --el-color-success-light-5: #7dd494;
 
-  // ---- 警告色 (沿用琥珀) ----
-  --el-color-warning: #{$accent-amber};
+  // ---- 警告色 ----
+  --el-color-warning: #{$accent-orange};
 
   // ---- 危险色 ----
   --el-color-danger: #{$accent-red};
 
-  // ---- 信息色 (冷蓝) ----
+  // ---- 信息色 ----
   --el-color-info: #{$accent-blue};
 
   // ---- 菜单 ----
-  --el-menu-bg-color: #{$bg-secondary};
-  --el-menu-text-color: #{$text-secondary};
-  --el-menu-hover-bg-color: #{$bg-card-hover};
-  --el-menu-active-color: #{$accent-amber};
+  --el-menu-bg-color: #{$bg-card};
+  --el-menu-text-color: #{$text-primary};
+  --el-menu-hover-bg-color: #{$accent-mint-light};
+  --el-menu-active-color: #{$accent-mint};
   --el-menu-border-color: transparent;
 
   // ---- 表格 ----
@@ -114,7 +114,7 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --el-input-bg-color: #{$bg-input};
   --el-input-border-color: #{$border-color};
   --el-input-hover-border-color: #{$border-hover};
-  --el-input-focus-border-color: #{$accent-amber};
+  --el-input-focus-border-color: #{$accent-mint};
   --el-input-text-color: #{$text-primary};
   --el-input-placeholder-color: #{$text-muted};
 
@@ -123,18 +123,18 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --el-dialog-title-font-size: 16px;
 
   // ---- 下拉菜单 ----
-  --el-dropdown-menuItem-hover-fill: #{$bg-card-hover};
-  --el-dropdown-menuItem-hover-color: #{$accent-amber};
+  --el-dropdown-menuItem-hover-fill: #{$accent-mint-light};
+  --el-dropdown-menuItem-hover-color: #{$accent-mint};
 
   // ---- 填充色 ----
-  --el-fill-color: #{$bg-input};
+  --el-fill-color: #{$bg-secondary};
   --el-fill-color-blank: #{$bg-card};
   --el-fill-color-light: #{$bg-card-hover};
   --el-fill-color-lighter: #{rgba($bg-card-hover, 0.5)};
 
   // ---- 遮罩 ----
-  --el-overlay-color: #{rgba(0, 0, 0, 0.7)};
-  --el-overlay-color-light: #{rgba(0, 0, 0, 0.5)};
+  --el-overlay-color: #{rgba(0, 0, 0, 0.5)};
+  --el-overlay-color-light: #{rgba(0, 0, 0, 0.3)};
 
   // ---- 阴影 ----
   --el-box-shadow-light: #{$shadow-card};
@@ -145,7 +145,7 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --el-border-radius-round: 20px;
 
   // ---- 禁用状态 ----
-  --el-disabled-bg-color: #{$bg-input};
+  --el-disabled-bg-color: #{$bg-secondary};
   --el-disabled-text-color: #{$text-muted};
   --el-disabled-border-color: #{$border-color};
 }
