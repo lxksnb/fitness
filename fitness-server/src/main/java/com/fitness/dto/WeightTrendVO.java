@@ -1,5 +1,7 @@
 package com.fitness.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 /**
@@ -8,6 +10,7 @@ import java.util.Date;
  */
 public class WeightTrendVO {
     /** 记录日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date date;
     /** 体重（千克） */
     private Double weight;

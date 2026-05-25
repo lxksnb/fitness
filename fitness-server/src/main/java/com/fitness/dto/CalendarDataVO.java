@@ -1,5 +1,7 @@
 package com.fitness.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 /**
@@ -7,6 +9,7 @@ import java.util.Date;
  */
 public class CalendarDataVO {
     /** 训练日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 训练类型 */
     private String trainingType;

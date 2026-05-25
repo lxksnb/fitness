@@ -24,7 +24,7 @@
         </if>
         AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
         <if test="suitableFor != null and suitableFor != ''">
-            AND suitable_for = #{suitableFor}
+            AND FIND_IN_SET(#{suitableFor}, suitable_for)
         </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">

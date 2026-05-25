@@ -327,6 +327,23 @@ function getSuitableLabel(code: string): string {
   return found?.name || code
 }
 
+function normalizeSuitableFor(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') return value.split(',').filter(Boolean)
+  return []
+}
+
+function normalizeImageUrls(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value !== 'string' || !value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : [value]
+  } catch {
+    return [value]
+  }
+}
+
 // ==================== 数据获取 ====================
 
 /** 获取适用部位字典 */
@@ -361,7 +378,12 @@ async function fetchActions() {
     const kw = keyword.value.trim() || undefined
     const sf = suitableFor.value || undefined
     const res = await searchActions(kw, sf) as any
-    actionList.value = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as ActionItem[]
+    const list = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as any[]
+    actionList.value = list.map(item => ({
+      ...item,
+      suitableFor: normalizeSuitableFor(item.suitableFor),
+      imageUrls: normalizeImageUrls(item.imageUrls)
+    })) as ActionItem[]
   } catch (err: any) {
     error.value = err.message || '数据加载失败，请稍后重试'
   } finally {
@@ -379,9 +401,8 @@ function openDialog(action?: ActionItem) {
     form.name = action.actionName
     form.description = action.description || ''
     // 后端返回逗号分隔字符串, 转为数组供checkbox展示
-    const sf = (action as any).suitableFor
-    form.suitableFor = Array.isArray(sf) ? sf : (typeof sf === 'string' ? sf.split(',').filter(Boolean) : [])
-    form.imageUrls = action.imageUrls || []
+    form.suitableFor = normalizeSuitableFor((action as any).suitableFor)
+    form.imageUrls = normalizeImageUrls((action as any).imageUrls)
     form.videoUrl = action.videoUrl || ''
   } else {
     isEditing.value = false

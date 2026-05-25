@@ -133,7 +133,13 @@
               <!-- 训练部位：仅训练日可见 -->
               <el-col :xs="24" :sm="6" v-if="day.dayType === 'TRAINING'">
                 <el-form-item label="训练部位" label-width="80px">
-                  <el-select v-model="day.trainingType" style="width: 100%">
+                  <el-select
+                    v-model="day.trainingType"
+                    multiple
+                    collapse-tags
+                    collapse-tags-tooltip
+                    style="width: 100%"
+                  >
                     <el-option
                       v-for="item in trainingTypeOptions"
                       :key="item.value"
@@ -650,7 +656,7 @@ const trainingTypeOptions = [
   { label: '练胸', value: 'CHEST' },
   { label: '练背', value: 'BACK' },
   { label: '练腿', value: 'LEGS' },
-  { label: '练肩', value: 'SHOULDERS' },
+  { label: '练肩', value: 'SHOULDER' },
   { label: '练手臂', value: 'ARMS' },
   { label: '核心', value: 'CORE' },
   { label: '有氧', value: 'CARDIO' }
@@ -661,7 +667,7 @@ const MEAL_TYPES = [
   { type: 'BREAKFAST', label: '早餐', sortOrder: 1 },
   { type: 'LUNCH', label: '午餐', sortOrder: 2 },
   { type: 'DINNER', label: '晚餐', sortOrder: 3 },
-  { type: 'SNACK', label: '夜宵', sortOrder: 4 },
+  { type: 'SUPPER', label: '夜宵', sortOrder: 4 },
   { type: 'PRE_WORKOUT', label: '练前餐', sortOrder: 5 },
   { type: 'POST_WORKOUT', label: '练后餐', sortOrder: 6 },
   { type: 'OTHER', label: '其他餐', sortOrder: 7 }
@@ -672,7 +678,7 @@ const DEFAULT_TRAINING_RATIOS: Record<string, { carb: number; protein: number; f
   BREAKFAST:     { carb: 20, protein: 15, fat: 15 },
   LUNCH:         { carb: 30, protein: 25, fat: 20 },
   DINNER:        { carb: 25, protein: 20, fat: 25 },
-  SNACK:         { carb: 0,  protein: 5,  fat: 10 },
+  SUPPER:        { carb: 0,  protein: 5,  fat: 10 },
   PRE_WORKOUT:   { carb: 15, protein: 15, fat: 5  },
   POST_WORKOUT:  { carb: 10, protein: 15, fat: 5  },
   OTHER:         { carb: 0,  protein: 5,  fat: 20 }
@@ -683,7 +689,7 @@ const DEFAULT_REST_RATIOS: Record<string, { carb: number; protein: number; fat: 
   BREAKFAST:     { carb: 15, protein: 20, fat: 15 },
   LUNCH:         { carb: 25, protein: 25, fat: 20 },
   DINNER:        { carb: 20, protein: 20, fat: 20 },
-  SNACK:         { carb: 5,  protein: 10, fat: 15 },
+  SUPPER:        { carb: 5,  protein: 10, fat: 15 },
   PRE_WORKOUT:   { carb: 10, protein: 10, fat: 5  },
   POST_WORKOUT:  { carb: 10, protein: 10, fat: 5  },
   OTHER:         { carb: 15, protein: 5,  fat: 20 }
@@ -713,7 +719,7 @@ interface TrainingDayItem {
   _key: string
   dayOrder: number
   dayType: 'TRAINING' | 'REST'
-  trainingType: string
+  trainingType: string[]
   carbMultiplier: number
   proteinMultiplier: number
   fatMultiplier: number
@@ -768,7 +774,7 @@ function createDefaultTrainingDay(order: number): TrainingDayItem {
     _key: nextUid(),
     dayOrder: order,
     dayType: 'TRAINING',
-    trainingType: 'CHEST',
+    trainingType: ['CHEST'],
     carbMultiplier: 4.0,
     proteinMultiplier: 2.0,
     fatMultiplier: 1.0,
@@ -782,7 +788,7 @@ function createDefaultRestDay(order: number): TrainingDayItem {
     _key: nextUid(),
     dayOrder: order,
     dayType: 'REST',
-    trainingType: 'CHEST',
+    trainingType: [],
     carbMultiplier: 1.0,
     proteinMultiplier: 1.5,
     fatMultiplier: 1.2,
@@ -894,11 +900,17 @@ const isRestRatioValid = computed(() =>
 const actionSearchResults = ref<any[]>([])
 const actionSearchLoading = ref(false)
 
+function normalizeTrainingTypes(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean)
+  if (typeof value === 'string') return value.split(',').filter(Boolean)
+  return []
+}
+
 async function searchActionsRemote(keyword: string, dayIndex?: number) {
   actionSearchLoading.value = true
   try {
     // 获取当前训练日的训练部位, 用于过滤动作
-    const trainingType = dayIndex !== undefined ? formData.trainingDays[dayIndex]?.trainingType : undefined
+    const trainingType = dayIndex !== undefined ? formData.trainingDays[dayIndex]?.trainingType?.[0] : undefined
     const kw = keyword?.trim() || ''
     const res = await searchActions(kw || undefined, trainingType || undefined) as any
     actionSearchResults.value = Array.isArray(res) ? res : (res?.records || res?.list || [])
@@ -1187,7 +1199,7 @@ function populateForm(detail: any) {
       _key: nextUid(),
       dayOrder: day.dayOrder || 1,
       dayType: day.dayType || 'TRAINING',
-      trainingType: day.trainingType || 'CHEST',
+      trainingType: normalizeTrainingTypes(day.trainingType).length > 0 ? normalizeTrainingTypes(day.trainingType) : ['CHEST'],
       carbMultiplier: day.carbMultiplier ?? 4.0,
       proteinMultiplier: day.proteinMultiplier ?? 2.0,
       fatMultiplier: day.fatMultiplier ?? 1.0,

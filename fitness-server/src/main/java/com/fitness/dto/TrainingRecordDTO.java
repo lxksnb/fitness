@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class TrainingRecordDTO {
     /** 训练日期 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 关联计划ID(可选) */
     private Long planId;

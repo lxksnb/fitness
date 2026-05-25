@@ -38,8 +38,8 @@
         WHERE user_id = #{userId} AND record_date = #{recordDate}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO diet_record (user_id, record_date, meal_type, food_name, image_url, carb_grams, protein_grams, fat_grams, calories)
-        VALUES (#{userId}, #{recordDate}, #{mealType}, #{foodName}, #{imageUrl}, #{carbGrams}, #{proteinGrams}, #{fatGrams}, #{calories})
+        INSERT INTO diet_record (user_id, record_date, meal_type, food_name, image_url, carb_grams, protein_grams, fat_grams, calories, recorded_at)
+        VALUES (#{userId}, #{recordDate}, #{mealType}, #{foodName}, #{imageUrl}, #{carbGrams}, #{proteinGrams}, #{fatGrams}, #{calories}, #{recordedAt})
     </insert>
     <update id="updateById">
         UPDATE diet_record SET meal_type = #{mealType}, food_name = #{foodName}, image_url = #{imageUrl},

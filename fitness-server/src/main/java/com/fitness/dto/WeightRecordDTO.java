@@ -10,7 +10,7 @@ import java.util.Date;
  */
 public class WeightRecordDTO {
     /** 记录日期 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 体重（千克） */
     private Double weightKg;

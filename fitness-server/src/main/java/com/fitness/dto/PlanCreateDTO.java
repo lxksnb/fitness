@@ -1,5 +1,7 @@
 package com.fitness.dto;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import java.util.List;
 
 /**
@@ -53,7 +55,20 @@ public class PlanCreateDTO {
         public String getDayType() { return dayType; }
         public void setDayType(String s) { this.dayType = s; }
         public String getTrainingType() { return trainingType; }
-        public void setTrainingType(String s) { this.trainingType = s; }
+        @JsonSetter("trainingType")
+        public void setTrainingType(Object value) {
+            if (value == null || value instanceof String) {
+                this.trainingType = (String) value;
+            } else if (value instanceof List) {
+                List<?> list = (List<?>) value;
+                this.trainingType = list.isEmpty() ? null : list.stream()
+                    .map(String::valueOf)
+                    .reduce((left, right) -> left + "," + right)
+                    .orElse(null);
+            } else {
+                this.trainingType = String.valueOf(value);
+            }
+        }
         public Double getCarbMultiplier() { return carbMultiplier; }
         public void setCarbMultiplier(Double d) { this.carbMultiplier = d; }
         public Double getProteinMultiplier() { return proteinMultiplier; }

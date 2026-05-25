@@ -497,6 +497,14 @@ function formatDate(dateStr: string) {
 
 function getTypeTag(type: string): 'success' | 'warning' | 'danger' | 'info' | '' {
   const map: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
+    CHEST: 'danger',
+    BACK: 'success',
+    LEGS: 'warning',
+    SHOULDER: 'info',
+    ARMS: 'danger',
+    CORE: 'success',
+    CARDIO: 'info',
+    REST: 'info',
     strength: 'danger',
     hypertrophy: 'warning',
     endurance: 'success',
@@ -519,11 +527,13 @@ async function fetchTrainingTypes() {
   } catch {
     // 字典加载失败使用默认值
     trainingTypeOptions.value = [
-      { label: '力量训练', value: 'strength' },
-      { label: '增肌训练', value: 'hypertrophy' },
-      { label: '耐力训练', value: 'endurance' },
-      { label: '有氧运动', value: 'cardio' },
-      { label: '柔韧性', value: 'flexibility' }
+      { label: '练胸', value: 'CHEST' },
+      { label: '练背', value: 'BACK' },
+      { label: '练腿', value: 'LEGS' },
+      { label: '练肩', value: 'SHOULDER' },
+      { label: '练手臂', value: 'ARMS' },
+      { label: '核心', value: 'CORE' },
+      { label: '有氧', value: 'CARDIO' }
     ]
   }
 }
@@ -560,7 +570,7 @@ async function fetchCalendar() {
     for (const res of results) {
       const monthData = Array.isArray(res) ? res : res?.records || res?.list || res || []
       monthData.forEach((item: any) => {
-        const date = item.date || item.trainingDate || item.calendarDate
+        const date = item.recordDate || item.date || item.trainingDate || item.calendarDate
         const count = item.count ?? 1
         if (date) allData.push([date, count])
       })

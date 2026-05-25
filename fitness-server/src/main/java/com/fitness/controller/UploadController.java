@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Date;
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ public class UploadController {
      * @throws IOException 文件保存失败时抛出
      */
     @PostMapping("/upload")
-    public Result<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+    public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) throws IOException {
         // 获取原始文件名和扩展名
         String originalName = file.getOriginalFilename();
         String ext = "";
@@ -56,7 +58,9 @@ public class UploadController {
         file.transferTo(dest);
 
         // 返回相对路径，前端可直接拼接域名访问
-        String url = "/" + uploadPath + "/" + dateDir + "/" + fileName;
-        return Result.ok(url);
+        String url = "/uploads/" + dateDir + "/" + fileName;
+        Map<String, String> data = new HashMap<>();
+        data.put("url", url);
+        return Result.ok(data);
     }
 }

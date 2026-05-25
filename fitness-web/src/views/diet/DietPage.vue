@@ -290,7 +290,7 @@ const selectedUnitType = ref<string>('')
 // ==================== 表单 ====================
 
 const form = reactive({
-  mealType: 'breakfast',
+  mealType: 'BREAKFAST',
   foodName: '',
   carbGrams: 0,
   proteinGrams: 0,
@@ -313,7 +313,7 @@ const groupedRecords = computed(() => {
   const groups: Record<string, DietRecord[]> = {}
 
   // 餐次显示顺序
-  const mealOrder = ['breakfast', 'lunch', 'dinner', 'snack']
+  const mealOrder = ['BREAKFAST', 'LUNCH', 'DINNER', 'SUPPER', 'PRE_WORKOUT', 'POST_WORKOUT', 'OTHER']
 
   for (const meal of mealOrder) {
     const records = dietRecords.value.filter(r => r.mealType === meal)
@@ -352,6 +352,13 @@ function formatNum(val: number | null | undefined, decimals = 1): string {
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
   const map: Record<string, string> = {
+    BREAKFAST: '早餐',
+    LUNCH: '午餐',
+    DINNER: '晚餐',
+    SUPPER: '夜宵',
+    PRE_WORKOUT: '练前餐',
+    POST_WORKOUT: '练后餐',
+    OTHER: '其他餐',
     breakfast: '早餐',
     lunch: '午餐',
     dinner: '晚餐',
@@ -363,6 +370,13 @@ function getMealLabel(type: string): string {
 /** 根据餐食类型返回 el-tag 的 type */
 function mealTagType(type: string): string {
   const map: Record<string, string> = {
+    BREAKFAST: 'success',
+    LUNCH: 'warning',
+    DINNER: 'danger',
+    SUPPER: 'info',
+    PRE_WORKOUT: 'primary',
+    POST_WORKOUT: 'success',
+    OTHER: 'info',
     breakfast: 'success',
     lunch: 'warning',
     dinner: 'danger',

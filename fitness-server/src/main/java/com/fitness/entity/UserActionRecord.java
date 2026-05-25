@@ -1,5 +1,6 @@
 package com.fitness.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -16,6 +17,7 @@ public class UserActionRecord {
     /** 关联动作 ID */
     private Long actionId;
     /** 记录日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 使用重量（千克） */
     private Double weightKg;

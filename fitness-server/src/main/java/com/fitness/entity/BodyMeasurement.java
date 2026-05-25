@@ -1,5 +1,6 @@
 package com.fitness.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -14,6 +15,7 @@ public class BodyMeasurement {
     /** 用户 ID */
     private Long userId;
     /** 记录日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 胸围（厘米） */
     private Double chestCm;

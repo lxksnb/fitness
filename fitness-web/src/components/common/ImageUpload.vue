@@ -152,7 +152,7 @@ function beforeUpload(rawFile: UploadRawFile) {
  */
 function handleSuccess(response: any, _uploadFile: UploadFile, _uploadFiles: UploadFile[]) {
   // 后端返回的图片URL
-  const imageUrl = response?.url || response?.data?.url || ''
+  const imageUrl = response?.url || response?.data?.url || (typeof response?.data === 'string' ? response.data : '') || ''
   if (!imageUrl) {
     ElMessage.error('上传成功但未获取到图片地址')
     return

@@ -438,6 +438,13 @@ function formatChange(change: number | null | undefined): string {
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
   const map: Record<string, string> = {
+    BREAKFAST: '早餐',
+    LUNCH: '午餐',
+    DINNER: '晚餐',
+    SUPPER: '夜宵',
+    PRE_WORKOUT: '练前餐',
+    POST_WORKOUT: '练后餐',
+    OTHER: '其他餐',
     breakfast: '早餐',
     lunch: '午餐',
     dinner: '晚餐',
@@ -449,6 +456,13 @@ function getMealLabel(type: string): string {
 /** 根据餐食类型返回 el-tag 的 type */
 function mealTagType(type: string): string {
   const map: Record<string, string> = {
+    BREAKFAST: 'success',
+    LUNCH: 'warning',
+    DINNER: 'danger',
+    SUPPER: 'info',
+    PRE_WORKOUT: 'primary',
+    POST_WORKOUT: 'success',
+    OTHER: 'info',
     breakfast: 'success',
     lunch: 'warning',
     dinner: 'danger',

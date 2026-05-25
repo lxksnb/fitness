@@ -248,6 +248,23 @@ function getSuitableLabel(code: string): string {
   return found?.name || code
 }
 
+function normalizeSuitableFor(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') return value.split(',').filter(Boolean)
+  return []
+}
+
+function normalizeImageUrls(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value !== 'string' || !value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : [value]
+  } catch {
+    return [value]
+  }
+}
+
 /** 格式化日期 */
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '--'
@@ -291,10 +308,18 @@ async function fetchList() {
     const res = await getAdminActions({ keyword: kw }) as any
     if (res && (res.records || res.list)) {
       const list = res.records || res.list || []
-      tableData.value = list
+      tableData.value = list.map((item: any) => ({
+        ...item,
+        suitableFor: normalizeSuitableFor(item.suitableFor),
+        imageUrls: normalizeImageUrls(item.imageUrls)
+      }))
       total.value = res.total || list.length
     } else if (Array.isArray(res)) {
-      tableData.value = res
+      tableData.value = res.map((item: any) => ({
+        ...item,
+        suitableFor: normalizeSuitableFor(item.suitableFor),
+        imageUrls: normalizeImageUrls(item.imageUrls)
+      }))
       total.value = res.length
     } else {
       tableData.value = []
@@ -318,9 +343,8 @@ function openDialog(action?: ActionItem) {
     form.name = action.actionName
     form.description = action.description || ''
     // 后端返回逗号分隔字符串, 转为数组供checkbox展示
-    const sf = (action as any).suitableFor
-    form.suitableFor = Array.isArray(sf) ? sf : (typeof sf === 'string' ? sf.split(',').filter(Boolean) : [])
-    form.imageUrls = action.imageUrls || []
+    form.suitableFor = normalizeSuitableFor((action as any).suitableFor)
+    form.imageUrls = normalizeImageUrls((action as any).imageUrls)
     form.videoUrl = action.videoUrl || ''
   } else {
     isEditing.value = false

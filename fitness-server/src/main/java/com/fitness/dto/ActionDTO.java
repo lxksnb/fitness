@@ -1,10 +1,15 @@
 package com.fitness.dto;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * 训练动作 DTO
  * 用于创建或更新训练动作信息
  */
 public class ActionDTO {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     /** 动作名称 */
     private String actionName;
     /** 动作描述 */
@@ -23,7 +28,18 @@ public class ActionDTO {
     public java.util.List<String> getSuitableFor() { return suitableFor; }
     public void setSuitableFor(java.util.List<String> sf) { this.suitableFor = sf; }
     public String getImageUrls() { return imageUrls; }
-    public void setImageUrls(String urls) { this.imageUrls = urls; }
+    @JsonSetter("imageUrls")
+    public void setImageUrls(Object urls) {
+        if (urls == null || urls instanceof String) {
+            this.imageUrls = (String) urls;
+            return;
+        }
+        try {
+            this.imageUrls = OBJECT_MAPPER.writeValueAsString(urls);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid imageUrls", e);
+        }
+    }
     public String getVideoUrl() { return videoUrl; }
     public void setVideoUrl(String url) { this.videoUrl = url; }
 }

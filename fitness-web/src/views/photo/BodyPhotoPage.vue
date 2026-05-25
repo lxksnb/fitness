@@ -113,9 +113,9 @@
         </el-form-item>
         <el-form-item label="照片类型" prop="photoType">
           <el-select v-model="uploadForm.photoType" placeholder="选择照片类型" style="width: 100%">
-            <el-option label="正面" value="front" />
-            <el-option label="侧面" value="side" />
-            <el-option label="背面" value="back" />
+            <el-option label="正面" value="FRONT" />
+            <el-option label="侧面" value="SIDE" />
+            <el-option label="背面" value="BACK" />
           </el-select>
         </el-form-item>
         <el-form-item label="照片上传" prop="imageUrl">
@@ -233,7 +233,7 @@ const previewSrcList = computed(() => {
 
 const uploadForm = reactive({
   photoDate: getTodayStr(),
-  photoType: 'front',
+  photoType: 'FRONT',
   imageUrl: '',
   note: ''
 })
@@ -266,10 +266,13 @@ function formatDate(dateStr: string) {
 
 function getTypeTagColor(type: string) {
   const map: Record<string, 'success' | 'warning' | 'info' | ''> = {
+    FRONT: 'success',
     front: 'success',
     正面: 'success',
+    SIDE: 'warning',
     side: 'warning',
     侧面: 'warning',
+    BACK: 'info',
     back: 'info',
     背面: 'info'
   }
@@ -297,7 +300,7 @@ async function fetchPhotos() {
 
 function openUploadDialog() {
   uploadForm.photoDate = getTodayStr()
-  uploadForm.photoType = 'front'
+  uploadForm.photoType = 'FRONT'
   uploadForm.imageUrl = ''
   uploadForm.note = ''
   uploadFileList.value = []
@@ -326,7 +329,7 @@ function beforeUpload(file: any) {
 }
 
 function handleUploadSuccess(response: any) {
-  const imageUrl = response?.url || response?.data?.url || ''
+  const imageUrl = response?.url || response?.data?.url || (typeof response?.data === 'string' ? response.data : '') || ''
   if (imageUrl) {
     uploadForm.imageUrl = imageUrl
     ElMessage.success('图片上传成功')

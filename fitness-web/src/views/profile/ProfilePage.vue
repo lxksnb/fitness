@@ -292,7 +292,7 @@ function beforeAvatarUpload(file: any) {
 }
 
 function handleAvatarSuccess(response: any) {
-  const imageUrl = response?.url || response?.data?.url || ''
+  const imageUrl = response?.url || response?.data?.url || (typeof response?.data === 'string' ? response.data : '') || ''
   if (imageUrl) {
     profileForm.avatar = imageUrl
     ElMessage.success('头像上传成功')

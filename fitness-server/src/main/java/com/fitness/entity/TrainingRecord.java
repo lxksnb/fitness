@@ -1,5 +1,6 @@
 package com.fitness.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.sql.Time;
@@ -16,6 +17,7 @@ public class TrainingRecord {
     /** 用户 ID */
     private Long userId;
     /** 记录日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date recordDate;
     /** 关联计划 ID */
     private Long planId;
@@ -24,8 +26,10 @@ public class TrainingRecord {
     /** 训练类型 */
     private String trainingType;
     /** 开始时间 */
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Shanghai")
     private Time startTime;
     /** 结束时间 */
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Shanghai")
     private Time endTime;
     /** 训练时长（分钟） */
     private Integer durationMinutes;

@@ -172,12 +172,12 @@
                     v-for="item in unitTypeOptions"
                     :key="item.dictValue"
                     :label="item.dictLabel"
-                    :value="item.dictLabel"
+                    :value="item.dictValue"
                   />
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="10" v-if="entry.unitType !== '每100g'">
+            <el-col :span="10" v-if="entry.unitType !== 'PER_100G'">
               <el-form-item label="单位重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]" style="margin-bottom: 0">
                 <el-input-number v-model="entry.servingWeightG" :min="1" :controls="false" style="width: 100%" />
               </el-form-item>
@@ -298,7 +298,7 @@ const form = reactive({
   imageUrls: [] as string[],
   nutritionEntries: [
     {
-      unitType: '每100g',
+      unitType: 'PER_100G',
       servingWeightG: 100,
       carbGrams: 0,
       proteinGrams: 0,
@@ -381,7 +381,7 @@ async function toggleExpand(food: FoodItem) {
 /** 添加营养单位行 */
 function addNutritionEntry() {
   form.nutritionEntries.push({
-    unitType: '每100g',
+    unitType: 'PER_100G',
     servingWeightG: 100,
     carbGrams: 0,
     proteinGrams: 0,
@@ -401,7 +401,7 @@ function removeNutritionEntry(index: number) {
 
 /** 单位类型变更: 选"每100g"时自动固定重量为100并隐藏输入框 */
 function onUnitTypeChange(index: number) {
-  if (form.nutritionEntries[index].unitType === '每100g') {
+  if (form.nutritionEntries[index].unitType === 'PER_100G') {
     form.nutritionEntries[index].servingWeightG = 100
   }
 }
@@ -424,7 +424,7 @@ async function openDialog(food?: FoodItem) {
         : (Array.isArray(res?.nutritionEntries) ? res.nutritionEntries : (Array.isArray(res?.units) ? res.units : []))
       if (entries.length > 0) {
         form.nutritionEntries = entries.map((e: any) => ({
-          unitType: e.unitType || '标准',
+          unitType: e.unitType || 'PER_100G',
           servingWeightG: e.servingWeightG || e.servingWeight || 100,
           carbGrams: e.carbGrams || 0,
           proteinGrams: e.proteinGrams || 0,
@@ -433,12 +433,12 @@ async function openDialog(food?: FoodItem) {
         }))
       } else {
         form.nutritionEntries = [
-          { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+          { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
         ]
       }
     } catch {
       form.nutritionEntries = [
-        { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+        { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
       ]
     }
   } else {
@@ -454,7 +454,7 @@ function resetFormData() {
   form.name = ''
   form.imageUrls = []
   form.nutritionEntries = [
-    { unitType: '每100g', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+    { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
   ]
 }
 

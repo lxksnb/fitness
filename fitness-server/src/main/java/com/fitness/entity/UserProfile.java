@@ -1,5 +1,6 @@
 package com.fitness.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -16,6 +17,7 @@ public class UserProfile {
     /** 性别 */
     private String gender;
     /** 出生日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date birthday;
     /** 身高（厘米） */
     private Double heightCm;
@@ -24,6 +26,7 @@ public class UserProfile {
     /** 目标体重（千克） */
     private Double targetWeightKg;
     /** 目标达成日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date targetDate;
     /** 每周预期变化率 */
     private Double weeklyChangeRate;

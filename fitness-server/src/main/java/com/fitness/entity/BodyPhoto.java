@@ -1,5 +1,6 @@
 package com.fitness.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -14,6 +15,7 @@ public class BodyPhoto {
     /** 用户 ID */
     private Long userId;
     /** 拍照日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date photoDate;
     /** 照片类型（FRONT / SIDE / BACK） */
     private String photoType;

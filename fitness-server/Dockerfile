@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:8-jre-alpine
 WORKDIR /app
 COPY target/fitness-server-1.0.0.jar app.jar
 EXPOSE 8080

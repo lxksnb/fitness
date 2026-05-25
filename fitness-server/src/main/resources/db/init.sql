@@ -1,5 +1,6 @@
 CREATE DATABASE IF NOT EXISTS fitness DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE fitness;
+SET NAMES utf8mb4;
 
 -- ========== 系统表 ==========
 
@@ -347,8 +348,8 @@ CREATE TABLE training_record (
     plan_id BIGINT COMMENT '关联的健身计划ID, 可为空',
     training_day_id BIGINT COMMENT '关联的计划训练日ID, 可为空, 用于从计划导入动作列表',
     training_type VARCHAR(50) NOT NULL COMMENT '训练类型: CHEST练胸/BACK练背/LEGS练腿/SHOULDER练肩/ARMS练手臂/CORE核心/CARDIO有氧',
-    start_time DATETIME COMMENT '训练开始时间',
-    end_time DATETIME COMMENT '训练结束时间',
+    start_time TIME COMMENT '训练开始时间',
+    end_time TIME COMMENT '训练结束时间',
     duration_minutes INT COMMENT '训练时长(分钟), 可由开始/结束时间自动计算或手动填写',
     note VARCHAR(500) COMMENT '训练备注/心得',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -427,4 +428,4 @@ FLUSH PRIVILEGES;
 
 -- 创建管理员账户 (密码: admin123, BCrypt加密)
 INSERT INTO sys_user (username, password, nickname, role, status) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', 'ADMIN', 'ACTIVE');
+('admin', '$2a$10$EJhza/5WlNJTO9YN/XlEsu5B7DDi2MxQm2SJwr1OORQm//RRu38gW', '系统管理员', 'ADMIN', 'ACTIVE');
