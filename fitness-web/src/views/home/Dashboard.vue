@@ -355,7 +355,8 @@ const mealTypeOptions = ref<DictOption[]>([])
 /** 体重趋势数据项 */
 interface WeightTrendItem {
   date: string
-  weight: number
+  weight?: number
+  weightKg?: number
   bmi?: number
 }
 
@@ -653,6 +654,12 @@ const weightChartOption = computed(() => {
   if (!dashboard.value?.weightTrend?.length) return null
 
   const trend = dashboard.value.weightTrend
+    .map((item) => ({
+      ...item,
+      value: Number(item.weight ?? item.weightKg)
+    }))
+    .filter((item) => item.date && !Number.isNaN(item.value))
+  if (!trend.length) return null
 
   // 解析日期数组，展示为 M/D 格式
   const dates = trend.map((t) => {
@@ -662,7 +669,8 @@ const weightChartOption = computed(() => {
     return `${d.getMonth() + 1}/${d.getDate()}`
   })
 
-  const weights = trend.map((t) => t.weight)
+  const weights = trend.map((t) => t.value)
+  const points = trend.map((t, index) => [dates[index], t.value])
   const weightMin = Math.min(...weights)
   const weightMax = Math.max(...weights)
   const padding = Math.max((weightMax - weightMin) * 0.2, 1)
@@ -677,8 +685,9 @@ const weightChartOption = computed(() => {
       textStyle: { color: '#2d3436', fontSize: 13 },
       formatter: (params: any) => {
         if (!params) return ''
+        const value = Array.isArray(params.value) ? params.value[1] : params.value
         return `<div style="font-size:13px;color:#636e72">${params.name}</div>
-          <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${params.value} kg</div>`
+          <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${value} kg</div>`
       }
     },
     legend: {
@@ -726,7 +735,7 @@ const weightChartOption = computed(() => {
     series: [
       {
         name: '体重',
-        data: weights,
+        data: points,
         type: 'scatter' as const,
         symbol: 'circle',
         symbolSize: 8,
