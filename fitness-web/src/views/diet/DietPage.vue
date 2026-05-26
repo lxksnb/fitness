@@ -163,9 +163,9 @@
           <el-select v-model="form.mealType" placeholder="选择餐次" style="width: 100%">
             <el-option
               v-for="item in mealTypeOptions"
-              :key="item.dictValue"
-              :label="item.dictLabel"
-              :value="item.dictValue"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             />
           </el-select>
         </el-form-item>
@@ -221,7 +221,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Food, DataAnalysis, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getDietList, createDiet, updateDiet, deleteDiet } from '@/api/diet'
-import { getDict } from '@/api/dict'
+import { getDictOptions, type DictOption } from '@/api/dict'
 import { searchFoods, getFoodDetail } from '@/api/food'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
@@ -239,12 +239,6 @@ interface DietRecord {
   fatGrams: number
   calories: number
   imageUrl?: string
-}
-
-/** 字典选项 */
-interface DictOption {
-  dictLabel: string
-  dictValue: string
 }
 
 /** 食物搜索选项 */
@@ -290,7 +284,7 @@ const selectedUnitType = ref<string>('')
 // ==================== 表单 ====================
 
 const form = reactive({
-  mealType: 'BREAKFAST',
+  mealType: '',
   foodName: '',
   carbGrams: 0,
   proteinGrams: 0,
@@ -312,8 +306,7 @@ const formRules: FormRules = {
 const groupedRecords = computed(() => {
   const groups: Record<string, DietRecord[]> = {}
 
-  // 餐次显示顺序
-  const mealOrder = ['BREAKFAST', 'LUNCH', 'DINNER', 'SUPPER', 'PRE_WORKOUT', 'POST_WORKOUT', 'OTHER']
+  const mealOrder = mealTypeOptions.value.map(item => item.value)
 
   for (const meal of mealOrder) {
     const records = dietRecords.value.filter(r => r.mealType === meal)
@@ -351,20 +344,7 @@ function formatNum(val: number | null | undefined, decimals = 1): string {
 
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
-  const map: Record<string, string> = {
-    BREAKFAST: '早餐',
-    LUNCH: '午餐',
-    DINNER: '晚餐',
-    SUPPER: '夜宵',
-    PRE_WORKOUT: '练前餐',
-    POST_WORKOUT: '练后餐',
-    OTHER: '其他餐',
-    breakfast: '早餐',
-    lunch: '午餐',
-    dinner: '晚餐',
-    snack: '加餐'
-  }
-  return map[type] || type
+  return mealTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 根据餐食类型返回 el-tag 的 type */
@@ -396,11 +376,13 @@ function calcMealCalories(records: DietRecord[]): string {
 /** 加载餐次字典 */
 async function fetchMealTypes() {
   try {
-    const res = await getDict('meal_type') as any
-    console.info("餐次:",res)
-    mealTypeOptions.value = Array.isArray(res) ? res : (res?.list || res?.records || [])
-  } catch {
-    
+    mealTypeOptions.value = await getDictOptions('meal_type')
+    if (!form.mealType) {
+      form.mealType = mealTypeOptions.value[0]?.value || ''
+    }
+  } catch (err: any) {
+    ElMessage.error(err.message || '餐次字典加载失败')
+    mealTypeOptions.value = []
   }
 }
 
@@ -510,7 +492,7 @@ function openDialog(record?: DietRecord) {
 
 /** 重置表单数据 */
 function resetFormData() {
-  form.mealType = ''
+  form.mealType = mealTypeOptions.value[0]?.value || ''
   form.foodName = ''
   form.carbGrams = 0
   form.proteinGrams = 0

@@ -21,7 +21,7 @@
     <template v-else-if="error">
       <el-result icon="error" title="数据加载失败" :sub-title="error">
         <template #extra>
-          <el-button type="primary" @click="fetchPlanDetail">重新加载</el-button>
+          <el-button type="primary" @click="loadPageData">重新加载</el-button>
         </template>
       </el-result>
     </template>
@@ -614,7 +614,7 @@
  * - 餐次配置：训练日和休息日各7餐的营养素比例分配，可展开推荐食物
  * - 前端校验：比例总和约100%、必须包含训练日
  */
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -623,6 +623,7 @@ import {
 import { createPlan, updatePlan, getPlanDetail } from '@/api/plan'
 import { searchActions } from '@/api/action'
 import { searchFoods } from '@/api/food'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 const router = useRouter()
 const route = useRoute()
@@ -635,43 +636,17 @@ const isEdit = computed(() => !!route.params.id)
 /** 编辑模式下的计划ID */
 const editId = computed(() => Number(route.params.id))
 
-// ==================== 选项常量 ====================
+// ==================== 字典选项 ====================
 
-const planTypeOptions = [
-  { label: '减脂', value: 'CUT' },
-  { label: '增肌', value: 'BULK' },
-  { label: '维持', value: 'MAINTAIN' }
-]
+interface MealTypeOption extends DictOption {
+  type: string
+  sortOrder: number
+}
 
-const splitTypeOptions = [
-  { label: '全身', value: 'FULL_BODY' },
-  { label: '三分化', value: 'THREE_DAY' },
-  { label: '四分化', value: 'FOUR_DAY' },
-  { label: '五分化', value: 'FIVE_DAY' },
-  { label: '推拉腿', value: 'PPL' },
-  { label: '自定义', value: 'CUSTOM' }
-]
-
-const trainingTypeOptions = [
-  { label: '练胸', value: 'CHEST' },
-  { label: '练背', value: 'BACK' },
-  { label: '练腿', value: 'LEGS' },
-  { label: '练肩', value: 'SHOULDER' },
-  { label: '练手臂', value: 'ARMS' },
-  { label: '核心', value: 'CORE' },
-  { label: '有氧', value: 'CARDIO' }
-]
-
-/** 7个餐次类型定义 */
-const MEAL_TYPES = [
-  { type: 'BREAKFAST', label: '早餐', sortOrder: 1 },
-  { type: 'LUNCH', label: '午餐', sortOrder: 2 },
-  { type: 'DINNER', label: '晚餐', sortOrder: 3 },
-  { type: 'SUPPER', label: '夜宵', sortOrder: 4 },
-  { type: 'PRE_WORKOUT', label: '练前餐', sortOrder: 5 },
-  { type: 'POST_WORKOUT', label: '练后餐', sortOrder: 6 },
-  { type: 'OTHER', label: '其他餐', sortOrder: 7 }
-]
+const planTypeOptions = ref<DictOption[]>([])
+const splitTypeOptions = ref<DictOption[]>([])
+const trainingTypeOptions = ref<DictOption[]>([])
+const mealTypeOptions = ref<MealTypeOption[]>([])
 
 /** 训练日默认营养素分配比例（百分比，合计约100%） */
 const DEFAULT_TRAINING_RATIOS: Record<string, { carb: number; protein: number; fat: number }> = {
@@ -766,6 +741,33 @@ function nextUid(): string {
   return 'uid_' + (++uidCounter)
 }
 
+function getPreferredOptionValue(options: DictOption[], preferred: string): string {
+  return options.find(item => item.value === preferred)?.value || options[0]?.value || ''
+}
+
+async function fetchDictData(): Promise<void> {
+  const [planTypes, splitTypes, trainingTypes, mealTypes] = await Promise.all([
+    getDictOptions('plan_type'),
+    getDictOptions('split_type'),
+    getDictOptions('training_type'),
+    getDictOptions('meal_type')
+  ])
+
+  planTypeOptions.value = planTypes
+  splitTypeOptions.value = splitTypes
+  trainingTypeOptions.value = trainingTypes.filter(item => item.value !== 'REST')
+  mealTypeOptions.value = mealTypes.map(item => ({
+    ...item,
+    type: item.value,
+    sortOrder: item.sort || 0
+  }))
+
+  if (!planTypeOptions.value.length || !splitTypeOptions.value.length ||
+      !trainingTypeOptions.value.length || !mealTypeOptions.value.length) {
+    throw new Error('基础字典数据为空，请检查字典配置')
+  }
+}
+
 // ==================== 表单初始化 ====================
 
 /** 创建默认训练日 */
@@ -774,7 +776,7 @@ function createDefaultTrainingDay(order: number): TrainingDayItem {
     _key: nextUid(),
     dayOrder: order,
     dayType: 'TRAINING',
-    trainingType: ['CHEST'],
+    trainingType: [getPreferredOptionValue(trainingTypeOptions.value, 'CHEST')].filter(Boolean),
     carbMultiplier: 4.0,
     proteinMultiplier: 2.0,
     fatMultiplier: 1.0,
@@ -800,28 +802,28 @@ function createDefaultRestDay(order: number): TrainingDayItem {
 function initMealConfigs(): MealConfigItem[] {
   const configs: MealConfigItem[] = []
 
-  for (const mt of MEAL_TYPES) {
+  for (const mt of mealTypeOptions.value) {
     const defaults = DEFAULT_TRAINING_RATIOS[mt.type]
     configs.push({
       dayType: 'TRAINING',
       mealType: mt.type,
-      carbRatio: defaults.carb,
-      proteinRatio: defaults.protein,
-      fatRatio: defaults.fat,
+      carbRatio: defaults?.carb ?? 0,
+      proteinRatio: defaults?.protein ?? 0,
+      fatRatio: defaults?.fat ?? 0,
       sortOrder: mt.sortOrder,
       foods: [],
       _expanded: false
     })
   }
 
-  for (const mt of MEAL_TYPES) {
+  for (const mt of mealTypeOptions.value) {
     const defaults = DEFAULT_REST_RATIOS[mt.type]
     configs.push({
       dayType: 'REST',
       mealType: mt.type,
-      carbRatio: defaults.carb,
-      proteinRatio: defaults.protein,
-      fatRatio: defaults.fat,
+      carbRatio: defaults?.carb ?? 0,
+      proteinRatio: defaults?.protein ?? 0,
+      fatRatio: defaults?.fat ?? 0,
       sortOrder: mt.sortOrder,
       foods: [],
       _expanded: false
@@ -834,8 +836,8 @@ function initMealConfigs(): MealConfigItem[] {
 /** 初始化表单数据（新创建模式） */
 function initFormData(): void {
   formData.planName = ''
-  formData.planType = 'BULK'
-  formData.splitType = 'FOUR_DAY'
+  formData.planType = getPreferredOptionValue(planTypeOptions.value, 'BULK')
+  formData.splitType = getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
   formData.trainingDays = [createDefaultTrainingDay(1)]
   formData.mealConfigs = initMealConfigs()
   uidCounter = 0
@@ -1052,7 +1054,7 @@ function removeFood(config: MealConfigItem, foodIndex: number) {
 
 /** 获取餐次中文名称 */
 function getMealLabel(mealType: string): string {
-  const found = MEAL_TYPES.find(m => m.type === mealType)
+  const found = mealTypeOptions.value.find(m => m.type === mealType)
   return found ? found.label : mealType
 }
 
@@ -1190,8 +1192,8 @@ function handleCancel() {
 /** 从后端数据填充表单 */
 function populateForm(detail: any) {
   formData.planName = detail.planName || ''
-  formData.planType = detail.planType || 'BULK'
-  formData.splitType = detail.splitType || 'FOUR_DAY'
+  formData.planType = detail.planType || getPreferredOptionValue(planTypeOptions.value, 'BULK')
+  formData.splitType = detail.splitType || getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
 
   // 填充训练日
   if (detail.trainingDays && Array.isArray(detail.trainingDays)) {
@@ -1199,7 +1201,9 @@ function populateForm(detail: any) {
       _key: nextUid(),
       dayOrder: day.dayOrder || 1,
       dayType: day.dayType || 'TRAINING',
-      trainingType: normalizeTrainingTypes(day.trainingType).length > 0 ? normalizeTrainingTypes(day.trainingType) : ['CHEST'],
+      trainingType: normalizeTrainingTypes(day.trainingType).length > 0
+        ? normalizeTrainingTypes(day.trainingType)
+        : [getPreferredOptionValue(trainingTypeOptions.value, 'CHEST')].filter(Boolean),
       carbMultiplier: day.carbMultiplier ?? 4.0,
       proteinMultiplier: day.proteinMultiplier ?? 2.0,
       fatMultiplier: day.fatMultiplier ?? 1.0,
@@ -1222,7 +1226,6 @@ function populateForm(detail: any) {
     // 用后端数据覆盖默认值
     const customConfigs: MealConfigItem[] = []
     // 复用默认结构中未提供的餐次
-    const allMealTypes = MEAL_TYPES.map(m => m.type)
     const providedMap = new Map<string, boolean>()
 
     for (const mc of detail.mealConfigs) {
@@ -1246,16 +1249,16 @@ function populateForm(detail: any) {
 
     // 补充后端未返回的餐次类型（用默认值）
     for (const dt of ['TRAINING', 'REST'] as const) {
-      for (const mt of MEAL_TYPES) {
+      for (const mt of mealTypeOptions.value) {
         const key = dt + '|' + mt.type
         if (!providedMap.has(key)) {
           const defaults = dt === 'TRAINING' ? DEFAULT_TRAINING_RATIOS[mt.type] : DEFAULT_REST_RATIOS[mt.type]
           customConfigs.push({
             dayType: dt,
             mealType: mt.type,
-            carbRatio: defaults.carb,
-            proteinRatio: defaults.protein,
-            fatRatio: defaults.fat,
+            carbRatio: defaults?.carb ?? 0,
+            proteinRatio: defaults?.protein ?? 0,
+            fatRatio: defaults?.fat ?? 0,
             sortOrder: mt.sortOrder,
             foods: [],
             _expanded: false
@@ -1268,14 +1271,17 @@ function populateForm(detail: any) {
   }
 }
 
-/** 获取计划详情（编辑模式） */
-async function fetchPlanDetail() {
-  if (!isEdit.value) return
+async function loadPageData() {
   loading.value = true
   error.value = ''
   try {
-    const detail = await getPlanDetail(editId.value) as any
-    populateForm(detail)
+    await fetchDictData()
+    if (isEdit.value) {
+      const detail = await getPlanDetail(editId.value) as any
+      populateForm(detail)
+    } else {
+      initFormData()
+    }
   } catch (err: any) {
     error.value = err.message || '数据加载失败，请稍后重试'
   } finally {
@@ -1286,11 +1292,7 @@ async function fetchPlanDetail() {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
-  if (isEdit.value) {
-    fetchPlanDetail()
-  } else {
-    initFormData()
-  }
+  loadPageData()
 })
 </script>
 

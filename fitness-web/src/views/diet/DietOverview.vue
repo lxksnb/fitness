@@ -132,6 +132,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Back } from '@element-plus/icons-vue'
 import { getDailySummary } from '@/api/diet'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 const router = useRouter()
 
@@ -193,6 +194,7 @@ const loading = ref(true)
 const error = ref('')
 const selectedDate = ref(getTodayStr())
 const summary = ref<DailySummary | null>(null)
+const mealTypeOptions = ref<DictOption[]>([])
 
 // ==================== 工具函数 ====================
 
@@ -216,20 +218,7 @@ function calcPercent(actual: number | null | undefined, target: number | null | 
 
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
-  const map: Record<string, string> = {
-    BREAKFAST: '早餐',
-    LUNCH: '午餐',
-    DINNER: '晚餐',
-    SUPPER: '夜宵',
-    PRE_WORKOUT: '练前餐',
-    POST_WORKOUT: '练后餐',
-    OTHER: '其他餐',
-    breakfast: '早餐',
-    lunch: '午餐',
-    dinner: '晚餐',
-    snack: '加餐'
-  }
-  return map[type] || type
+  return mealTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 根据餐食类型返回 el-tag 的 type */
@@ -367,6 +356,14 @@ const advices = computed<string[]>(() => {
 
 // ==================== 数据获取 ====================
 
+async function fetchMealTypes() {
+  try {
+    mealTypeOptions.value = await getDictOptions('meal_type')
+  } catch {
+    mealTypeOptions.value = []
+  }
+}
+
 /** 加载每日饮食汇总 */
 async function fetchData() {
   loading.value = true
@@ -384,6 +381,7 @@ async function fetchData() {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchMealTypes()
   fetchData()
 })
 </script>

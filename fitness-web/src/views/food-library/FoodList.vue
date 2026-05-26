@@ -170,9 +170,9 @@
                 <el-select v-model="entry.unitType" placeholder="选择单位类型" style="width: 100%" @change="onUnitTypeChange(index)">
                   <el-option
                     v-for="item in unitTypeOptions"
-                    :key="item.dictValue"
-                    :label="item.dictLabel"
-                    :value="item.dictValue"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
                   />
                 </el-select>
               </el-form-item>
@@ -238,7 +238,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { searchFoods, getFoodDetail, createFood, updateFood, deleteFood } from '@/api/food'
-import { getDict } from '@/api/dict'
+import { getDictOptions, type DictOption } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
 // ==================== 类型定义 ====================
@@ -289,7 +289,7 @@ const foodDetail = ref<FoodDetail | null>(null)
 const foodDetailLoading = ref(false)
 
 /** 单位类型下拉选项（从字典 food_unit_type 加载） */
-const unitTypeOptions = ref<Array<{ dictLabel: string; dictValue: string }>>([])
+const unitTypeOptions = ref<DictOption[]>([])
 
 // ==================== 表单 ====================
 
@@ -524,8 +524,7 @@ async function handleDelete(food: FoodItem) {
 /** 加载食物单位类型字典 */
 async function loadUnitTypeOptions() {
   try {
-    const res = await getDict('food_unit_type') as any
-    unitTypeOptions.value = Array.isArray(res) ? res : []
+    unitTypeOptions.value = await getDictOptions('food_unit_type')
   } catch {
     unitTypeOptions.value = []
   }

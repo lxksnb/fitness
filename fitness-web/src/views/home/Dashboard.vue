@@ -332,6 +332,7 @@ import {
   Calendar
 } from '@element-plus/icons-vue'
 import { getDashboard } from '@/api/dashboard'
+import { getDictOptions, type DictOption } from '@/api/dict'
 import { useUserStore } from '@/stores/user'
 
 // 注册 ECharts 全部模块（确保 vue-echarts 可正常渲染）
@@ -347,6 +348,7 @@ const loading = ref(true)
 const error = ref('')
 /** 看板数据 */
 const dashboard = ref<DashboardData | null>(null)
+const mealTypeOptions = ref<DictOption[]>([])
 
 // ==================== 类型定义 ====================
 
@@ -420,6 +422,14 @@ async function fetchDashboard() {
   }
 }
 
+async function fetchMealTypes() {
+  try {
+    mealTypeOptions.value = await getDictOptions('meal_type')
+  } catch {
+    mealTypeOptions.value = []
+  }
+}
+
 // ==================== 工具函数 ====================
 
 /** 格式化数字，保留指定小数位，null/undefined 返回 '--' */
@@ -437,20 +447,7 @@ function formatChange(change: number | null | undefined): string {
 
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
-  const map: Record<string, string> = {
-    BREAKFAST: '早餐',
-    LUNCH: '午餐',
-    DINNER: '晚餐',
-    SUPPER: '夜宵',
-    PRE_WORKOUT: '练前餐',
-    POST_WORKOUT: '练后餐',
-    OTHER: '其他餐',
-    breakfast: '早餐',
-    lunch: '午餐',
-    dinner: '晚餐',
-    snack: '加餐'
-  }
-  return map[type] || type
+  return mealTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 根据餐食类型返回 el-tag 的 type */
@@ -768,6 +765,7 @@ const weightChartOption = computed(() => {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchMealTypes()
   fetchDashboard()
 })
 </script>

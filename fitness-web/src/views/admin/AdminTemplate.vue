@@ -187,6 +187,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getAdminTemplates, createAdminTemplate, updateAdminTemplate, deleteAdminTemplate } from '@/api/admin'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 // ==================== 类型定义 ====================
 
@@ -201,28 +202,11 @@ interface TemplateItem {
   createdAt?: string
 }
 
-// ==================== 选项常量 ====================
+// ==================== 字典选项 ====================
 
-const planTypeOptions = [
-  { label: '减脂', value: 'CUT' },
-  { label: '增肌', value: 'BULK' },
-  { label: '维持', value: 'MAINTAIN' }
-]
-
-const splitTypeOptions = [
-  { label: '全身', value: 'FULL_BODY' },
-  { label: '三分化', value: 'THREE_DAY' },
-  { label: '四分化', value: 'FOUR_DAY' },
-  { label: '五分化', value: 'FIVE_DAY' },
-  { label: '推拉腿', value: 'PPL' },
-  { label: '自定义', value: 'CUSTOM' }
-]
-
-const difficultyOptions = [
-  { label: '新手', value: 'BEGINNER' },
-  { label: '中级', value: 'INTERMEDIATE' },
-  { label: '高级', value: 'ADVANCED' }
-]
+const planTypeOptions = ref<DictOption[]>([])
+const splitTypeOptions = ref<DictOption[]>([])
+const difficultyOptions = ref<DictOption[]>([])
 
 // ==================== 状态 ====================
 
@@ -269,29 +253,27 @@ const formRules: FormRules = {
 
 // ==================== 工具函数 ====================
 
+function getPreferredOptionValue(options: DictOption[], preferred: string): string {
+  return options.find(item => item.value === preferred)?.value || options[0]?.value || ''
+}
+
+function getOptionLabel(options: DictOption[], value: string): string {
+  return options.find(item => item.value === value)?.label || value
+}
+
 /** 计划类型 → 中文 */
 function getPlanTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    CUT: '减脂', BULK: '增肌', MAINTAIN: '维持'
-  }
-  return map[type] || type
+  return getOptionLabel(planTypeOptions.value, type)
 }
 
 /** 分化类型 → 中文 */
 function getSplitTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    FULL_BODY: '全身', THREE_DAY: '三分化', FOUR_DAY: '四分化',
-    FIVE_DAY: '五分化', PPL: '推拉腿', CUSTOM: '自定义'
-  }
-  return map[type] || type
+  return getOptionLabel(splitTypeOptions.value, type)
 }
 
 /** 难度 → 中文 */
 function getDifficultyLabel(level: string): string {
-  const map: Record<string, string> = {
-    BEGINNER: '新手', INTERMEDIATE: '中级', ADVANCED: '高级'
-  }
-  return map[level] || level
+  return getOptionLabel(difficultyOptions.value, level)
 }
 
 /** 计划类型 → el-tag 颜色 */
@@ -319,6 +301,18 @@ function formatDate(dateStr?: string): string {
 }
 
 // ==================== 数据获取 ====================
+
+async function fetchDictData() {
+  const [planTypes, splitTypes, difficultyLevels] = await Promise.all([
+    getDictOptions('plan_type'),
+    getDictOptions('split_type'),
+    getDictOptions('difficulty')
+  ])
+
+  planTypeOptions.value = planTypes
+  splitTypeOptions.value = splitTypes
+  difficultyOptions.value = difficultyLevels
+}
 
 /** 获取模板列表 */
 async function fetchList() {
@@ -355,9 +349,9 @@ function openDialog(template?: TemplateItem) {
     editingId.value = template.id
     form.name = template.name
     form.description = template.description || ''
-    form.planType = template.planType || 'BULK'
-    form.splitType = template.splitType || 'FOUR_DAY'
-    form.difficulty = template.difficulty || 'BEGINNER'
+    form.planType = template.planType || getPreferredOptionValue(planTypeOptions.value, 'BULK')
+    form.splitType = template.splitType || getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
+    form.difficulty = template.difficulty || getPreferredOptionValue(difficultyOptions.value, 'BEGINNER')
   } else {
     isEditing.value = false
     editingId.value = null
@@ -370,9 +364,9 @@ function openDialog(template?: TemplateItem) {
 function resetFormData() {
   form.name = ''
   form.description = ''
-  form.planType = 'BULK'
-  form.splitType = 'FOUR_DAY'
-  form.difficulty = 'BEGINNER'
+  form.planType = getPreferredOptionValue(planTypeOptions.value, 'BULK')
+  form.splitType = getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
+  form.difficulty = getPreferredOptionValue(difficultyOptions.value, 'BEGINNER')
 }
 
 /** 关闭弹窗后重置 */
@@ -434,6 +428,7 @@ async function handleDelete(template: TemplateItem) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchDictData()
   fetchList()
 })
 </script>

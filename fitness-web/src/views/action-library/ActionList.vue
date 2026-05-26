@@ -244,7 +244,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete, VideoCamera, VideoPlay, TrendCharts } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { searchActions, createAction, updateAction, deleteAction, getActionRecords } from '@/api/action'
-import { getDict } from '@/api/dict'
+import { getDictOptions } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
 // ==================== 类型定义 ====================
@@ -349,24 +349,15 @@ function normalizeImageUrls(value: unknown): string[] {
 /** 获取适用部位字典 */
 async function fetchSuitableOptions() {
   try {
-    const res = await getDict('training_type') as any
-    const list: any[] = Array.isArray(res) ? res : (res?.list || res?.records || [])
-    // 字典API返回 { dictLabel, dictValue }，映射为 { code, name }
-    suitableOptions.value = list.map((item: any) => ({
-      code: item.dictValue,
-      name: item.dictLabel
-    }))
-  } catch {
-    // 默认部位选项兜底
-    suitableOptions.value = [
-      { code: 'CHEST', name: '练胸' },
-      { code: 'BACK', name: '练背' },
-      { code: 'LEGS', name: '练腿' },
-      { code: 'SHOULDERS', name: '练肩' },
-      { code: 'ARMS', name: '练手臂' },
-      { code: 'CORE', name: '核心' },
-      { code: 'CARDIO', name: '有氧' }
-    ]
+    suitableOptions.value = (await getDictOptions('training_type'))
+      .filter(item => item.value !== 'REST')
+      .map(item => ({
+        code: item.value,
+        name: item.label
+      }))
+  } catch (err: any) {
+    ElMessage.error(err.message || '训练部位字典加载失败')
+    suitableOptions.value = []
   }
 }
 

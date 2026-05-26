@@ -208,6 +208,7 @@ import {
   ArrowLeft, Plus, List, Food as FoodIcon, Download
 } from '@element-plus/icons-vue'
 import { getTemplates, importTemplate } from '@/api/plan'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 const router = useRouter()
 
@@ -259,6 +260,11 @@ const expandedId = ref<number | null>(null)
 
 /** 所有模板 */
 const templates = ref<TemplateItem[]>([])
+const planTypeOptions = ref<DictOption[]>([])
+const splitTypeOptions = ref<DictOption[]>([])
+const difficultyOptions = ref<DictOption[]>([])
+const trainingTypeOptions = ref<DictOption[]>([])
+const mealTypeOptions = ref<DictOption[]>([])
 
 /** 筛选后的模板 */
 const filteredTemplates = computed(() => {
@@ -270,76 +276,32 @@ const filteredTemplates = computed(() => {
 
 /** 计划类型 → 中文 */
 function getPlanTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    CUT: '减脂',
-    BULK: '增肌',
-    MAINTAIN: '维持',
-    '减脂': '减脂',
-    '增肌': '增肌',
-    '维持': '维持'
-  }
-  return map[type] || type
+  return getDictLabel(planTypeOptions.value, type)
 }
 
 /** 分化类型 → 中文 */
 function getSplitTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    FULL_BODY: '全身',
-    THREE_DAY: '三分化',
-    FOUR_DAY: '四分化',
-    FIVE_DAY: '五分化',
-    PPL: '推拉腿',
-    CUSTOM: '自定义',
-    '全身': '全身',
-    '三分化': '三分化',
-    '四分化': '四分化',
-    '五分化': '五分化',
-    '推拉腿': '推拉腿',
-    '自定义': '自定义'
-  }
-  return map[type] || type
+  return getDictLabel(splitTypeOptions.value, type)
 }
 
 /** 难度 → 中文 */
 function getDifficultyLabel(level: string): string {
-  const map: Record<string, string> = {
-    BEGINNER: '新手',
-    INTERMEDIATE: '中级',
-    ADVANCED: '高级',
-    '新手': '新手',
-    '中级': '中级',
-    '高级': '高级'
-  }
-  return map[level] || level
+  return getDictLabel(difficultyOptions.value, level)
 }
 
 /** 训练部位 → 中文 */
 function getTrainingTypeLabel(type?: string): string {
   if (!type) return ''
-  const map: Record<string, string> = {
-    CHEST: '练胸',
-    BACK: '练背',
-    LEGS: '练腿',
-    SHOULDERS: '练肩',
-    ARMS: '练手臂',
-    CORE: '核心',
-    CARDIO: '有氧'
-  }
-  return map[type] || type
+  return getDictLabel(trainingTypeOptions.value, type)
 }
 
 /** 餐次类型 → 中文 */
 function getMealLabel(type: string): string {
-  const map: Record<string, string> = {
-    BREAKFAST: '早餐',
-    LUNCH: '午餐',
-    DINNER: '晚餐',
-    SNACK: '夜宵',
-    PRE_WORKOUT: '练前餐',
-    POST_WORKOUT: '练后餐',
-    OTHER: '其他餐'
-  }
-  return map[type] || type
+  return getDictLabel(mealTypeOptions.value, type)
+}
+
+function getDictLabel(options: DictOption[], value: string): string {
+  return options.find(item => item.value === value)?.label || value
 }
 
 /** 计划类型 → el-tag 颜色 */
@@ -385,6 +347,22 @@ function applyFilter() {
 }
 
 // ==================== 数据获取 ====================
+
+async function fetchDictData() {
+  const [planTypes, splitTypes, difficultyLevels, trainingTypes, mealTypes] = await Promise.all([
+    getDictOptions('plan_type'),
+    getDictOptions('split_type'),
+    getDictOptions('difficulty'),
+    getDictOptions('training_type'),
+    getDictOptions('meal_type')
+  ])
+
+  planTypeOptions.value = planTypes
+  splitTypeOptions.value = splitTypes
+  difficultyOptions.value = difficultyLevels
+  trainingTypeOptions.value = trainingTypes
+  mealTypeOptions.value = mealTypes
+}
 
 /** 获取模板列表 */
 async function fetchTemplates() {
@@ -438,6 +416,7 @@ async function handleImport(template: TemplateItem) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchDictData()
   fetchTemplates()
 })
 </script>

@@ -350,7 +350,7 @@ import {
   deleteTraining,
   getCalendar
 } from '@/api/training'
-import { getDict } from '@/api/dict'
+import { getDictOptions } from '@/api/dict'
 import { searchActions } from '@/api/action'
 import VChart from 'vue-echarts'
 import 'echarts'
@@ -519,22 +519,11 @@ function getTypeTag(type: string): 'success' | 'warning' | 'danger' | 'info' | '
 /** 获取训练类型字典 */
 async function fetchTrainingTypes() {
   try {
-    const res: any = await getDict('training_type')
-    trainingTypeOptions.value = (Array.isArray(res) ? res : []).map((item: any) => ({
-      label: item.label || item.name || item.dictLabel,
-      value: item.value || item.code || item.dictValue
-    }))
-  } catch {
-    // 字典加载失败使用默认值
-    trainingTypeOptions.value = [
-      { label: '练胸', value: 'CHEST' },
-      { label: '练背', value: 'BACK' },
-      { label: '练腿', value: 'LEGS' },
-      { label: '练肩', value: 'SHOULDER' },
-      { label: '练手臂', value: 'ARMS' },
-      { label: '核心', value: 'CORE' },
-      { label: '有氧', value: 'CARDIO' }
-    ]
+    trainingTypeOptions.value = (await getDictOptions('training_type'))
+      .filter(item => item.value !== 'REST')
+  } catch (err: any) {
+    ElMessage.error(err.message || '训练类型字典加载失败')
+    trainingTypeOptions.value = []
   }
 }
 
