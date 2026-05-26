@@ -53,6 +53,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
             .antMatchers("/api/v1/auth/**").permitAll()           // 认证接口公开
+            .antMatchers(HttpMethod.GET, "/uploads/**").permitAll()
             .antMatchers(HttpMethod.GET, "/api/v1/dict/**").permitAll() // 字典查询公开
             .antMatchers("/api/v1/admin/**").hasAuthority("ADMIN") // 管理接口仅管理员
             .anyRequest().authenticated()                         // 其余接口需要认证

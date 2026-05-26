@@ -5,8 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +42,10 @@ public class UploadController {
      */
     @PostMapping("/upload")
     public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return Result.fail(com.fitness.common.ResultCode.BAD_REQUEST, "上传文件不能为空");
+        }
+
         // 获取原始文件名和扩展名
         String originalName = file.getOriginalFilename();
         String ext = "";
@@ -50,12 +58,17 @@ public class UploadController {
         String fileName = UUID.randomUUID().toString() + ext;
 
         // 创建目录并保存文件
-        File dir = new File(uploadPath, dateDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        Path rootDir = Paths.get(uploadPath).toAbsolutePath().normalize();
+        Path dir = rootDir.resolve(Paths.get(dateDir)).normalize();
+        if (!dir.startsWith(rootDir)) {
+            return Result.fail(com.fitness.common.ResultCode.BAD_REQUEST, "上传路径非法");
         }
-        File dest = new File(dir, fileName);
-        file.transferTo(dest);
+        Files.createDirectories(dir);
+
+        Path dest = dir.resolve(fileName).normalize();
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, dest, StandardCopyOption.REPLACE_EXISTING);
+        }
 
         // 返回相对路径，前端可直接拼接域名访问
         String url = "/uploads/" + dateDir + "/" + fileName;
