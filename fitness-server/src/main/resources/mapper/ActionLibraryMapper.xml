@@ -16,13 +16,17 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
-        SELECT * FROM action_library
+        SELECT id, scope, user_id, action_name, description, suitable_for, image_urls, video_url, status, created_at, updated_at
+        FROM action_library
         WHERE
         status = 'ACTIVE'
         <if test="keyword != null and keyword != ''">
             AND action_name LIKE CONCAT('%', #{keyword}, '%')
         </if>
         AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
+        <if test="scope != null and scope != ''">
+            AND scope = #{scope}
+        </if>
         <if test="muscleCode != null and muscleCode != ''">
             AND (
                 EXISTS (
@@ -35,12 +39,14 @@
         </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
-        SELECT * FROM action_library
+        SELECT id, scope, user_id, action_name, description, suitable_for, image_urls, video_url, status, created_at, updated_at
+        FROM action_library
         WHERE status = 'ACTIVE'
         AND (scope = 'SYSTEM' OR (scope = #{scope} AND user_id = #{userId}))
     </select>
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT * FROM action_library WHERE id = #{id}
+        SELECT id, scope, user_id, action_name, description, suitable_for, image_urls, video_url, status, created_at, updated_at
+        FROM action_library WHERE id = #{id}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO action_library (scope, user_id, action_name, description, suitable_for, image_urls, video_url)
@@ -56,7 +62,8 @@
     </delete>
     <!-- 查询系统级别的动作 -->
     <select id="selectSystemActions" resultMap="BaseResultMap">
-        SELECT * FROM action_library
+        SELECT id, scope, user_id, action_name, description, suitable_for, image_urls, video_url, status, created_at, updated_at
+        FROM action_library
         WHERE scope = 'SYSTEM' AND status = 'ACTIVE'
         <if test="keyword != null and keyword != ''">
             AND action_name LIKE CONCAT('%', #{keyword}, '%')

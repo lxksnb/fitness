@@ -9,7 +9,6 @@
           v-model="keyword"
           placeholder="搜索食物名称..."
           clearable
-          @keyup.enter="fetchFoods"
           @clear="fetchFoods"
           style="width: 260px"
         >
@@ -23,6 +22,12 @@
         </el-button>
       </div>
     </div>
+
+    <el-tabs v-model="activeScope" class="scope-tabs" @tab-change="() => fetchFoods()">
+      <el-tab-pane label="全部食物" name="ALL" />
+      <el-tab-pane label="系统食物" name="SYSTEM" />
+      <el-tab-pane label="我的食物" name="USER" />
+    </el-tabs>
 
     <!-- ==================== 加载骨架 ==================== -->
     <template v-if="loading">
@@ -233,7 +238,7 @@
  * 支持搜索食物、卡片网格展示、点击展开营养变体详情、
  * 新增/编辑/删除自定义食物（系统食物不可编辑）
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -249,6 +254,7 @@ interface FoodItem {
   foodName: string
   imageUrl?: string
   isSystem?: boolean
+  scope?: string
 }
 
 /** 营养单位项 */
@@ -279,6 +285,8 @@ const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
+const activeScope = ref<'ALL' | 'SYSTEM' | 'USER'>('ALL')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 食物列表 */
 const foodList = ref<FoodItem[]>([])
@@ -323,6 +331,13 @@ function formatNum(val: number | null | undefined, decimals = 1): string {
   return Number(val).toFixed(decimals)
 }
 
+function scheduleFetchFoods() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchFoods()
+  }, 300)
+}
+
 // ==================== 数据获取 ====================
 
 /** 搜索食物列表 */
@@ -333,8 +348,13 @@ async function fetchFoods() {
   foodDetail.value = null
   try {
     const kw = keyword.value.trim() || undefined
-    const res = await searchFoods(kw) as any
-    foodList.value = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as FoodItem[]
+    const scope = activeScope.value === 'ALL' ? undefined : activeScope.value
+    const res = await searchFoods(kw, scope) as any
+    const list = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as any[]
+    foodList.value = list.map(item => ({
+      ...item,
+      isSystem: item.isSystem || item.scope === 'SYSTEM'
+    })) as FoodItem[]
   } catch (err: any) {
     error.value = err.message || '数据加载失败，请稍后重试'
   } finally {
@@ -536,6 +556,8 @@ onMounted(() => {
   fetchFoods()
   loadUnitTypeOptions()
 })
+
+watch(keyword, scheduleFetchFoods)
 </script>
 
 <style scoped lang="scss">
@@ -566,6 +588,10 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
   }
+}
+
+.scope-tabs {
+  margin-bottom: 12px;
 }
 
 /* ==================== 食物卡片 ==================== */

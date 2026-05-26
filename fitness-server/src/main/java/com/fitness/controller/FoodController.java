@@ -25,11 +25,13 @@ public class FoodController {
     /**
      * 搜索食物
      * @param keyword 食物名称关键字
+     * @param scope 数据范围，SYSTEM系统食物 / USER我的食物
      * @return 食物 VO 列表（含营养成分）
      */
     @GetMapping
-    public Result<List<FoodVO>> search(@RequestParam(required = false) String keyword) {
-        return Result.ok(foodService.search(keyword));
+    public Result<List<FoodVO>> search(@RequestParam(required = false) String keyword,
+                                       @RequestParam(required = false) String scope) {
+        return Result.ok(foodService.search(keyword, scope));
     }
 
     /**

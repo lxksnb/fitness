@@ -9,7 +9,6 @@
           v-model="keyword"
           placeholder="搜索动作名称..."
           clearable
-          @keyup.enter="fetchActions"
           @clear="fetchActions"
           style="width: 220px"
         >
@@ -37,6 +36,12 @@
         </el-button>
       </div>
     </div>
+
+    <el-tabs v-model="activeScope" class="scope-tabs" @tab-change="() => fetchActions()">
+      <el-tab-pane label="全部动作" name="ALL" />
+      <el-tab-pane label="系统动作" name="SYSTEM" />
+      <el-tab-pane label="我的动作" name="USER" />
+    </el-tabs>
 
     <!-- ==================== 加载骨架 ==================== -->
     <template v-if="loading">
@@ -121,26 +126,20 @@
               </div>
 
               <!-- 操作按钮 -->
-              <div class="action-card-actions" v-if="action.scope !== 'SYSTEM'">
+              <div class="action-card-actions">
                 <el-button type="primary" link size="small" @click="openHistory(action)">
                   <el-icon><TrendCharts /></el-icon>
                   训练记录
                 </el-button>
-                <el-button type="primary" link size="small" @click="openDialog(action)">
+                <el-button v-if="canEditAction(action)" type="primary" link size="small" @click="openDialog(action)">
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" link size="small" @click="handleDelete(action)">
+                <el-button v-if="canDeleteAction(action)" type="danger" link size="small" @click="handleDelete(action)">
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
-              </div>
-              <div v-else class="action-card-actions">
-                <el-button type="primary" link size="small" @click="openHistory(action)">
-                  <el-icon><TrendCharts /></el-icon>
-                  训练记录
-                </el-button>
-                <span class="system-hint">系统数据</span>
+                <span v-if="!canEditAction(action) && action.scope === 'SYSTEM'" class="system-hint">系统数据</span>
               </div>
             </el-card>
           </el-col>
@@ -267,12 +266,14 @@
  * 新增/编辑/删除自定义动作（系统动作不可编辑），
  * 点击查看重量递增训练历史记录
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete, VideoCamera, VideoPlay, TrendCharts } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { searchActions, createAction, updateAction, deleteAction, getActionRecords } from '@/api/action'
+import { updateAdminAction } from '@/api/admin'
 import { getDictOptions } from '@/api/dict'
+import { useUserStore } from '@/stores/user'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 import MuscleMap from '@/components/common/MuscleMap.vue'
 
@@ -318,6 +319,9 @@ const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
 const muscleFilter = ref('')
+const activeScope = ref<'ALL' | 'SYSTEM' | 'USER'>('ALL')
+const userStore = useUserStore()
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 动作列表 */
 const actionList = ref<ActionItem[]>([])
@@ -379,6 +383,21 @@ function dedupeMuscles() {
   form.secondaryMuscles = form.secondaryMuscles.filter(code => !primary.has(code))
 }
 
+function canEditAction(action: ActionItem): boolean {
+  return action.scope !== 'SYSTEM' || userStore.role === 'ADMIN'
+}
+
+function canDeleteAction(action: ActionItem): boolean {
+  return action.scope !== 'SYSTEM'
+}
+
+function scheduleFetchActions() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchActions()
+  }, 300)
+}
+
 function normalizeImageUrls(value: unknown): string[] {
   if (Array.isArray(value)) return value
   if (typeof value !== 'string' || !value) return []
@@ -413,7 +432,8 @@ async function fetchActions() {
   try {
     const kw = keyword.value.trim() || undefined
     const muscleCode = muscleFilter.value || undefined
-    const res = await searchActions(kw, muscleCode) as any
+    const scope = activeScope.value === 'ALL' ? undefined : activeScope.value
+    const res = await searchActions(kw, muscleCode, scope) as any
     const list = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as any[]
     actionList.value = list.map(item => ({
       ...item,
@@ -483,7 +503,12 @@ async function handleSave() {
     }
 
     if (isEditing.value && editingId.value) {
-      await updateAction(editingId.value, payload)
+      const target = actionList.value.find(item => item.id === editingId.value)
+      if (target?.scope === 'SYSTEM' && userStore.role === 'ADMIN') {
+        await updateAdminAction(editingId.value, payload)
+      } else {
+        await updateAction(editingId.value, payload)
+      }
       ElMessage.success('动作已更新')
     } else {
       await createAction(payload)
@@ -543,6 +568,8 @@ onMounted(() => {
   fetchMuscleOptions()
   fetchActions()
 })
+
+watch(keyword, scheduleFetchActions)
 </script>
 
 <style scoped lang="scss">
@@ -641,6 +668,10 @@ onMounted(() => {
   .muscle-tag {
     font-size: 11px;
   }
+}
+
+.scope-tabs {
+  margin-bottom: 12px;
 }
 
 .action-video {

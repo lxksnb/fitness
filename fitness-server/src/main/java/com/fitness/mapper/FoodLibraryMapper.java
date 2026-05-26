@@ -6,7 +6,7 @@ import java.util.List;
 
 @Mapper
 public interface FoodLibraryMapper {
-    List<FoodLibrary> searchByName(@org.apache.ibatis.annotations.Param("keyword") String keyword, @org.apache.ibatis.annotations.Param("userId") Long userId);
+    List<FoodLibrary> searchByName(@org.apache.ibatis.annotations.Param("keyword") String keyword, @org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("scope") String scope);
     List<FoodLibrary> selectByScopeAndUser(@org.apache.ibatis.annotations.Param("scope") String scope, @org.apache.ibatis.annotations.Param("userId") Long userId);
     FoodLibrary selectById(Long id);
     int insert(FoodLibrary food);

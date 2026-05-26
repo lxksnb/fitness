@@ -613,7 +613,6 @@
               v-model="actionPickerKeyword"
               placeholder="搜索动作名称"
               clearable
-              @keyup.enter="searchActionsRemote"
               @clear="searchActionsRemote"
             >
               <template #append>
@@ -621,6 +620,7 @@
               </template>
             </el-input>
             <el-table
+              ref="actionPickerTableRef"
               v-loading="actionSearchLoading"
               :data="filteredActionResults"
               row-key="id"
@@ -628,6 +628,7 @@
               height="360"
               style="width: 100%; margin-top: 12px"
               @selection-change="onPickerSelectionChange"
+              @row-click="onPickerRowClick"
             >
               <el-table-column type="selection" width="48" />
               <el-table-column prop="actionName" label="动作名称" min-width="160" />
@@ -683,7 +684,7 @@
  * - 餐次配置：训练日和休息日各7餐的营养素比例分配，可展开推荐食物
  * - 前端校验：比例总和约100%、必须包含训练日
  */
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -987,6 +988,8 @@ const actionPickerActionIndex = ref<number | null>(null)
 const actionPickerKeyword = ref('')
 const selectedMuscleCodes = ref<string[]>([])
 const selectedPickerActions = ref<ActionSearchItem[]>([])
+const actionPickerTableRef = ref()
+let actionPickerSearchTimer: ReturnType<typeof setTimeout> | null = null
 
 function normalizeTrainingTypes(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).filter(Boolean)
@@ -1018,8 +1021,18 @@ const filteredActionResults = computed(() => {
       ...(action.secondaryMuscles || [])
     ]
     return muscles.some(code => selected.has(code))
+  }).sort((a, b) => {
+    return getActionMusclePriority(a, selected) - getActionMusclePriority(b, selected)
   })
 })
+
+function getActionMusclePriority(action: ActionSearchItem, selected: Set<string>): number {
+  const primaryIndex = (action.primaryMuscles || []).findIndex(code => selected.has(code))
+  if (primaryIndex >= 0) return primaryIndex
+  const secondaryIndex = (action.secondaryMuscles || []).findIndex(code => selected.has(code))
+  if (secondaryIndex >= 0) return 100 + secondaryIndex
+  return 999
+}
 
 function getMuscleLabel(code: string): string {
   return muscleGroupOptions.value.find(item => item.value === code)?.label || code
@@ -1037,6 +1050,14 @@ async function searchActionsRemote(keyword?: string) {
   } finally {
     actionSearchLoading.value = false
   }
+}
+
+function scheduleActionPickerSearch() {
+  if (!actionPickerVisible.value) return
+  if (actionPickerSearchTimer) clearTimeout(actionPickerSearchTimer)
+  actionPickerSearchTimer = setTimeout(() => {
+    searchActionsRemote()
+  }, 300)
 }
 
 const foodSearchResults = ref<any[]>([])
@@ -1070,6 +1091,11 @@ function openActionPicker(dayIndex: number, actionIndex?: number) {
 
 function onPickerSelectionChange(selection: ActionSearchItem[]) {
   selectedPickerActions.value = selection
+}
+
+function onPickerRowClick(row: ActionSearchItem, column: any) {
+  if (column?.type === 'selection') return
+  actionPickerTableRef.value?.toggleRowSelection(row)
 }
 
 function createPlanAction(action: ActionSearchItem, sortOrder: number): ActionItem {
@@ -1445,6 +1471,8 @@ async function loadPageData() {
 onMounted(() => {
   loadPageData()
 })
+
+watch(actionPickerKeyword, scheduleActionPickerSearch)
 </script>
 
 <style scoped lang="scss">

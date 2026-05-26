@@ -44,9 +44,10 @@ public class ActionService {
      * @param muscleCode 肌群过滤条件
      * @return 匹配的动作列表
      */
-    public List<ActionLibrary> search(String keyword, String muscleCode) {
+    public List<ActionLibrary> search(String keyword, String muscleCode, String scope) {
         Long userId = SecurityUtils.getCurrentUserId();
-        List<ActionLibrary> actions = actionMapper.searchByName(keyword, userId, muscleCode);
+        String normalizedScope = normalizeScope(scope);
+        List<ActionLibrary> actions = actionMapper.searchByName(keyword, userId, muscleCode, normalizedScope);
         fillMuscles(actions);
         return actions;
     }
@@ -184,5 +185,14 @@ public class ActionService {
                 .map(String::trim)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    private String normalizeScope(String scope) {
+        if (scope == null || scope.trim().isEmpty()) return null;
+        String value = scope.trim().toUpperCase();
+        if ("SYSTEM".equals(value) || "USER".equals(value)) {
+            return value;
+        }
+        throw new BusinessException(ResultCode.BAD_REQUEST, "动作范围参数不正确");
     }
 }

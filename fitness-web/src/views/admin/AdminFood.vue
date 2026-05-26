@@ -9,7 +9,6 @@
           v-model="keyword"
           placeholder="搜索食物名称..."
           clearable
-          @keyup.enter="fetchList"
           @clear="fetchList"
           style="width: 260px"
         >
@@ -210,7 +209,7 @@
  * 管理员管理系统级别的食物库，支持搜索、新增、编辑、删除（软删除）
  * 所有管理页面仅 ADMIN 角色可访问（路由守卫控制）
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -261,6 +260,7 @@ const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 表格数据 */
 const tableData = ref<FoodItem[]>([])
@@ -487,12 +487,21 @@ async function loadUnitTypeOptions() {
   }
 }
 
+function scheduleFetchList() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchList()
+  }, 300)
+}
+
 // ==================== 生命周期 ====================
 
 onMounted(() => {
   fetchList()
   loadUnitTypeOptions()
 })
+
+watch(keyword, scheduleFetchList)
 </script>
 
 <style scoped lang="scss">

@@ -6,8 +6,8 @@ import request from './request'
  * @param muscleCode 肌群筛选，可选
  * @returns 动作列表
  */
-export function searchActions(keyword?: string, muscleCode?: string) {
-  return request.get('/actions', { params: { keyword, muscleCode } })
+export function searchActions(keyword?: string, muscleCode?: string, scope?: 'SYSTEM' | 'USER') {
+  return request.get('/actions', { params: { keyword, muscleCode, scope } })
 }
 
 /**

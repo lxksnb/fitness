@@ -9,7 +9,6 @@
           v-model="keyword"
           placeholder="搜索模板名称..."
           clearable
-          @keyup.enter="fetchList"
           @clear="fetchList"
           style="width: 260px"
         >
@@ -182,7 +181,7 @@
  * 管理员管理模板基本信息（名称、描述、类型、分化方式、难度）
  * 完整模板编辑（含训练日和餐次配置）需在计划编辑器中创建后导入
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -221,6 +220,7 @@ const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 表格数据 */
 const tableData = ref<TemplateItem[]>([])
@@ -298,6 +298,13 @@ function formatDate(dateStr?: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function scheduleFetchList() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchList()
+  }, 300)
 }
 
 // ==================== 数据获取 ====================
@@ -431,6 +438,8 @@ onMounted(() => {
   fetchDictData()
   fetchList()
 })
+
+watch(keyword, scheduleFetchList)
 </script>
 
 <style scoped lang="scss">

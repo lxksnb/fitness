@@ -14,21 +14,27 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
-        SELECT * FROM food_library
+        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        FROM food_library
         WHERE
         status = 'ACTIVE'
         AND (scope = 'SYSTEM' OR (scope = 'USER' AND user_id = #{userId}))
+        <if test="scope != null and scope != ''">
+            AND scope = #{scope}
+        </if>
         <if test="keyword != null and keyword != ''">
             and food_name LIKE CONCAT('%', #{keyword}, '%')
         </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
-        SELECT * FROM food_library
+        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        FROM food_library
         WHERE status = 'ACTIVE'
         AND (scope = 'SYSTEM' OR (scope = #{scope} AND user_id = #{userId}))
     </select>
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT * FROM food_library WHERE id = #{id}
+        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        FROM food_library WHERE id = #{id}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO food_library (scope, user_id, food_name, image_url, status, created_by)
@@ -43,7 +49,8 @@
     </delete>
     <!-- 查询系统级别的食物 -->
     <select id="selectSystemFoods" resultMap="BaseResultMap">
-        SELECT * FROM food_library
+        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        FROM food_library
         WHERE scope = 'SYSTEM' AND status = 'ACTIVE'
         <if test="keyword != null and keyword != ''">
             AND food_name LIKE CONCAT('%', #{keyword}, '%')

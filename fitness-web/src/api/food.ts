@@ -5,8 +5,8 @@ import request from './request'
  * @param keyword 搜索关键字，可选
  * @returns 食物列表
  */
-export function searchFoods(keyword?: string) {
-  return request.get('/foods', { params: { keyword } })
+export function searchFoods(keyword?: string, scope?: 'SYSTEM' | 'USER') {
+  return request.get('/foods', { params: { keyword, scope } })
 }
 
 /**

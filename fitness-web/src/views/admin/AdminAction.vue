@@ -9,7 +9,6 @@
           v-model="keyword"
           placeholder="搜索动作名称..."
           clearable
-          @keyup.enter="fetchList"
           @clear="fetchList"
           style="width: 260px"
         >
@@ -202,7 +201,7 @@
  * 管理后台 - 系统动作库管理页面
  * 管理员管理系统级别的动作库，支持搜索、新增、编辑、删除
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -246,6 +245,7 @@ const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 表格数据 */
 const tableData = ref<ActionItem[]>([])
@@ -298,6 +298,13 @@ function hasMuscles(action: ActionItem): boolean {
 function dedupeMuscles() {
   const primary = new Set(form.primaryMuscles)
   form.secondaryMuscles = form.secondaryMuscles.filter(code => !primary.has(code))
+}
+
+function scheduleFetchList() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchList()
+  }, 300)
 }
 
 function normalizeImageUrls(value: unknown): string[] {
@@ -467,6 +474,8 @@ onMounted(() => {
   fetchMuscleOptions()
   fetchList()
 })
+
+watch(keyword, scheduleFetchList)
 </script>
 
 <style scoped lang="scss">

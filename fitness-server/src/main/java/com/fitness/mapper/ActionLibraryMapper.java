@@ -6,7 +6,7 @@ import java.util.List;
 
 @Mapper
 public interface ActionLibraryMapper {
-    List<ActionLibrary> searchByName(@org.apache.ibatis.annotations.Param("keyword") String keyword, @org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("muscleCode") String muscleCode);
+    List<ActionLibrary> searchByName(@org.apache.ibatis.annotations.Param("keyword") String keyword, @org.apache.ibatis.annotations.Param("userId") Long userId, @org.apache.ibatis.annotations.Param("muscleCode") String muscleCode, @org.apache.ibatis.annotations.Param("scope") String scope);
     List<ActionLibrary> selectByScopeAndUser(@org.apache.ibatis.annotations.Param("scope") String scope, @org.apache.ibatis.annotations.Param("userId") Long userId);
     ActionLibrary selectById(Long id);
     int insert(ActionLibrary action);

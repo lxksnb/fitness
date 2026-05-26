@@ -36,10 +36,11 @@ public class FoodService {
      * @param keyword 食物名称关键字
      * @return 食物 VO 列表，包含营养成分信息
      */
-    public List<FoodVO> search(String keyword) {
+    public List<FoodVO> search(String keyword, String scope) {
         Long userId = SecurityUtils.getCurrentUserId();
+        String normalizedScope = normalizeScope(scope);
         // keyword可为null, SQL中通过<if>动态标签处理空值查询全部
-        List<FoodLibrary> foods = foodMapper.searchByName(keyword, userId);
+        List<FoodLibrary> foods = foodMapper.searchByName(keyword, userId, normalizedScope);
         return toVOList(foods);
     }
 
@@ -182,5 +183,14 @@ public class FoodService {
         }
         vo.setNutritions(nvos);
         return vo;
+    }
+
+    private String normalizeScope(String scope) {
+        if (scope == null || scope.trim().isEmpty()) return null;
+        String value = scope.trim().toUpperCase();
+        if ("SYSTEM".equals(value) || "USER".equals(value)) {
+            return value;
+        }
+        throw new BusinessException(ResultCode.BAD_REQUEST, "食物范围参数不正确");
     }
 }

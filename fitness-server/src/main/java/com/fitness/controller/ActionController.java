@@ -32,9 +32,10 @@ public class ActionController {
     @GetMapping
     public Result<List<ActionLibrary>> search(@RequestParam(required = false) String keyword,
                                                @RequestParam(required = false) String suitableFor,
-                                               @RequestParam(required = false) String muscleCode) {
+                                               @RequestParam(required = false) String muscleCode,
+                                               @RequestParam(required = false) String scope) {
         String filterMuscle = muscleCode != null ? muscleCode : suitableFor;
-        return Result.ok(actionService.search(keyword, filterMuscle));
+        return Result.ok(actionService.search(keyword, filterMuscle, scope));
     }
 
     /**
