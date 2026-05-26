@@ -117,8 +117,12 @@ public class FoodService {
      * @return 食物 VO，包含营养成分列表
      */
     public FoodVO getById(Long id) {
+        Long userId = SecurityUtils.getCurrentUserId();
         FoodLibrary food = foodMapper.selectById(id);
         if (food == null) return null;
+        if (!"SYSTEM".equals(food.getScope()) && !userId.equals(food.getUserId())) {
+            throw new BusinessException(ResultCode.NOT_FOUND);
+        }
         List<FoodNutrition> nutritions = nutritionMapper.selectByFoodId(id);
         return toVO(food, nutritions);
     }

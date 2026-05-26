@@ -12,6 +12,6 @@ public interface FoodLibraryMapper {
     int insert(FoodLibrary food);
     int updateById(FoodLibrary food);
     int deleteById(Long id);
-    /** 查询所有系统级别的食物(SCOPE=SYSTEM, STATUS=ACTIVE) */
-    List<FoodLibrary> selectSystemFoods();
+    /** 查询系统级别的食物(SCOPE=SYSTEM, STATUS=ACTIVE) */
+    List<FoodLibrary> selectSystemFoods(@org.apache.ibatis.annotations.Param("keyword") String keyword);
 }

@@ -12,7 +12,9 @@
       "Bash(git stash *)",
       "Bash(xargs -r git update-ref -d)",
       "Bash(git reflog *)",
-      "Bash(git gc *)"
+      "Bash(git gc *)",
+      "Bash(npm *)",
+      "Bash(mvn *)"
     ]
   }
 }

@@ -47,8 +47,13 @@
     <delete id="deleteById">
         DELETE FROM action_library WHERE id = #{id}
     </delete>
-    <!-- 查询所有系统级别的动作 -->
+    <!-- 查询系统级别的动作 -->
     <select id="selectSystemActions" resultMap="BaseResultMap">
-        SELECT * FROM action_library WHERE scope = 'SYSTEM' AND status = 'ACTIVE' ORDER BY created_at DESC
+        SELECT * FROM action_library
+        WHERE scope = 'SYSTEM' AND status = 'ACTIVE'
+        <if test="keyword != null and keyword != ''">
+            AND action_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY created_at DESC
     </select>
 </mapper>

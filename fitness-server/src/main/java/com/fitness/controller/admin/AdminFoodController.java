@@ -1,9 +1,11 @@
 package com.fitness.controller.admin;
 
 import com.fitness.common.Result;
+import com.fitness.common.ResultCode;
 import com.fitness.dto.FoodCreateDTO;
 import com.fitness.entity.FoodLibrary;
 import com.fitness.entity.FoodNutrition;
+import com.fitness.exception.BusinessException;
 import com.fitness.mapper.FoodLibraryMapper;
 import com.fitness.mapper.FoodNutritionMapper;
 import org.springframework.web.bind.annotation.*;
@@ -34,8 +36,8 @@ public class AdminFoodController {
      * 返回SCOPE=SYSTEM且STATUS=ACTIVE的食物
      */
     @GetMapping
-    public Result<List<FoodLibrary>> list() {
-        return Result.ok(foodMapper.selectSystemFoods());
+    public Result<List<FoodLibrary>> list(@RequestParam(required = false) String keyword) {
+        return Result.ok(foodMapper.selectSystemFoods(keyword));
     }
 
     /**
@@ -79,6 +81,9 @@ public class AdminFoodController {
     public Result<?> update(@PathVariable Long id, @RequestBody FoodCreateDTO dto) {
         FoodLibrary food = foodMapper.selectById(id);
         if (food != null) {
+            if (!"SYSTEM".equals(food.getScope())) {
+                throw new BusinessException(ResultCode.NOT_FOUND);
+            }
             // 更新食物基本信息
             food.setFoodName(dto.getFoodName());
             food.setImageUrl(dto.getImageUrl());
@@ -113,6 +118,9 @@ public class AdminFoodController {
     public Result<?> delete(@PathVariable Long id) {
         FoodLibrary food = foodMapper.selectById(id);
         if (food != null) {
+            if (!"SYSTEM".equals(food.getScope())) {
+                throw new BusinessException(ResultCode.NOT_FOUND);
+            }
             food.setStatus("DELETED");
             foodMapper.updateById(food);
         }

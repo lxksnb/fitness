@@ -13,6 +13,7 @@
         label-width="80px"
         size="large"
         @submit.prevent="handleLogin"
+        @keyup.enter="handleLogin"
       >
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" placeholder="请输入用户名" />
@@ -21,7 +22,7 @@
           <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" style="width: 100%" @click="handleLogin">
+          <el-button type="primary" native-type="submit" :loading="loading" style="width: 100%" @click="handleLogin">
             登 录
           </el-button>
         </el-form-item>

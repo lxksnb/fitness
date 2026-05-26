@@ -1,8 +1,10 @@
 package com.fitness.controller.admin;
 
 import com.fitness.common.Result;
+import com.fitness.common.ResultCode;
 import com.fitness.dto.ActionDTO;
 import com.fitness.entity.ActionLibrary;
+import com.fitness.exception.BusinessException;
 import com.fitness.mapper.ActionLibraryMapper;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +32,8 @@ public class AdminActionController {
      * 返回SCOPE=SYSTEM且STATUS=ACTIVE的动作
      */
     @GetMapping
-    public Result<List<ActionLibrary>> list() {
-        return Result.ok(actionMapper.selectSystemActions());
+    public Result<List<ActionLibrary>> list(@RequestParam(required = false) String keyword) {
+        return Result.ok(actionMapper.selectSystemActions(keyword));
     }
 
     /**
@@ -60,6 +62,9 @@ public class AdminActionController {
     public Result<?> update(@PathVariable Long id, @RequestBody ActionDTO dto) {
         ActionLibrary action = actionMapper.selectById(id);
         if (action != null) {
+            if (!"SYSTEM".equals(action.getScope())) {
+                throw new BusinessException(ResultCode.NOT_FOUND);
+            }
             action.setActionName(dto.getActionName());
             action.setDescription(dto.getDescription());
             action.setSuitableFor(joinList(dto.getSuitableFor()));
@@ -78,6 +83,9 @@ public class AdminActionController {
     public Result<?> delete(@PathVariable Long id) {
         ActionLibrary action = actionMapper.selectById(id);
         if (action != null) {
+            if (!"SYSTEM".equals(action.getScope())) {
+                throw new BusinessException(ResultCode.NOT_FOUND);
+            }
             action.setStatus("DELETED");
             actionMapper.updateById(action);
         }
