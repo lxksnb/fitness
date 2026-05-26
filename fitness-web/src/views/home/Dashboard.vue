@@ -317,7 +317,7 @@
  *
  * 设计理念：清爽自然的薄荷绿风格，高对比度确保可读性
  */
-import { ref, computed, onMounted, shallowRef } from 'vue'
+import { ref, computed, onMounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Plus,
@@ -479,22 +479,22 @@ const CARD_THEMES = {
   weight: {
     color: '#38b589',
     glow: 'rgba(56, 181, 137, 0.06)',
-    icon: shallowRef(ScaleToOriginal)
+    icon: markRaw(ScaleToOriginal)
   },
   calories: {
     color: '#f39c12',
     glow: 'rgba(243, 156, 18, 0.06)',
-    icon: shallowRef(Apple)
+    icon: markRaw(Apple)
   },
   training: {
     color: '#74b9ff',
     glow: 'rgba(116, 185, 255, 0.06)',
-    icon: shallowRef(Trophy)
+    icon: markRaw(Trophy)
   },
   streak: {
     color: '#a371f7',
     glow: 'rgba(163, 113, 247, 0.06)',
-    icon: shallowRef(Calendar)
+    icon: markRaw(Calendar)
   }
 }
 
@@ -556,10 +556,10 @@ const statCards = computed(() => {
 
 /** 营养图标映射 */
 const nutritionIcons: Record<string, any> = {
-  '碳水': shallowRef(Apple),
-  '蛋白质': shallowRef(Chicken),
-  '脂肪': shallowRef(Grape),
-  '饮水': shallowRef(Coffee)
+  '碳水': markRaw(Apple),
+  '蛋白质': markRaw(Chicken),
+  '脂肪': markRaw(Grape),
+  '饮水': markRaw(Coffee)
 }
 
 /** 四大营养进度条：碳水、蛋白质、脂肪、饮水 */
@@ -666,6 +666,9 @@ const weightChartOption = computed(() => {
   const weightMin = Math.min(...weights)
   const weightMax = Math.max(...weights)
   const padding = Math.max((weightMax - weightMin) * 0.2, 1)
+  const yMin = Math.floor((weightMin - padding) * 10) / 10
+  const yMax = Math.ceil((weightMax + padding) * 10) / 10
+  const yInterval = Math.max(Math.round(((yMax - yMin) / 5) * 10) / 10, 0.5)
 
   return {
     backgroundColor: '#ffffff',
@@ -684,7 +687,7 @@ const weightChartOption = computed(() => {
       }
     },
     legend: {
-      data: ['体重', '平均值'],
+      data: ['体重'],
       bottom: 0,
       textStyle: { color: '#636e72', fontSize: 11 },
       itemWidth: 12,
@@ -714,9 +717,9 @@ const weightChartOption = computed(() => {
       type: 'value' as const,
       name: 'kg',
       nameTextStyle: { color: '#b2bec3', fontSize: 11 },
-      min: Math.floor(weightMin - padding * 10) / 10,
-      max: Math.ceil(weightMax + padding * 10) / 10,
-      interval: Math.max(Math.round((weightMax - weightMin) / 5 * 10) / 10, 0.5),
+      min: yMin,
+      max: yMax,
+      interval: yInterval,
       axisLabel: {
         color: '#b2bec3',
         fontSize: 10

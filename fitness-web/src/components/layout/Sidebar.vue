@@ -66,7 +66,7 @@
       </el-menu-item>
 
       <el-menu-item index="/water">
-        <el-icon><Drink /></el-icon>
+        <el-icon><Coffee /></el-icon>
         <span>饮水记录</span>
       </el-menu-item>
 
@@ -102,6 +102,19 @@
  */
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import {
+  Coffee,
+  Document,
+  Food,
+  HomeFilled,
+  Menu,
+  Picture,
+  ScaleToOriginal,
+  Setting,
+  TrendCharts,
+  Trophy,
+  VideoPlay
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const userStore = useUserStore()
