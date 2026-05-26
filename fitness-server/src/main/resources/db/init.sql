@@ -990,3 +990,238 @@ VALUES
 ((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'SECONDARY', 3),
 ((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'ABS', 'SECONDARY', 4),
 ((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 5);
+
+-- =========================
+-- food_library 初始化数据
+-- 仅 SYSTEM 公共食物
+-- =========================
+
+INSERT INTO food_library
+(scope, user_id, food_name, image_url, status, created_by)
+VALUES
+
+-- 主食
+('SYSTEM', NULL, '生大米', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '熟米饭', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '糙米饭', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炒饭', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '白面条(生)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '煮面条', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炒面', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '全麦面包', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '白面包', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '燕麦片', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '红薯(生)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '蒸红薯', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '玉米', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '土豆(生)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '水煮土豆', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炸薯条', NULL, 'ACTIVE', NULL),
+
+-- 牛肉
+('SYSTEM', NULL, '生牛肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '牛排(煎)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '卤牛肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炒牛肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炖牛肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '肥牛卷', NULL, 'ACTIVE', NULL),
+
+-- 猪肉
+('SYSTEM', NULL, '瘦猪肉(生)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '五花肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '红烧肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '猪里脊', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炒肉丝', NULL, 'ACTIVE', NULL),
+
+-- 鸡肉
+('SYSTEM', NULL, '鸡胸肉(生)', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '水煮鸡胸肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '煎鸡胸肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '炸鸡', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '鸡腿肉', NULL, 'ACTIVE', NULL),
+
+-- 羊肉
+('SYSTEM', NULL, '生羊肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '涮羊肉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '烤羊肉串', NULL, 'ACTIVE', NULL),
+
+-- 鱼虾海鲜
+('SYSTEM', NULL, '三文鱼', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '金枪鱼', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '鳕鱼', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '虾仁', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '煎鱼', NULL, 'ACTIVE', NULL),
+
+-- 蛋奶豆制品
+('SYSTEM', NULL, '鸡蛋', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '蛋清', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '全脂牛奶', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '低脂牛奶', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '无糖酸奶', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '北豆腐', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '豆浆', NULL, 'ACTIVE', NULL),
+
+-- 水果
+('SYSTEM', NULL, '苹果', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '香蕉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '橙子', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '草莓', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '蓝莓', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '西瓜', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '牛油果', NULL, 'ACTIVE', NULL),
+
+-- 蔬菜
+('SYSTEM', NULL, '西兰花', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '菠菜', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '黄瓜', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '番茄', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '胡萝卜', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '生菜', NULL, 'ACTIVE', NULL),
+
+-- 坚果
+('SYSTEM', NULL, '杏仁', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '腰果', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '花生', NULL, 'ACTIVE', NULL),
+
+-- 饮品/其他
+('SYSTEM', NULL, '乳清蛋白粉', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '可乐', NULL, 'ACTIVE', NULL),
+('SYSTEM', NULL, '无糖可乐', NULL, 'ACTIVE', NULL);
+
+-- =========================
+-- food_nutrition 初始化数据
+-- 当前仅生成 PER_100G
+-- 热量 calories = 碳水*4 + 蛋白*4 + 脂肪*9
+-- =========================
+
+INSERT INTO food_nutrition
+(food_id, unit_type, serving_weight_g, carb_grams, protein_grams, fat_grams, calories)
+VALUES
+
+-- ================= 主食 =================
+
+((SELECT id FROM food_library WHERE food_name='生大米' AND scope='SYSTEM'), 'PER_100G', 100, 77.0, 7.4, 0.6, 344.6),
+((SELECT id FROM food_library WHERE food_name='熟米饭' AND scope='SYSTEM'), 'PER_100G', 100, 25.9, 2.6, 0.3, 117.5),
+((SELECT id FROM food_library WHERE food_name='糙米饭' AND scope='SYSTEM'), 'PER_100G', 100, 23.0, 2.7, 1.0, 110.8),
+((SELECT id FROM food_library WHERE food_name='炒饭' AND scope='SYSTEM'), 'PER_100G', 100, 31.0, 5.8, 8.5, 225.7),
+
+((SELECT id FROM food_library WHERE food_name='白面条(生)' AND scope='SYSTEM'), 'PER_100G', 100, 72.0, 11.0, 1.5, 347.5),
+((SELECT id FROM food_library WHERE food_name='煮面条' AND scope='SYSTEM'), 'PER_100G', 100, 25.0, 5.0, 1.1, 129.9),
+((SELECT id FROM food_library WHERE food_name='炒面' AND scope='SYSTEM'), 'PER_100G', 100, 28.0, 6.0, 9.0, 221.0),
+
+((SELECT id FROM food_library WHERE food_name='全麦面包' AND scope='SYSTEM'), 'PER_100G', 100, 43.0, 13.0, 4.2, 259.8),
+((SELECT id FROM food_library WHERE food_name='白面包' AND scope='SYSTEM'), 'PER_100G', 100, 49.0, 8.0, 3.2, 255.8),
+
+((SELECT id FROM food_library WHERE food_name='燕麦片' AND scope='SYSTEM'), 'PER_100G', 100, 66.0, 16.9, 6.9, 394.7),
+
+((SELECT id FROM food_library WHERE food_name='红薯(生)' AND scope='SYSTEM'), 'PER_100G', 100, 20.1, 1.6, 0.1, 87.3),
+((SELECT id FROM food_library WHERE food_name='蒸红薯' AND scope='SYSTEM'), 'PER_100G', 100, 21.0, 1.4, 0.2, 90.2),
+
+((SELECT id FROM food_library WHERE food_name='玉米' AND scope='SYSTEM'), 'PER_100G', 100, 21.0, 4.0, 1.5, 111.5),
+
+((SELECT id FROM food_library WHERE food_name='土豆(生)' AND scope='SYSTEM'), 'PER_100G', 100, 17.0, 2.0, 0.1, 76.9),
+((SELECT id FROM food_library WHERE food_name='水煮土豆' AND scope='SYSTEM'), 'PER_100G', 100, 15.0, 1.9, 0.1, 68.5),
+((SELECT id FROM food_library WHERE food_name='炸薯条' AND scope='SYSTEM'), 'PER_100G', 100, 41.0, 3.4, 15.0, 315.6),
+
+-- ================= 牛肉 =================
+
+((SELECT id FROM food_library WHERE food_name='生牛肉' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 20.4, 10.2, 173.4),
+((SELECT id FROM food_library WHERE food_name='牛排(煎)' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 27.0, 15.0, 247.0),
+((SELECT id FROM food_library WHERE food_name='卤牛肉' AND scope='SYSTEM'), 'PER_100G', 100, 3.0, 27.0, 8.0, 188.0),
+((SELECT id FROM food_library WHERE food_name='炒牛肉' AND scope='SYSTEM'), 'PER_100G', 100, 4.0, 22.0, 12.0, 212.0),
+((SELECT id FROM food_library WHERE food_name='炖牛肉' AND scope='SYSTEM'), 'PER_100G', 100, 2.0, 18.0, 9.0, 161.0),
+((SELECT id FROM food_library WHERE food_name='肥牛卷' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 13.0, 28.0, 304.0),
+
+-- ================= 猪肉 =================
+
+((SELECT id FROM food_library WHERE food_name='瘦猪肉(生)' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 20.3, 6.2, 139.0),
+((SELECT id FROM food_library WHERE food_name='五花肉' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 9.3, 53.0, 532.2),
+((SELECT id FROM food_library WHERE food_name='红烧肉' AND scope='SYSTEM'), 'PER_100G', 100, 6.0, 13.0, 35.0, 403.0),
+((SELECT id FROM food_library WHERE food_name='猪里脊' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 22.0, 4.0, 124.0),
+((SELECT id FROM food_library WHERE food_name='炒肉丝' AND scope='SYSTEM'), 'PER_100G', 100, 5.0, 18.0, 14.0, 222.0),
+
+-- ================= 鸡肉 =================
+
+((SELECT id FROM food_library WHERE food_name='鸡胸肉(生)' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 23.0, 1.9, 109.1),
+((SELECT id FROM food_library WHERE food_name='水煮鸡胸肉' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 29.0, 3.0, 143.0),
+((SELECT id FROM food_library WHERE food_name='煎鸡胸肉' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 27.0, 8.0, 188.0),
+((SELECT id FROM food_library WHERE food_name='炸鸡' AND scope='SYSTEM'), 'PER_100G', 100, 15.0, 20.0, 18.0, 302.0),
+((SELECT id FROM food_library WHERE food_name='鸡腿肉' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 18.0, 12.0, 180.0),
+
+-- ================= 羊肉 =================
+
+((SELECT id FROM food_library WHERE food_name='生羊肉' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 18.0, 14.0, 198.0),
+((SELECT id FROM food_library WHERE food_name='涮羊肉' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 20.0, 13.0, 201.0),
+((SELECT id FROM food_library WHERE food_name='烤羊肉串' AND scope='SYSTEM'), 'PER_100G', 100, 5.0, 20.0, 18.0, 274.0);
+
+INSERT INTO food_nutrition
+(food_id, unit_type, serving_weight_g, carb_grams, protein_grams, fat_grams, calories)
+VALUES
+
+-- ================= 鱼虾海鲜 =================
+
+((SELECT id FROM food_library WHERE food_name='三文鱼' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 20.4, 13.4, 197.2),
+((SELECT id FROM food_library WHERE food_name='金枪鱼' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 24.0, 1.0, 105.0),
+((SELECT id FROM food_library WHERE food_name='鳕鱼' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 18.0, 0.7, 78.3),
+((SELECT id FROM food_library WHERE food_name='虾仁' AND scope='SYSTEM'), 'PER_100G', 100, 1.0, 20.0, 1.0, 93.0),
+((SELECT id FROM food_library WHERE food_name='煎鱼' AND scope='SYSTEM'), 'PER_100G', 100, 3.0, 22.0, 10.0, 190.0),
+
+-- ================= 蛋奶豆制品 =================
+
+((SELECT id FROM food_library WHERE food_name='鸡蛋' AND scope='SYSTEM'), 'PER_100G', 100, 1.3, 13.3, 10.3, 149.1),
+((SELECT id FROM food_library WHERE food_name='蛋清' AND scope='SYSTEM'), 'PER_100G', 100, 0.7, 11.0, 0.2, 49.0),
+
+((SELECT id FROM food_library WHERE food_name='全脂牛奶' AND scope='SYSTEM'), 'PER_100G', 100, 4.8, 3.2, 3.6, 64.4),
+((SELECT id FROM food_library WHERE food_name='低脂牛奶' AND scope='SYSTEM'), 'PER_100G', 100, 5.0, 3.4, 1.5, 47.1),
+
+((SELECT id FROM food_library WHERE food_name='无糖酸奶' AND scope='SYSTEM'), 'PER_100G', 100, 5.0, 4.0, 3.0, 63.0),
+
+((SELECT id FROM food_library WHERE food_name='北豆腐' AND scope='SYSTEM'), 'PER_100G', 100, 2.0, 12.0, 7.0, 119.0),
+
+((SELECT id FROM food_library WHERE food_name='豆浆' AND scope='SYSTEM'), 'PER_100G', 100, 1.8, 3.0, 1.6, 33.6),
+
+-- ================= 水果 =================
+
+((SELECT id FROM food_library WHERE food_name='苹果' AND scope='SYSTEM'), 'PER_100G', 100, 13.7, 0.3, 0.2, 58.6),
+
+((SELECT id FROM food_library WHERE food_name='香蕉' AND scope='SYSTEM'), 'PER_100G', 100, 22.8, 1.1, 0.3, 98.3),
+
+((SELECT id FROM food_library WHERE food_name='橙子' AND scope='SYSTEM'), 'PER_100G', 100, 11.0, 0.8, 0.2, 49.0),
+
+((SELECT id FROM food_library WHERE food_name='草莓' AND scope='SYSTEM'), 'PER_100G', 100, 7.7, 0.8, 0.3, 37.5),
+
+((SELECT id FROM food_library WHERE food_name='蓝莓' AND scope='SYSTEM'), 'PER_100G', 100, 14.5, 0.7, 0.3, 63.5),
+
+((SELECT id FROM food_library WHERE food_name='西瓜' AND scope='SYSTEM'), 'PER_100G', 100, 7.5, 0.6, 0.2, 34.2),
+
+((SELECT id FROM food_library WHERE food_name='牛油果' AND scope='SYSTEM'), 'PER_100G', 100, 8.5, 2.0, 15.0, 175.0),
+
+-- ================= 蔬菜 =================
+
+((SELECT id FROM food_library WHERE food_name='西兰花' AND scope='SYSTEM'), 'PER_100G', 100, 6.6, 2.8, 0.4, 41.2),
+
+((SELECT id FROM food_library WHERE food_name='菠菜' AND scope='SYSTEM'), 'PER_100G', 100, 3.6, 2.9, 0.4, 29.6),
+
+((SELECT id FROM food_library WHERE food_name='黄瓜' AND scope='SYSTEM'), 'PER_100G', 100, 3.6, 0.7, 0.1, 17.7),
+
+((SELECT id FROM food_library WHERE food_name='番茄' AND scope='SYSTEM'), 'PER_100G', 100, 3.9, 0.9, 0.2, 21.8),
+
+((SELECT id FROM food_library WHERE food_name='胡萝卜' AND scope='SYSTEM'), 'PER_100G', 100, 9.6, 0.9, 0.2, 44.2),
+
+((SELECT id FROM food_library WHERE food_name='生菜' AND scope='SYSTEM'), 'PER_100G', 100, 2.9, 1.4, 0.2, 19.4),
+
+-- ================= 坚果 =================
+
+((SELECT id FROM food_library WHERE food_name='杏仁' AND scope='SYSTEM'), 'PER_100G', 100, 21.6, 21.2, 49.9, 613.1),
+
+((SELECT id FROM food_library WHERE food_name='腰果' AND scope='SYSTEM'), 'PER_100G', 100, 30.2, 18.2, 43.8, 587.8),
+
+((SELECT id FROM food_library WHERE food_name='花生' AND scope='SYSTEM'), 'PER_100G', 100, 16.1, 25.8, 49.2, 613.2),
+
+-- ================= 饮品/补剂 =================
+
+((SELECT id FROM food_library WHERE food_name='乳清蛋白粉' AND scope='SYSTEM'), 'PER_100G', 100, 8.0, 78.0, 6.0, 402.0),
+
+((SELECT id FROM food_library WHERE food_name='可乐' AND scope='SYSTEM'), 'PER_100G', 100, 10.6, 0.0, 0.0, 42.4),
+
+((SELECT id FROM food_library WHERE food_name='无糖可乐' AND scope='SYSTEM'), 'PER_100G', 100, 0.0, 0.0, 0.0, 0.0);
