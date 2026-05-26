@@ -354,9 +354,12 @@ const mealTypeOptions = ref<DictOption[]>([])
 
 /** 体重趋势数据项 */
 interface WeightTrendItem {
-  date: string
+  date?: string
+  recordDate?: string
+  record_date?: string
   weight?: number
   weightKg?: number
+  weight_kg?: number
   bmi?: number
 }
 
@@ -653,24 +656,13 @@ const chartColors = {
 const weightChartOption = computed(() => {
   if (!dashboard.value?.weightTrend?.length) return null
 
-  const trend = dashboard.value.weightTrend
-    .map((item) => ({
-      ...item,
-      value: Number(item.weight ?? item.weightKg)
-    }))
-    .filter((item) => item.date && !Number.isNaN(item.value))
+  const trend = normalizeWeightTrend(dashboard.value.weightTrend)
   if (!trend.length) return null
 
   // 解析日期数组，展示为 M/D 格式
-  const dates = trend.map((t) => {
-    if (!t.date) return ''
-    const d = new Date(t.date)
-    if (isNaN(d.getTime())) return String(t.date)
-    return `${d.getMonth() + 1}/${d.getDate()}`
-  })
-
-  const weights = trend.map((t) => t.value)
-  const points = trend.map((t, index) => [dates[index], t.value])
+  const dates = trend.map((t) => t.label)
+  const weights = trend.map((t) => t.weight)
+  const points = trend.map((t) => [t.label, t.weight])
   const weightMin = Math.min(...weights)
   const weightMax = Math.max(...weights)
   const padding = Math.max((weightMax - weightMin) * 0.2, 1)
@@ -686,7 +678,8 @@ const weightChartOption = computed(() => {
       formatter: (params: any) => {
         if (!params) return ''
         const value = Array.isArray(params.value) ? params.value[1] : params.value
-        return `<div style="font-size:13px;color:#636e72">${params.name}</div>
+        const label = Array.isArray(params.value) ? params.value[0] : params.name
+        return `<div style="font-size:13px;color:#636e72">${label}</div>
           <div style="font-weight:700;margin-top:6px;color:#38b589;font-size:16px;font-family:'JetBrains Mono',monospace">${value} kg</div>`
       }
     },
@@ -770,6 +763,28 @@ const weightChartOption = computed(() => {
     ]
   }
 })
+
+function normalizeWeightTrend(source: WeightTrendItem[]) {
+  return source
+    .map((item) => {
+      const rawDate = item.date ?? item.recordDate ?? item.record_date
+      const rawWeight = item.weight ?? item.weightKg ?? item.weight_kg
+      const weight = Number(rawWeight)
+      if (!rawDate || Number.isNaN(weight)) return null
+      return {
+        label: formatTrendDate(rawDate),
+        weight
+      }
+    })
+    .filter((item): item is { label: string; weight: number } => Boolean(item))
+}
+
+function formatTrendDate(rawDate: string) {
+  const normalized = rawDate.length === 10 ? `${rawDate}T00:00:00` : rawDate
+  const date = new Date(normalized)
+  if (Number.isNaN(date.getTime())) return String(rawDate)
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
 
 // ==================== 生命周期 ====================
 
