@@ -2,6 +2,7 @@ package com.fitness.entity;
 
 import lombok.Data;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 动作库实体
@@ -21,6 +22,10 @@ public class ActionLibrary {
     private String description;
     /** 适用人群 */
     private String suitableFor;
+    /** 主要刺激肌群编码 */
+    private List<String> primaryMuscles;
+    /** 辅助刺激肌群编码 */
+    private List<String> secondaryMuscles;
     /** 图片 URL 列表（JSON 数组） */
     private String imageUrls;
     /** 视频 URL */

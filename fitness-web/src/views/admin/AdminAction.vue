@@ -47,18 +47,28 @@
         </template>
       </el-table-column>
       <el-table-column prop="actionName" label="动作名称" min-width="160" />
-      <el-table-column label="适用部位" min-width="200">
+      <el-table-column label="刺激肌群" min-width="240">
         <template #default="{ row }">
-          <template v-if="row.suitableFor && row.suitableFor.length > 0">
+          <template v-if="hasMuscles(row)">
             <el-tag
-              v-for="tag in row.suitableFor"
+              v-for="tag in row.primaryMuscles"
               :key="tag"
               size="small"
               effect="plain"
-              type="primary"
+              type="danger"
               style="margin-right: 4px"
             >
-              {{ getSuitableLabel(tag) }}
+              主 {{ getMuscleLabel(tag) }}
+            </el-tag>
+            <el-tag
+              v-for="tag in row.secondaryMuscles"
+              :key="tag"
+              size="small"
+              effect="plain"
+              type="warning"
+              style="margin-right: 4px"
+            >
+              辅 {{ getMuscleLabel(tag) }}
             </el-tag>
           </template>
           <span v-else style="color: #c0c4cc">--</span>
@@ -135,10 +145,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="适用部位" prop="suitableFor">
-          <el-checkbox-group v-model="form.suitableFor">
+        <el-form-item label="主要肌群" prop="primaryMuscles">
+          <el-checkbox-group v-model="form.primaryMuscles" @change="dedupeMuscles">
             <el-checkbox
-              v-for="item in suitableOptions"
+              v-for="item in muscleOptions"
               :key="item.code"
               :label="item.code"
               :value="item.code"
@@ -146,6 +156,24 @@
               {{ item.name }}
             </el-checkbox>
           </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="辅助肌群" prop="secondaryMuscles">
+          <el-checkbox-group v-model="form.secondaryMuscles" @change="dedupeMuscles">
+            <el-checkbox
+              v-for="item in muscleOptions"
+              :key="item.code"
+              :label="item.code"
+              :value="item.code"
+              :disabled="form.primaryMuscles.includes(item.code)"
+            >
+              {{ item.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="肌群预览">
+          <MuscleMap :primary-muscles="form.primaryMuscles" :secondary-muscles="form.secondaryMuscles" />
         </el-form-item>
 
         <el-form-item label="动作图片">
@@ -181,6 +209,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { getAdminActions, createAdminAction, updateAdminAction, deleteAdminAction } from '@/api/admin'
 import { getDictOptions } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
+import MuscleMap from '@/components/common/MuscleMap.vue'
 
 // ==================== 类型定义 ====================
 
@@ -192,6 +221,8 @@ interface ActionItem {
   imageUrls?: string[]
   videoUrl?: string
   suitableFor?: string[]
+  primaryMuscles?: string[]
+  secondaryMuscles?: string[]
   createdAt?: string
   scope?: string
 }
@@ -219,15 +250,16 @@ const total = ref(0)
 /** 表格数据 */
 const tableData = ref<ActionItem[]>([])
 
-/** 适用部位字典 */
-const suitableOptions = ref<SuitableOption[]>([])
+/** 肌群字典 */
+const muscleOptions = ref<SuitableOption[]>([])
 
 // ==================== 表单 ====================
 
 const form = reactive({
   name: '',
   description: '',
-  suitableFor: [] as string[],
+  primaryMuscles: [] as string[],
+  secondaryMuscles: [] as string[],
   imageUrls: [] as string[],
   videoUrl: ''
 })
@@ -242,16 +274,30 @@ const formRules: FormRules = {
 
 // ==================== 工具函数 ====================
 
-/** 根据部位字典编码获取中文名称 */
-function getSuitableLabel(code: string): string {
-  const found = suitableOptions.value.find(item => item.code === code)
+/** 根据肌群字典编码获取中文名称 */
+function getMuscleLabel(code: string): string {
+  const found = muscleOptions.value.find(item => item.code === code)
   return found?.name || code
 }
 
-function normalizeSuitableFor(value: unknown): string[] {
+function normalizeCodeList(value: unknown): string[] {
   if (Array.isArray(value)) return value
   if (typeof value === 'string') return value.split(',').filter(Boolean)
   return []
+}
+
+function normalizePrimaryMuscles(item: any): string[] {
+  const primary = normalizeCodeList(item.primaryMuscles)
+  return primary.length > 0 ? primary : normalizeCodeList(item.suitableFor)
+}
+
+function hasMuscles(action: ActionItem): boolean {
+  return Boolean(action.primaryMuscles?.length || action.secondaryMuscles?.length)
+}
+
+function dedupeMuscles() {
+  const primary = new Set(form.primaryMuscles)
+  form.secondaryMuscles = form.secondaryMuscles.filter(code => !primary.has(code))
 }
 
 function normalizeImageUrls(value: unknown): string[] {
@@ -275,18 +321,17 @@ function formatDate(dateStr?: string): string {
 
 // ==================== 数据获取 ====================
 
-/** 获取适用部位字典 */
-async function fetchSuitableOptions() {
+/** 获取肌群字典 */
+async function fetchMuscleOptions() {
   try {
-    suitableOptions.value = (await getDictOptions('training_type'))
-      .filter(item => item.value !== 'REST')
+    muscleOptions.value = (await getDictOptions('muscle_group'))
       .map(item => ({
         code: item.value,
         name: item.label
       }))
   } catch (err: any) {
-    ElMessage.error(err.message || '训练部位字典加载失败')
-    suitableOptions.value = []
+    ElMessage.error(err.message || '肌群字典加载失败')
+    muscleOptions.value = []
   }
 }
 
@@ -301,14 +346,18 @@ async function fetchList() {
       const list = res.records || res.list || []
       tableData.value = list.map((item: any) => ({
         ...item,
-        suitableFor: normalizeSuitableFor(item.suitableFor),
+        suitableFor: normalizeCodeList(item.suitableFor),
+        primaryMuscles: normalizePrimaryMuscles(item),
+        secondaryMuscles: normalizeCodeList(item.secondaryMuscles),
         imageUrls: normalizeImageUrls(item.imageUrls)
       }))
       total.value = res.total || list.length
     } else if (Array.isArray(res)) {
       tableData.value = res.map((item: any) => ({
         ...item,
-        suitableFor: normalizeSuitableFor(item.suitableFor),
+        suitableFor: normalizeCodeList(item.suitableFor),
+        primaryMuscles: normalizePrimaryMuscles(item),
+        secondaryMuscles: normalizeCodeList(item.secondaryMuscles),
         imageUrls: normalizeImageUrls(item.imageUrls)
       }))
       total.value = res.length
@@ -333,8 +382,8 @@ function openDialog(action?: ActionItem) {
     editingId.value = action.id
     form.name = action.actionName
     form.description = action.description || ''
-    // 后端返回逗号分隔字符串, 转为数组供checkbox展示
-    form.suitableFor = normalizeSuitableFor((action as any).suitableFor)
+    form.primaryMuscles = normalizePrimaryMuscles(action)
+    form.secondaryMuscles = normalizeCodeList((action as any).secondaryMuscles)
     form.imageUrls = normalizeImageUrls((action as any).imageUrls)
     form.videoUrl = action.videoUrl || ''
   } else {
@@ -349,7 +398,8 @@ function openDialog(action?: ActionItem) {
 function resetFormData() {
   form.name = ''
   form.description = ''
-  form.suitableFor = []
+  form.primaryMuscles = []
+  form.secondaryMuscles = []
   form.imageUrls = []
   form.videoUrl = ''
 }
@@ -370,7 +420,8 @@ async function handleSave() {
     const payload = {
       actionName: form.name,
       description: form.description || undefined,
-      suitableFor: form.suitableFor.length > 0 ? form.suitableFor : undefined,
+      primaryMuscles: form.primaryMuscles.length > 0 ? form.primaryMuscles : undefined,
+      secondaryMuscles: form.secondaryMuscles.length > 0 ? form.secondaryMuscles : undefined,
       imageUrls: form.imageUrls.length > 0 ? form.imageUrls : undefined,
       videoUrl: form.videoUrl || undefined
     }
@@ -413,7 +464,7 @@ async function handleDelete(action: ActionItem) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
-  fetchSuitableOptions()
+  fetchMuscleOptions()
   fetchList()
 })
 </script>

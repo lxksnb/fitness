@@ -6,6 +6,7 @@ import com.fitness.dto.ActionDTO;
 import com.fitness.entity.ActionLibrary;
 import com.fitness.exception.BusinessException;
 import com.fitness.mapper.ActionLibraryMapper;
+import com.fitness.service.ActionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,12 +20,14 @@ import java.util.List;
 public class AdminActionController {
 
     private final ActionLibraryMapper actionMapper;
+    private final ActionService actionService;
 
     /**
      * 构造函数 - 注入动作库Mapper
      */
-    public AdminActionController(ActionLibraryMapper actionMapper) {
+    public AdminActionController(ActionLibraryMapper actionMapper, ActionService actionService) {
         this.actionMapper = actionMapper;
+        this.actionService = actionService;
     }
 
     /**
@@ -33,7 +36,9 @@ public class AdminActionController {
      */
     @GetMapping
     public Result<List<ActionLibrary>> list(@RequestParam(required = false) String keyword) {
-        return Result.ok(actionMapper.selectSystemActions(keyword));
+        List<ActionLibrary> actions = actionMapper.selectSystemActions(keyword);
+        actionService.fillMuscles(actions);
+        return Result.ok(actions);
     }
 
     /**
@@ -46,12 +51,12 @@ public class AdminActionController {
         action.setScope("SYSTEM");
         action.setActionName(dto.getActionName());
         action.setDescription(dto.getDescription());
-        // 前端checkbox多选传来数组, 拼成逗号分隔字符串存入数据库
-        action.setSuitableFor(joinList(dto.getSuitableFor()));
+        action.setSuitableFor(joinList(dto.getPrimaryMuscles(), dto.getSecondaryMuscles(), dto.getSuitableFor()));
         action.setImageUrls(dto.getImageUrls());
         action.setVideoUrl(dto.getVideoUrl());
         action.setStatus("ACTIVE");
         actionMapper.insert(action);
+        actionService.replaceMuscles(action.getId(), dto);
         return Result.ok();
     }
 
@@ -67,10 +72,11 @@ public class AdminActionController {
             }
             action.setActionName(dto.getActionName());
             action.setDescription(dto.getDescription());
-            action.setSuitableFor(joinList(dto.getSuitableFor()));
+            action.setSuitableFor(joinList(dto.getPrimaryMuscles(), dto.getSecondaryMuscles(), dto.getSuitableFor()));
             action.setImageUrls(dto.getImageUrls());
             action.setVideoUrl(dto.getVideoUrl());
             actionMapper.updateById(action);
+            actionService.replaceMuscles(action.getId(), dto);
         }
         return Result.ok();
     }
@@ -97,10 +103,18 @@ public class AdminActionController {
      * @param list 前端传来的部位列表
      * @return 逗号分隔的字符串, 如 "CHEST,BACK,LEGS"
      */
-    private String joinList(java.util.List<String> list) {
-        if (list != null && !list.isEmpty()) {
-            return String.join(",", list);
+    @SafeVarargs
+    private final String joinList(java.util.List<String>... lists) {
+        java.util.LinkedHashSet<String> codes = new java.util.LinkedHashSet<>();
+        for (java.util.List<String> list : lists) {
+            if (list != null) {
+                for (String item : list) {
+                    if (item != null && !item.trim().isEmpty()) {
+                        codes.add(item.trim());
+                    }
+                }
+            }
         }
-        return null;
+        return codes.isEmpty() ? null : String.join(",", codes);
     }
 }

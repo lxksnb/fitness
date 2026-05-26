@@ -16,6 +16,10 @@ public class ActionDTO {
     private String description;
     /** 适用部位列表(前端checkbox多选, 逗号分隔存入DB) */
     private java.util.List<String> suitableFor;
+    /** 主要刺激肌群 */
+    private java.util.List<String> primaryMuscles;
+    /** 辅助刺激肌群 */
+    private java.util.List<String> secondaryMuscles;
     /** 图片 URL 列表 */
     private String imageUrls;
     /** 视频 URL */
@@ -27,6 +31,10 @@ public class ActionDTO {
     public void setDescription(String desc) { this.description = desc; }
     public java.util.List<String> getSuitableFor() { return suitableFor; }
     public void setSuitableFor(java.util.List<String> sf) { this.suitableFor = sf; }
+    public java.util.List<String> getPrimaryMuscles() { return primaryMuscles; }
+    public void setPrimaryMuscles(java.util.List<String> primaryMuscles) { this.primaryMuscles = primaryMuscles; }
+    public java.util.List<String> getSecondaryMuscles() { return secondaryMuscles; }
+    public void setSecondaryMuscles(java.util.List<String> secondaryMuscles) { this.secondaryMuscles = secondaryMuscles; }
     public String getImageUrls() { return imageUrls; }
     @JsonSetter("imageUrls")
     public void setImageUrls(Object urls) {

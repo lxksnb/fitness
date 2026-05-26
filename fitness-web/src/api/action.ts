@@ -3,11 +3,11 @@ import request from './request'
 /**
  * 搜索动作库
  * @param keyword 搜索关键字，可选
- * @param suitableFor 适用部位筛选，可选
+ * @param muscleCode 肌群筛选，可选
  * @returns 动作列表
  */
-export function searchActions(keyword?: string, suitableFor?: string) {
-  return request.get('/actions', { params: { keyword, suitableFor } })
+export function searchActions(keyword?: string, muscleCode?: string) {
+  return request.get('/actions', { params: { keyword, muscleCode } })
 }
 
 /**

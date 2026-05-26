@@ -26,13 +26,15 @@ public class ActionController {
     /**
      * 搜索动作库
      * @param keyword 动作名称关键字
-     * @param suitableFor 适用人群过滤条件
+     * @param muscleCode 肌群过滤条件
      * @return 匹配的动作列表
      */
     @GetMapping
     public Result<List<ActionLibrary>> search(@RequestParam(required = false) String keyword,
-                                               @RequestParam(required = false) String suitableFor) {
-        return Result.ok(actionService.search(keyword, suitableFor));
+                                               @RequestParam(required = false) String suitableFor,
+                                               @RequestParam(required = false) String muscleCode) {
+        String filterMuscle = muscleCode != null ? muscleCode : suitableFor;
+        return Result.ok(actionService.search(keyword, filterMuscle));
     }
 
     /**

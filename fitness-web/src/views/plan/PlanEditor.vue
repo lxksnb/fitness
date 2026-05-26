@@ -208,26 +208,12 @@
                 >
                   <el-table-column label="动作名称" min-width="200">
                     <template #default="{ row, $index }">
-                      <el-select
-                        :model-value="row.actionId"
-                        filterable
-                        remote
-                        reserve-keyword
-                        placeholder="搜索或选择动作"
-                        :remote-method="(kw: string) => searchActionsRemote(kw, dayIndex)"
-                        :loading="actionSearchLoading"
-                        style="width: 100%"
-                        @visible-change="(visible: boolean) => { if (visible) searchActionsRemote('', dayIndex) }"
-                        @update:model-value="(val: number) => onActionSelect(val, dayIndex, $index)"
-                        @change="(val: number) => onActionSelect(val, dayIndex, $index)"
-                      >
-                        <el-option
-                          v-for="item in actionSearchResults"
-                          :key="item.id"
-                          :label="item.actionName"
-                          :value="item.id"
-                        />
-                      </el-select>
+                      <div class="action-name-cell">
+                        <span :class="{ 'action-empty': !row.actionName }">{{ row.actionName || '未选择动作' }}</span>
+                        <el-button link type="primary" size="small" @click="openActionPicker(dayIndex, $index)">
+                          选择
+                        </el-button>
+                      </div>
                     </template>
                   </el-table-column>
                   <el-table-column label="最小组数" width="100">
@@ -601,6 +587,89 @@
           {{ isEdit ? '更新计划' : '保存计划' }}
         </el-button>
       </div>
+
+      <el-dialog
+        v-model="actionPickerVisible"
+        title="选择训练动作"
+        width="860px"
+        :close-on-click-modal="false"
+      >
+        <div class="action-picker">
+          <aside class="muscle-filter">
+            <div class="picker-title">肌群</div>
+            <el-checkbox-group v-model="selectedMuscleCodes">
+              <el-checkbox
+                v-for="item in muscleGroupOptions"
+                :key="item.value"
+                :label="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </aside>
+          <section class="action-picker-main">
+            <el-input
+              v-model="actionPickerKeyword"
+              placeholder="搜索动作名称"
+              clearable
+              @keyup.enter="searchActionsRemote"
+              @clear="searchActionsRemote"
+            >
+              <template #append>
+                <el-button @click="searchActionsRemote">搜索</el-button>
+              </template>
+            </el-input>
+            <el-table
+              v-loading="actionSearchLoading"
+              :data="filteredActionResults"
+              row-key="id"
+              border
+              height="360"
+              style="width: 100%; margin-top: 12px"
+              @selection-change="onPickerSelectionChange"
+            >
+              <el-table-column type="selection" width="48" />
+              <el-table-column prop="actionName" label="动作名称" min-width="160" />
+              <el-table-column label="主要肌群" min-width="180">
+                <template #default="{ row }">
+                  <el-tag
+                    v-for="code in row.primaryMuscles"
+                    :key="code"
+                    size="small"
+                    type="danger"
+                    effect="plain"
+                    class="picker-tag"
+                  >
+                    {{ getMuscleLabel(code) }}
+                  </el-tag>
+                  <span v-if="!row.primaryMuscles?.length" class="muted">--</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="辅助肌群" min-width="180">
+                <template #default="{ row }">
+                  <el-tag
+                    v-for="code in row.secondaryMuscles"
+                    :key="code"
+                    size="small"
+                    type="warning"
+                    effect="plain"
+                    class="picker-tag"
+                  >
+                    {{ getMuscleLabel(code) }}
+                  </el-tag>
+                  <span v-if="!row.secondaryMuscles?.length" class="muted">--</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </section>
+        </div>
+
+        <template #footer>
+          <el-button @click="actionPickerVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmActionPicker">添加到训练日</el-button>
+        </template>
+      </el-dialog>
     </template>
   </div>
 </template>
@@ -646,6 +715,7 @@ interface MealTypeOption extends DictOption {
 const planTypeOptions = ref<DictOption[]>([])
 const splitTypeOptions = ref<DictOption[]>([])
 const trainingTypeOptions = ref<DictOption[]>([])
+const muscleGroupOptions = ref<DictOption[]>([])
 const mealTypeOptions = ref<MealTypeOption[]>([])
 
 /** 训练日默认营养素分配比例（百分比，合计约100%） */
@@ -741,21 +811,31 @@ function nextUid(): string {
   return 'uid_' + (++uidCounter)
 }
 
+interface ActionSearchItem {
+  id: number
+  actionName: string
+  primaryMuscles?: string[]
+  secondaryMuscles?: string[]
+  suitableFor?: string[] | string
+}
+
 function getPreferredOptionValue(options: DictOption[], preferred: string): string {
   return options.find(item => item.value === preferred)?.value || options[0]?.value || ''
 }
 
 async function fetchDictData(): Promise<void> {
-  const [planTypes, splitTypes, trainingTypes, mealTypes] = await Promise.all([
+  const [planTypes, splitTypes, trainingTypes, muscleGroups, mealTypes] = await Promise.all([
     getDictOptions('plan_type'),
     getDictOptions('split_type'),
     getDictOptions('training_type'),
+    getDictOptions('muscle_group'),
     getDictOptions('meal_type')
   ])
 
   planTypeOptions.value = planTypes
   splitTypeOptions.value = splitTypes
   trainingTypeOptions.value = trainingTypes.filter(item => item.value !== 'REST')
+  muscleGroupOptions.value = muscleGroups
   mealTypeOptions.value = mealTypes.map(item => ({
     ...item,
     type: item.value,
@@ -763,7 +843,7 @@ async function fetchDictData(): Promise<void> {
   }))
 
   if (!planTypeOptions.value.length || !splitTypeOptions.value.length ||
-      !trainingTypeOptions.value.length || !mealTypeOptions.value.length) {
+      !trainingTypeOptions.value.length || !muscleGroupOptions.value.length || !mealTypeOptions.value.length) {
     throw new Error('基础字典数据为空，请检查字典配置')
   }
 }
@@ -899,8 +979,14 @@ const isRestRatioValid = computed(() =>
 
 // ==================== 远程搜索 ====================
 
-const actionSearchResults = ref<any[]>([])
+const actionSearchResults = ref<ActionSearchItem[]>([])
 const actionSearchLoading = ref(false)
+const actionPickerVisible = ref(false)
+const actionPickerDayIndex = ref<number | null>(null)
+const actionPickerActionIndex = ref<number | null>(null)
+const actionPickerKeyword = ref('')
+const selectedMuscleCodes = ref<string[]>([])
+const selectedPickerActions = ref<ActionSearchItem[]>([])
 
 function normalizeTrainingTypes(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).filter(Boolean)
@@ -908,14 +994,44 @@ function normalizeTrainingTypes(value: unknown): string[] {
   return []
 }
 
-async function searchActionsRemote(keyword: string, dayIndex?: number) {
+function normalizeCodeList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean)
+  if (typeof value === 'string') return value.split(',').filter(Boolean)
+  return []
+}
+
+function normalizeActionSearchItem(item: any): ActionSearchItem {
+  const primaryMuscles = normalizeCodeList(item.primaryMuscles)
+  return {
+    ...item,
+    primaryMuscles: primaryMuscles.length > 0 ? primaryMuscles : normalizeCodeList(item.suitableFor),
+    secondaryMuscles: normalizeCodeList(item.secondaryMuscles)
+  }
+}
+
+const filteredActionResults = computed(() => {
+  if (!selectedMuscleCodes.value.length) return actionSearchResults.value
+  const selected = new Set(selectedMuscleCodes.value)
+  return actionSearchResults.value.filter(action => {
+    const muscles = [
+      ...(action.primaryMuscles || []),
+      ...(action.secondaryMuscles || [])
+    ]
+    return muscles.some(code => selected.has(code))
+  })
+})
+
+function getMuscleLabel(code: string): string {
+  return muscleGroupOptions.value.find(item => item.value === code)?.label || code
+}
+
+async function searchActionsRemote(keyword?: string) {
   actionSearchLoading.value = true
   try {
-    // 获取当前训练日的训练部位, 用于过滤动作
-    const trainingType = dayIndex !== undefined ? formData.trainingDays[dayIndex]?.trainingType?.[0] : undefined
-    const kw = keyword?.trim() || ''
-    const res = await searchActions(kw || undefined, trainingType || undefined) as any
-    actionSearchResults.value = Array.isArray(res) ? res : (res?.records || res?.list || [])
+    const kw = (typeof keyword === 'string' ? keyword : actionPickerKeyword.value).trim()
+    const res = await searchActions(kw || undefined) as any
+    const list = Array.isArray(res) ? res : (res?.records || res?.list || [])
+    actionSearchResults.value = list.map(normalizeActionSearchItem)
   } catch {
     actionSearchResults.value = []
   } finally {
@@ -944,13 +1060,55 @@ async function searchFoodsRemote(keyword: string) {
 
 // ==================== 选择事件处理 ====================
 
-/** 动作选中：从搜索结果中获取名称赋值 */
-function onActionSelect(val: number, dayIndex: number, actionIndex: number) {
-  const selected = actionSearchResults.value.find((item: any) => item.id === val)
-  if (selected) {
-    formData.trainingDays[dayIndex].actions[actionIndex].actionId = selected.id
-    formData.trainingDays[dayIndex].actions[actionIndex].actionName = selected.actionName || selected.name || ''
+function openActionPicker(dayIndex: number, actionIndex?: number) {
+  actionPickerDayIndex.value = dayIndex
+  actionPickerActionIndex.value = typeof actionIndex === 'number' ? actionIndex : null
+  selectedPickerActions.value = []
+  actionPickerVisible.value = true
+  searchActionsRemote()
+}
+
+function onPickerSelectionChange(selection: ActionSearchItem[]) {
+  selectedPickerActions.value = selection
+}
+
+function createPlanAction(action: ActionSearchItem, sortOrder: number): ActionItem {
+  return {
+    actionId: action.id,
+    actionName: action.actionName,
+    minSets: 3,
+    maxSets: 5,
+    restMinutes: 2,
+    sortOrder
   }
+}
+
+function confirmActionPicker() {
+  if (actionPickerDayIndex.value === null) return
+  if (!selectedPickerActions.value.length) {
+    ElMessage.warning('请至少选择一个动作')
+    return
+  }
+
+  const day = formData.trainingDays[actionPickerDayIndex.value]
+  if (actionPickerActionIndex.value !== null && selectedPickerActions.value.length === 1) {
+    day.actions[actionPickerActionIndex.value] = {
+      ...day.actions[actionPickerActionIndex.value],
+      ...createPlanAction(selectedPickerActions.value[0], actionPickerActionIndex.value)
+    }
+  } else {
+    selectedPickerActions.value.forEach(action => {
+      const exists = day.actions.some(item => item.actionId === action.id)
+      if (!exists) {
+        day.actions.push(createPlanAction(action, day.actions.length))
+      }
+    })
+  }
+
+  day.actions.forEach((action, index) => {
+    action.sortOrder = index
+  })
+  actionPickerVisible.value = false
 }
 
 /** 食物选中：从搜索结果中获取名称赋值 */
@@ -1010,14 +1168,7 @@ function onDayTypeChange(day: TrainingDayItem) {
 
 /** 添加动作到指定训练日 */
 function addAction(dayIndex: number) {
-  formData.trainingDays[dayIndex].actions.push({
-    actionId: null,
-    actionName: '',
-    minSets: 3,
-    maxSets: 5,
-    restMinutes: 2,
-    sortOrder: formData.trainingDays[dayIndex].actions.length
-  })
+  openActionPicker(dayIndex)
 }
 
 /** 删除指定训练日的动作 */
@@ -1419,6 +1570,50 @@ onMounted(() => {
   :deep(.el-input-number) {
     width: 100%;
   }
+}
+
+.action-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.action-empty,
+.muted {
+  color: #909399;
+}
+
+.action-picker {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+}
+
+.muscle-filter {
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+
+  :deep(.el-checkbox) {
+    display: flex;
+    margin-right: 0;
+    height: 28px;
+  }
+}
+
+.picker-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.picker-tag {
+  margin-right: 4px;
+  margin-bottom: 4px;
 }
 
 /* ==================== 餐次配置 ==================== */

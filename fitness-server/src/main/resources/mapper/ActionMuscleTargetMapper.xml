@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fitness.mapper.ActionMuscleTargetMapper">
+    <resultMap id="BaseResultMap" type="com.fitness.entity.ActionMuscleTarget">
+        <id column="id" property="id"/>
+        <result column="action_id" property="actionId"/>
+        <result column="muscle_code" property="muscleCode"/>
+        <result column="target_role" property="targetRole"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectByActionIds" resultMap="BaseResultMap">
+        SELECT * FROM action_muscle_target
+        WHERE action_id IN
+        <foreach collection="actionIds" item="actionId" open="(" separator="," close=")">
+            #{actionId}
+        </foreach>
+        ORDER BY action_id ASC, target_role ASC, sort_order ASC, id ASC
+    </select>
+
+    <delete id="deleteByActionId">
+        DELETE FROM action_muscle_target WHERE action_id = #{actionId}
+    </delete>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO action_muscle_target (action_id, muscle_code, target_role, sort_order)
+        VALUES (#{actionId}, #{muscleCode}, #{targetRole}, #{sortOrder})
+    </insert>
+</mapper>

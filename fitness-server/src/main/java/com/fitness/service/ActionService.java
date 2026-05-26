@@ -3,15 +3,23 @@ package com.fitness.service;
 import com.fitness.common.ResultCode;
 import com.fitness.dto.ActionDTO;
 import com.fitness.entity.ActionLibrary;
+import com.fitness.entity.ActionMuscleTarget;
 import com.fitness.entity.UserActionRecord;
 import com.fitness.exception.BusinessException;
 import com.fitness.mapper.ActionLibraryMapper;
+import com.fitness.mapper.ActionMuscleTargetMapper;
 import com.fitness.mapper.UserActionRecordMapper;
 import com.fitness.utils.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 训练动作服务
@@ -21,22 +29,26 @@ import java.util.List;
 public class ActionService {
 
     private final ActionLibraryMapper actionMapper;
+    private final ActionMuscleTargetMapper muscleTargetMapper;
     private final UserActionRecordMapper recordMapper;
 
-    public ActionService(ActionLibraryMapper actionMapper, UserActionRecordMapper recordMapper) {
+    public ActionService(ActionLibraryMapper actionMapper, ActionMuscleTargetMapper muscleTargetMapper, UserActionRecordMapper recordMapper) {
         this.actionMapper = actionMapper;
+        this.muscleTargetMapper = muscleTargetMapper;
         this.recordMapper = recordMapper;
     }
 
     /**
      * 搜索动作库
      * @param keyword 动作名称关键字
-     * @param suitableFor 适用人群过滤条件
+     * @param muscleCode 肌群过滤条件
      * @return 匹配的动作列表
      */
-    public List<ActionLibrary> search(String keyword, String suitableFor) {
+    public List<ActionLibrary> search(String keyword, String muscleCode) {
         Long userId = SecurityUtils.getCurrentUserId();
-        return actionMapper.searchByName(keyword, userId, suitableFor);
+        List<ActionLibrary> actions = actionMapper.searchByName(keyword, userId, muscleCode);
+        fillMuscles(actions);
+        return actions;
     }
 
     /**
@@ -52,6 +64,8 @@ public class ActionService {
         action.setUserId(userId);
         fillAction(action, dto);
         actionMapper.insert(action);
+        replaceMuscles(action.getId(), dto);
+        fillMuscles(Collections.singletonList(action));
         return action;
     }
 
@@ -69,6 +83,7 @@ public class ActionService {
         if (!userId.equals(action.getUserId())) throw new BusinessException(ResultCode.FORBIDDEN, "不能修改他人动作");
         fillAction(action, dto);
         actionMapper.updateById(action);
+        replaceMuscles(id, dto);
     }
 
     /**
@@ -102,13 +117,72 @@ public class ActionService {
     private void fillAction(ActionLibrary action, ActionDTO dto) {
         action.setActionName(dto.getActionName());
         action.setDescription(dto.getDescription());
-        // 前端checkbox多选传来数组, 拼成逗号分隔字符串存入数据库
-        if (dto.getSuitableFor() != null && !dto.getSuitableFor().isEmpty()) {
-            action.setSuitableFor(String.join(",", dto.getSuitableFor()));
-        } else {
-            action.setSuitableFor(null);
-        }
+        action.setSuitableFor(joinLegacySuitableFor(dto));
         action.setImageUrls(dto.getImageUrls());
         action.setVideoUrl(dto.getVideoUrl());
+    }
+
+    public void fillMuscles(List<ActionLibrary> actions) {
+        if (actions == null || actions.isEmpty()) return;
+        List<Long> actionIds = actions.stream().map(ActionLibrary::getId).collect(Collectors.toList());
+        List<ActionMuscleTarget> targets = muscleTargetMapper.selectByActionIds(actionIds);
+        Map<Long, List<ActionMuscleTarget>> grouped = targets.stream()
+                .collect(Collectors.groupingBy(ActionMuscleTarget::getActionId));
+        for (ActionLibrary action : actions) {
+            List<ActionMuscleTarget> actionTargets = grouped.getOrDefault(action.getId(), Collections.emptyList());
+            action.setPrimaryMuscles(actionTargets.stream()
+                    .filter(target -> "PRIMARY".equals(target.getTargetRole()))
+                    .map(ActionMuscleTarget::getMuscleCode)
+                    .collect(Collectors.toList()));
+            action.setSecondaryMuscles(actionTargets.stream()
+                    .filter(target -> "SECONDARY".equals(target.getTargetRole()))
+                    .map(ActionMuscleTarget::getMuscleCode)
+                    .collect(Collectors.toList()));
+
+            if ((action.getPrimaryMuscles() == null || action.getPrimaryMuscles().isEmpty())
+                    && action.getSuitableFor() != null && !action.getSuitableFor().trim().isEmpty()) {
+                action.setPrimaryMuscles(java.util.Arrays.asList(action.getSuitableFor().split(",")));
+            }
+        }
+    }
+
+    public void replaceMuscles(Long actionId, ActionDTO dto) {
+        muscleTargetMapper.deleteByActionId(actionId);
+        insertMuscles(actionId, normalizeCodes(dto.getPrimaryMuscles()), "PRIMARY");
+        Set<String> primarySet = new LinkedHashSet<>(normalizeCodes(dto.getPrimaryMuscles()));
+        List<String> secondary = normalizeCodes(dto.getSecondaryMuscles()).stream()
+                .filter(code -> !primarySet.contains(code))
+                .collect(Collectors.toList());
+        insertMuscles(actionId, secondary, "SECONDARY");
+    }
+
+    private void insertMuscles(Long actionId, List<String> muscleCodes, String role) {
+        for (int i = 0; i < muscleCodes.size(); i++) {
+            ActionMuscleTarget target = new ActionMuscleTarget();
+            target.setActionId(actionId);
+            target.setMuscleCode(muscleCodes.get(i));
+            target.setTargetRole(role);
+            target.setSortOrder(i + 1);
+            muscleTargetMapper.insert(target);
+        }
+    }
+
+    private String joinLegacySuitableFor(ActionDTO dto) {
+        List<String> codes = new ArrayList<>();
+        codes.addAll(normalizeCodes(dto.getPrimaryMuscles()));
+        codes.addAll(normalizeCodes(dto.getSecondaryMuscles()));
+        if (codes.isEmpty()) {
+            codes.addAll(normalizeCodes(dto.getSuitableFor()));
+        }
+        return codes.isEmpty() ? null : String.join(",", new LinkedHashSet<>(codes));
+    }
+
+    private List<String> normalizeCodes(List<String> codes) {
+        if (codes == null) return Collections.emptyList();
+        return codes.stream()
+                .filter(code -> code != null && !code.trim().isEmpty())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

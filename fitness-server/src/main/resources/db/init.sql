@@ -326,6 +326,19 @@ CREATE TABLE action_library (
     FOREIGN KEY (user_id) REFERENCES sys_user(id)
 ) COMMENT '动作库, 系统预置+用户自定义训练动作';
 
+-- 动作刺激肌群关系
+CREATE TABLE action_muscle_target (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    action_id BIGINT NOT NULL COMMENT '动作ID',
+    muscle_code VARCHAR(50) NOT NULL COMMENT '肌群编码, 取muscle_group字典',
+    target_role VARCHAR(20) NOT NULL COMMENT '刺激角色: PRIMARY主要 / SECONDARY辅助',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '排序号',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE KEY uk_action_muscle_role (action_id, muscle_code, target_role),
+    INDEX idx_action_muscle_code (muscle_code),
+    FOREIGN KEY (action_id) REFERENCES action_library(id) ON DELETE CASCADE
+) COMMENT '动作与主要/辅助刺激肌群关系表';
+
 -- 用户动作重量记录 (追踪每个动作的重量进步)
 CREATE TABLE user_action_record (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -380,12 +393,13 @@ INSERT INTO sys_dict_type (dict_code, dict_name) VALUES
 ('day_type', '训练日/休息日'),
 ('food_unit_type', '食物单位类型'),
 ('photo_type', '照片角度'),
-('difficulty', '难度等级');
+('difficulty', '难度等级'),
+('muscle_group', '肌群');
 
 -- 训练类型 (dict_type_id=1)
 INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
 (1, '练胸', 'CHEST', 1), (1, '练背', 'BACK', 2), (1, '练腿', 'LEGS', 3),
-(1, '练肩', 'SHOULDER', 4), (1, '练手臂', 'ARMS', 5), (1, '核心', 'CORE', 6),
+(1, '练肩', 'SHOULDER', 4), (1, '练手臂', 'ARMS', 5), (1, '腹部', 'CORE', 6),
 (1, '有氧', 'CARDIO', 7), (1, '休息', 'REST', 8);
 
 -- 餐次类型 (dict_type_id=2)
@@ -421,6 +435,28 @@ INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
 INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
 (8, '新手', 'BEGINNER', 1), (8, '中级', 'INTERMEDIATE', 2), (8, '高级', 'ADVANCED', 3);
 
+-- 肌群 (muscle_group)
+INSERT INTO sys_dict_data (dict_type_id, dict_label, dict_value, sort) VALUES
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '上胸', 'CHEST_UPPER', 1),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '中胸', 'CHEST_MIDDLE', 2),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '下胸', 'CHEST_LOWER', 3),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '背阔肌', 'LATS', 4),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '上背', 'UPPER_BACK', 5),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '斜方肌', 'TRAPS', 6),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '肩前束', 'FRONT_DELTS', 7),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '肩中束', 'SIDE_DELTS', 8),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '肩后束', 'REAR_DELTS', 9),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '肱二头肌', 'BICEPS', 10),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '肱三头肌', 'TRICEPS', 11),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '前臂', 'FOREARMS', 12),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '股四头肌', 'QUADS', 13),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '腘绳肌', 'HAMSTRINGS', 14),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '臀肌', 'GLUTES', 15),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '小腿', 'CALVES', 16),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '腹直肌', 'ABS', 17),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '腹斜肌', 'OBLIQUES', 18),
+((SELECT id FROM sys_dict_type WHERE dict_code = 'muscle_group'), '下背', 'LOWER_BACK', 19);
+
 -- 确保root可从任意主机连接(宿主机开发连接Docker MySQL)
 CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
@@ -429,3 +465,528 @@ FLUSH PRIVILEGES;
 -- 创建管理员账户 (密码: admin123, BCrypt加密)
 INSERT INTO sys_user (username, password, nickname, role, status) VALUES
 ('admin', '$2a$10$EJhza/5WlNJTO9YN/XlEsu5B7DDi2MxQm2SJwr1OORQm//RRu38gW', '系统管理员', 'ADMIN', 'ACTIVE');
+
+
+-- =========================
+-- action_library 动作库初始化
+-- 主流力量训练 + 健身房常见动作
+-- 默认 scope=SYSTEM
+-- =========================
+
+INSERT INTO action_library
+(scope, user_id, action_name, description, suitable_for, image_urls, video_url)
+VALUES
+
+-- ================= 胸部 =================
+('SYSTEM', NULL, '杠铃卧推',
+ '经典胸部复合动作，主要刺激中胸，同时训练肱三头和肩前束。注意肩胛后缩下沉。',
+ 'CHEST,ARMS,SHOULDER',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '上斜杠铃卧推',
+ '主要刺激上胸，凳子角度建议30~45度。',
+ 'CHEST,SHOULDER,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '下斜杠铃卧推',
+ '强化下胸区域，同时减少肩部参与。',
+ 'CHEST,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '哑铃卧推',
+ '比杠铃拥有更大活动范围，可改善左右肌力不平衡。',
+ 'CHEST,ARMS,SHOULDER',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '上斜哑铃卧推',
+ '重点刺激上胸和肩前束。',
+ 'CHEST,SHOULDER',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '双杠臂屈伸',
+ '身体前倾时重点刺激下胸，同时训练肱三头。',
+ 'CHEST,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '绳索夹胸',
+ '孤立胸肌，顶峰收缩明显。',
+ 'CHEST',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '蝴蝶机夹胸',
+ '器械孤立胸部动作，适合新手建立胸肌发力感。',
+ 'CHEST',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '俯卧撑',
+ '经典自重推类动作，适合作为热身和耐力训练。',
+ 'CHEST,ARMS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 背部 =================
+('SYSTEM', NULL, '引体向上',
+ '经典背部自重动作，主要刺激背阔肌。',
+ 'BACK,ARMS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '高位下拉',
+ '适合替代引体向上，主要刺激背阔肌。',
+ 'BACK,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '杠铃划船',
+ '经典背部厚度训练动作，强化上背与背阔。',
+ 'BACK,ARMS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '哑铃单臂划船',
+ '改善左右背部发力差异，强化背阔肌。',
+ 'BACK,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '坐姿划船',
+ '稳定性高，适合中下背训练。',
+ 'BACK,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, 'T杠划船',
+ '强化背部厚度和斜方肌。',
+ 'BACK,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '硬拉',
+ '经典全身复合动作，强化后链。',
+ 'BACK,LEGS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '罗马尼亚硬拉',
+ '重点刺激腘绳肌和臀部。',
+ 'LEGS,BACK,GLUTES',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '面拉',
+ '强化肩后束与上背，改善圆肩。',
+ 'BACK,SHOULDER',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 肩部 =================
+('SYSTEM', NULL, '杠铃肩推',
+ '肩部经典推举动作，主要刺激肩前束。',
+ 'SHOULDER,ARMS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '哑铃肩推',
+ '提升肩部稳定性与活动范围。',
+ 'SHOULDER,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '阿诺德推举',
+ '旋转轨迹增加肩部刺激。',
+ 'SHOULDER,ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '哑铃侧平举',
+ '经典肩中束孤立动作。',
+ 'SHOULDER',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '俯身飞鸟',
+ '主要刺激肩后束。',
+ 'SHOULDER,BACK',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '杠铃耸肩',
+ '强化斜方肌。',
+ 'SHOULDER,BACK',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 手臂 =================
+('SYSTEM', NULL, '杠铃弯举',
+ '经典肱二头训练动作。',
+ 'ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '哑铃弯举',
+ '增强肱二头峰值收缩。',
+ 'ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '锤式弯举',
+ '重点刺激肱肌与前臂。',
+ 'ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '绳索下压',
+ '经典肱三头孤立动作。',
+ 'ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '仰卧臂屈伸',
+ '重点刺激肱三头长头。',
+ 'ARMS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '窄距卧推',
+ '复合型肱三头训练动作。',
+ 'ARMS,CHEST',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 腿部 =================
+('SYSTEM', NULL, '杠铃深蹲',
+ '下肢训练之王，强化股四头、臀部和核心。',
+ 'LEGS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '前蹲',
+ '更偏向股四头刺激。',
+ 'LEGS,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '保加利亚分腿蹲',
+ '单腿训练，提高稳定性和平衡。',
+ 'LEGS,GLUTES,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '腿举',
+ '器械腿部复合动作。',
+ 'LEGS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '腿屈伸',
+ '孤立股四头肌。',
+ 'LEGS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '腿弯举',
+ '孤立腘绳肌。',
+ 'LEGS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '臀桥',
+ '重点刺激臀大肌。',
+ 'GLUTES,CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '坐姿提踵',
+ '孤立小腿训练。',
+ 'LEGS',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '站姿提踵',
+ '强化腓肠肌。',
+ 'LEGS',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 核心 =================
+('SYSTEM', NULL, '卷腹',
+ '经典腹直肌训练动作。',
+ 'CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '平板支撑',
+ '核心稳定训练动作。',
+ 'CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '俄罗斯转体',
+ '强化腹斜肌。',
+ 'CORE',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '悬垂举腿',
+ '强化下腹与髋屈肌。',
+ 'CORE',
+ JSON_ARRAY(),
+ NULL),
+
+-- ================= 有氧 =================
+('SYSTEM', NULL, '跑步机跑步',
+ '经典有氧训练。',
+ 'CARDIO',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '椭圆机',
+ '低冲击有氧训练。',
+ 'CARDIO',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '划船机',
+ '结合有氧与背部发力。',
+ 'CARDIO,BACK',
+ JSON_ARRAY(),
+ NULL),
+
+('SYSTEM', NULL, '波比跳',
+ '高强度全身有氧动作。',
+ 'CARDIO,CORE,LEGS',
+ JSON_ARRAY(),
+ NULL);
+
+
+INSERT INTO action_muscle_target
+(action_id, muscle_code, target_role, sort_order)
+VALUES
+
+-- ================= 胸部 =================
+
+-- 杠铃卧推
+((SELECT id FROM action_library WHERE action_name='杠铃卧推' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='杠铃卧推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='杠铃卧推' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 3),
+
+-- 上斜杠铃卧推
+((SELECT id FROM action_library WHERE action_name='上斜杠铃卧推' AND scope='SYSTEM'), 'CHEST_UPPER', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='上斜杠铃卧推' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='上斜杠铃卧推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 3),
+
+-- 下斜杠铃卧推
+((SELECT id FROM action_library WHERE action_name='下斜杠铃卧推' AND scope='SYSTEM'), 'CHEST_LOWER', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='下斜杠铃卧推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+
+-- 哑铃卧推
+((SELECT id FROM action_library WHERE action_name='哑铃卧推' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='哑铃卧推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='哑铃卧推' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 3),
+
+-- 上斜哑铃卧推
+((SELECT id FROM action_library WHERE action_name='上斜哑铃卧推' AND scope='SYSTEM'), 'CHEST_UPPER', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='上斜哑铃卧推' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='上斜哑铃卧推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 3),
+
+-- 双杠臂屈伸
+((SELECT id FROM action_library WHERE action_name='双杠臂屈伸' AND scope='SYSTEM'), 'CHEST_LOWER', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='双杠臂屈伸' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='双杠臂屈伸' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 3),
+
+-- 绳索夹胸
+((SELECT id FROM action_library WHERE action_name='绳索夹胸' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'PRIMARY', 1),
+
+-- 蝴蝶机夹胸
+((SELECT id FROM action_library WHERE action_name='蝴蝶机夹胸' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'PRIMARY', 1),
+
+-- 俯卧撑
+((SELECT id FROM action_library WHERE action_name='俯卧撑' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='俯卧撑' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='俯卧撑' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 3),
+((SELECT id FROM action_library WHERE action_name='俯卧撑' AND scope='SYSTEM'), 'ABS', 'SECONDARY', 4),
+
+-- ================= 背部 =================
+
+-- 引体向上
+((SELECT id FROM action_library WHERE action_name='引体向上' AND scope='SYSTEM'), 'LATS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='引体向上' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 2),
+
+-- 高位下拉
+((SELECT id FROM action_library WHERE action_name='高位下拉' AND scope='SYSTEM'), 'LATS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='高位下拉' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 2),
+
+-- 杠铃划船
+((SELECT id FROM action_library WHERE action_name='杠铃划船' AND scope='SYSTEM'), 'UPPER_BACK', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='杠铃划船' AND scope='SYSTEM'), 'LATS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='杠铃划船' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 3),
+
+-- 哑铃单臂划船
+((SELECT id FROM action_library WHERE action_name='哑铃单臂划船' AND scope='SYSTEM'), 'LATS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='哑铃单臂划船' AND scope='SYSTEM'), 'UPPER_BACK', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='哑铃单臂划船' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 3),
+
+-- 坐姿划船
+((SELECT id FROM action_library WHERE action_name='坐姿划船' AND scope='SYSTEM'), 'UPPER_BACK', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='坐姿划船' AND scope='SYSTEM'), 'LATS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='坐姿划船' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 3),
+
+-- T杠划船
+((SELECT id FROM action_library WHERE action_name='T杠划船' AND scope='SYSTEM'), 'UPPER_BACK', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='T杠划船' AND scope='SYSTEM'), 'LATS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='T杠划船' AND scope='SYSTEM'), 'TRAPS', 'SECONDARY', 3),
+((SELECT id FROM action_library WHERE action_name='T杠划船' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 4),
+
+-- 硬拉
+((SELECT id FROM action_library WHERE action_name='硬拉' AND scope='SYSTEM'), 'LOWER_BACK', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='硬拉' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='硬拉' AND scope='SYSTEM'), 'HAMSTRINGS', 'SECONDARY', 3),
+((SELECT id FROM action_library WHERE action_name='硬拉' AND scope='SYSTEM'), 'TRAPS', 'SECONDARY', 4),
+
+-- 罗马尼亚硬拉
+((SELECT id FROM action_library WHERE action_name='罗马尼亚硬拉' AND scope='SYSTEM'), 'HAMSTRINGS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='罗马尼亚硬拉' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='罗马尼亚硬拉' AND scope='SYSTEM'), 'LOWER_BACK', 'SECONDARY', 3),
+
+-- 面拉
+((SELECT id FROM action_library WHERE action_name='面拉' AND scope='SYSTEM'), 'REAR_DELTS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='面拉' AND scope='SYSTEM'), 'TRAPS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='面拉' AND scope='SYSTEM'), 'UPPER_BACK', 'SECONDARY', 3),
+
+-- ================= 肩部 =================
+
+-- 杠铃肩推
+((SELECT id FROM action_library WHERE action_name='杠铃肩推' AND scope='SYSTEM'), 'FRONT_DELTS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='杠铃肩推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 2),
+
+-- 哑铃肩推
+((SELECT id FROM action_library WHERE action_name='哑铃肩推' AND scope='SYSTEM'), 'FRONT_DELTS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='哑铃肩推' AND scope='SYSTEM'), 'SIDE_DELTS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='哑铃肩推' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 3),
+
+-- 阿诺德推举
+((SELECT id FROM action_library WHERE action_name='阿诺德推举' AND scope='SYSTEM'), 'FRONT_DELTS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='阿诺德推举' AND scope='SYSTEM'), 'SIDE_DELTS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='阿诺德推举' AND scope='SYSTEM'), 'TRICEPS', 'SECONDARY', 3),
+
+-- 哑铃侧平举
+((SELECT id FROM action_library WHERE action_name='哑铃侧平举' AND scope='SYSTEM'), 'SIDE_DELTS', 'PRIMARY', 1),
+
+-- 俯身飞鸟
+((SELECT id FROM action_library WHERE action_name='俯身飞鸟' AND scope='SYSTEM'), 'REAR_DELTS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='俯身飞鸟' AND scope='SYSTEM'), 'UPPER_BACK', 'SECONDARY', 2),
+
+-- 杠铃耸肩
+((SELECT id FROM action_library WHERE action_name='杠铃耸肩' AND scope='SYSTEM'), 'TRAPS', 'PRIMARY', 1),
+
+-- ================= 手臂 =================
+
+-- 杠铃弯举
+((SELECT id FROM action_library WHERE action_name='杠铃弯举' AND scope='SYSTEM'), 'BICEPS', 'PRIMARY', 1),
+
+-- 哑铃弯举
+((SELECT id FROM action_library WHERE action_name='哑铃弯举' AND scope='SYSTEM'), 'BICEPS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='哑铃弯举' AND scope='SYSTEM'), 'FOREARMS', 'SECONDARY', 2),
+
+-- 锤式弯举
+((SELECT id FROM action_library WHERE action_name='锤式弯举' AND scope='SYSTEM'), 'BICEPS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='锤式弯举' AND scope='SYSTEM'), 'FOREARMS', 'SECONDARY', 2),
+
+-- 绳索下压
+((SELECT id FROM action_library WHERE action_name='绳索下压' AND scope='SYSTEM'), 'TRICEPS', 'PRIMARY', 1),
+
+-- 仰卧臂屈伸
+((SELECT id FROM action_library WHERE action_name='仰卧臂屈伸' AND scope='SYSTEM'), 'TRICEPS', 'PRIMARY', 1),
+
+-- 窄距卧推
+((SELECT id FROM action_library WHERE action_name='窄距卧推' AND scope='SYSTEM'), 'TRICEPS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='窄距卧推' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='窄距卧推' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 3),
+
+-- ================= 腿部 =================
+
+-- 杠铃深蹲
+((SELECT id FROM action_library WHERE action_name='杠铃深蹲' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='杠铃深蹲' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='杠铃深蹲' AND scope='SYSTEM'), 'LOWER_BACK', 'SECONDARY', 3),
+
+-- 前蹲
+((SELECT id FROM action_library WHERE action_name='前蹲' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='前蹲' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='前蹲' AND scope='SYSTEM'), 'ABS', 'SECONDARY', 3),
+
+-- 保加利亚分腿蹲
+((SELECT id FROM action_library WHERE action_name='保加利亚分腿蹲' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='保加利亚分腿蹲' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+
+-- 腿举
+((SELECT id FROM action_library WHERE action_name='腿举' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='腿举' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='腿举' AND scope='SYSTEM'), 'HAMSTRINGS', 'SECONDARY', 3),
+
+-- 腿屈伸
+((SELECT id FROM action_library WHERE action_name='腿屈伸' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+
+-- 腿弯举
+((SELECT id FROM action_library WHERE action_name='腿弯举' AND scope='SYSTEM'), 'HAMSTRINGS', 'PRIMARY', 1),
+
+-- 臀桥
+((SELECT id FROM action_library WHERE action_name='臀桥' AND scope='SYSTEM'), 'GLUTES', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='臀桥' AND scope='SYSTEM'), 'HAMSTRINGS', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='臀桥' AND scope='SYSTEM'), 'LOWER_BACK', 'SECONDARY', 3),
+
+-- 坐姿提踵
+((SELECT id FROM action_library WHERE action_name='坐姿提踵' AND scope='SYSTEM'), 'CALVES', 'PRIMARY', 1),
+
+-- 站姿提踵
+((SELECT id FROM action_library WHERE action_name='站姿提踵' AND scope='SYSTEM'), 'CALVES', 'PRIMARY', 1),
+
+-- ================= 核心 =================
+
+-- 卷腹
+((SELECT id FROM action_library WHERE action_name='卷腹' AND scope='SYSTEM'), 'ABS', 'PRIMARY', 1),
+
+-- 平板支撑
+((SELECT id FROM action_library WHERE action_name='平板支撑' AND scope='SYSTEM'), 'ABS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='平板支撑' AND scope='SYSTEM'), 'LOWER_BACK', 'SECONDARY', 2),
+
+-- 俄罗斯转体
+((SELECT id FROM action_library WHERE action_name='俄罗斯转体' AND scope='SYSTEM'), 'OBLIQUES', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='俄罗斯转体' AND scope='SYSTEM'), 'ABS', 'SECONDARY', 2),
+
+-- 悬垂举腿
+((SELECT id FROM action_library WHERE action_name='悬垂举腿' AND scope='SYSTEM'), 'ABS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='悬垂举腿' AND scope='SYSTEM'), 'OBLIQUES', 'SECONDARY', 2),
+
+-- ================= 有氧 =================
+
+-- 跑步机跑步
+((SELECT id FROM action_library WHERE action_name='跑步机跑步' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='跑步机跑步' AND scope='SYSTEM'), 'CALVES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='跑步机跑步' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 3),
+
+-- 椭圆机
+((SELECT id FROM action_library WHERE action_name='椭圆机' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='椭圆机' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='椭圆机' AND scope='SYSTEM'), 'CALVES', 'SECONDARY', 3),
+
+-- 划船机
+((SELECT id FROM action_library WHERE action_name='划船机' AND scope='SYSTEM'), 'LATS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='划船机' AND scope='SYSTEM'), 'UPPER_BACK', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='划船机' AND scope='SYSTEM'), 'QUADS', 'SECONDARY', 3),
+((SELECT id FROM action_library WHERE action_name='划船机' AND scope='SYSTEM'), 'BICEPS', 'SECONDARY', 4),
+
+-- 波比跳
+((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'QUADS', 'PRIMARY', 1),
+((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'GLUTES', 'SECONDARY', 2),
+((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'CHEST_MIDDLE', 'SECONDARY', 3),
+((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'ABS', 'SECONDARY', 4),
+((SELECT id FROM action_library WHERE action_name='波比跳' AND scope='SYSTEM'), 'FRONT_DELTS', 'SECONDARY', 5);

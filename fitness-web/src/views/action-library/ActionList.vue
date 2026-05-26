@@ -18,14 +18,14 @@
           </template>
         </el-input>
         <el-select
-          v-model="suitableFor"
-          placeholder="适用部位筛选"
+          v-model="muscleFilter"
+          placeholder="肌群筛选"
           clearable
           @change="fetchActions"
           style="width: 160px"
         >
           <el-option
-            v-for="item in suitableOptions"
+            v-for="item in muscleOptions"
             :key="item.code"
             :label="item.name"
             :value="item.code"
@@ -87,17 +87,27 @@
                   {{ action.description }}
                 </div>
 
-                <!-- 适用部位标签 -->
-                <div class="action-tags" v-if="action.suitableFor && action.suitableFor.length > 0">
+                <!-- 肌群标签 -->
+                <div class="action-tags" v-if="hasMuscles(action)">
                   <el-tag
-                    v-for="tag in action.suitableFor"
+                    v-for="tag in action.primaryMuscles"
                     :key="tag"
                     size="small"
                     effect="plain"
-                    type="primary"
-                    class="suitable-tag"
+                    type="danger"
+                    class="muscle-tag"
                   >
-                    {{ getSuitableLabel(tag) }}
+                    主 {{ getMuscleLabel(tag) }}
+                  </el-tag>
+                  <el-tag
+                    v-for="tag in action.secondaryMuscles"
+                    :key="tag"
+                    size="small"
+                    effect="plain"
+                    type="warning"
+                    class="muscle-tag"
+                  >
+                    辅 {{ getMuscleLabel(tag) }}
                   </el-tag>
                 </div>
 
@@ -165,10 +175,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="适用部位" prop="suitableFor">
-          <el-checkbox-group v-model="form.suitableFor">
+        <el-form-item label="主要肌群" prop="primaryMuscles">
+          <el-checkbox-group v-model="form.primaryMuscles" @change="dedupeMuscles">
             <el-checkbox
-              v-for="item in suitableOptions"
+              v-for="item in muscleOptions"
               :key="item.code"
               :label="item.code"
               :value="item.code"
@@ -176,6 +186,24 @@
               {{ item.name }}
             </el-checkbox>
           </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="辅助肌群" prop="secondaryMuscles">
+          <el-checkbox-group v-model="form.secondaryMuscles" @change="dedupeMuscles">
+            <el-checkbox
+              v-for="item in muscleOptions"
+              :key="item.code"
+              :label="item.code"
+              :value="item.code"
+              :disabled="form.primaryMuscles.includes(item.code)"
+            >
+              {{ item.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="肌群预览">
+          <MuscleMap :primary-muscles="form.primaryMuscles" :secondary-muscles="form.secondaryMuscles" />
         </el-form-item>
 
         <el-form-item label="动作图片">
@@ -246,6 +274,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { searchActions, createAction, updateAction, deleteAction, getActionRecords } from '@/api/action'
 import { getDictOptions } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
+import MuscleMap from '@/components/common/MuscleMap.vue'
 
 // ==================== 类型定义 ====================
 
@@ -257,6 +286,8 @@ interface ActionItem {
   imageUrls?: string[]
   videoUrl?: string
   suitableFor?: string[]
+  primaryMuscles?: string[]
+  secondaryMuscles?: string[]
   scope?: string
 }
 
@@ -286,13 +317,13 @@ const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
-const suitableFor = ref('')
+const muscleFilter = ref('')
 
 /** 动作列表 */
 const actionList = ref<ActionItem[]>([])
 
-/** 适用部位字典 */
-const suitableOptions = ref<SuitableOption[]>([])
+/** 肌群字典 */
+const muscleOptions = ref<SuitableOption[]>([])
 
 /** 训练历史弹窗状态 */
 const historyVisible = ref(false)
@@ -306,7 +337,8 @@ const historyRecords = ref<TrainingRecord[]>([])
 const form = reactive({
   name: '',
   description: '',
-  suitableFor: [] as string[],
+  primaryMuscles: [] as string[],
+  secondaryMuscles: [] as string[],
   imageUrls: [] as string[],
   videoUrl: ''
 })
@@ -321,16 +353,30 @@ const formRules: FormRules = {
 
 // ==================== 工具函数 ====================
 
-/** 根据部位字典编码获取中文名称 */
-function getSuitableLabel(code: string): string {
-  const found = suitableOptions.value.find(item => item.code === code)
+/** 根据肌群字典编码获取中文名称 */
+function getMuscleLabel(code: string): string {
+  const found = muscleOptions.value.find(item => item.code === code)
   return found?.name || code
 }
 
-function normalizeSuitableFor(value: unknown): string[] {
+function normalizeCodeList(value: unknown): string[] {
   if (Array.isArray(value)) return value
   if (typeof value === 'string') return value.split(',').filter(Boolean)
   return []
+}
+
+function normalizePrimaryMuscles(item: any): string[] {
+  const primary = normalizeCodeList(item.primaryMuscles)
+  return primary.length > 0 ? primary : normalizeCodeList(item.suitableFor)
+}
+
+function hasMuscles(action: ActionItem): boolean {
+  return Boolean(action.primaryMuscles?.length || action.secondaryMuscles?.length)
+}
+
+function dedupeMuscles() {
+  const primary = new Set(form.primaryMuscles)
+  form.secondaryMuscles = form.secondaryMuscles.filter(code => !primary.has(code))
 }
 
 function normalizeImageUrls(value: unknown): string[] {
@@ -346,18 +392,17 @@ function normalizeImageUrls(value: unknown): string[] {
 
 // ==================== 数据获取 ====================
 
-/** 获取适用部位字典 */
-async function fetchSuitableOptions() {
+/** 获取肌群字典 */
+async function fetchMuscleOptions() {
   try {
-    suitableOptions.value = (await getDictOptions('training_type'))
-      .filter(item => item.value !== 'REST')
+    muscleOptions.value = (await getDictOptions('muscle_group'))
       .map(item => ({
         code: item.value,
         name: item.label
       }))
   } catch (err: any) {
-    ElMessage.error(err.message || '训练部位字典加载失败')
-    suitableOptions.value = []
+    ElMessage.error(err.message || '肌群字典加载失败')
+    muscleOptions.value = []
   }
 }
 
@@ -367,12 +412,14 @@ async function fetchActions() {
   error.value = ''
   try {
     const kw = keyword.value.trim() || undefined
-    const sf = suitableFor.value || undefined
-    const res = await searchActions(kw, sf) as any
+    const muscleCode = muscleFilter.value || undefined
+    const res = await searchActions(kw, muscleCode) as any
     const list = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as any[]
     actionList.value = list.map(item => ({
       ...item,
-      suitableFor: normalizeSuitableFor(item.suitableFor),
+      suitableFor: normalizeCodeList(item.suitableFor),
+      primaryMuscles: normalizePrimaryMuscles(item),
+      secondaryMuscles: normalizeCodeList(item.secondaryMuscles),
       imageUrls: normalizeImageUrls(item.imageUrls)
     })) as ActionItem[]
   } catch (err: any) {
@@ -391,8 +438,8 @@ function openDialog(action?: ActionItem) {
     editingId.value = action.id
     form.name = action.actionName
     form.description = action.description || ''
-    // 后端返回逗号分隔字符串, 转为数组供checkbox展示
-    form.suitableFor = normalizeSuitableFor((action as any).suitableFor)
+    form.primaryMuscles = normalizePrimaryMuscles(action)
+    form.secondaryMuscles = normalizeCodeList((action as any).secondaryMuscles)
     form.imageUrls = normalizeImageUrls((action as any).imageUrls)
     form.videoUrl = action.videoUrl || ''
   } else {
@@ -407,7 +454,8 @@ function openDialog(action?: ActionItem) {
 function resetFormData() {
   form.name = ''
   form.description = ''
-  form.suitableFor = []
+  form.primaryMuscles = []
+  form.secondaryMuscles = []
   form.imageUrls = []
   form.videoUrl = ''
 }
@@ -428,7 +476,8 @@ async function handleSave() {
     const payload = {
       actionName: form.name,
       description: form.description || undefined,
-      suitableFor: form.suitableFor.length > 0 ? form.suitableFor : undefined,
+      primaryMuscles: form.primaryMuscles.length > 0 ? form.primaryMuscles : undefined,
+      secondaryMuscles: form.secondaryMuscles.length > 0 ? form.secondaryMuscles : undefined,
       imageUrls: form.imageUrls.length > 0 ? form.imageUrls : undefined,
       videoUrl: form.videoUrl || undefined
     }
@@ -491,7 +540,7 @@ async function openHistory(action: ActionItem) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
-  fetchSuitableOptions()
+  fetchMuscleOptions()
   fetchActions()
 })
 </script>
@@ -589,7 +638,7 @@ onMounted(() => {
   gap: 4px;
   margin-bottom: 8px;
 
-  .suitable-tag {
+  .muscle-tag {
     font-size: 11px;
   }
 }
