@@ -21,6 +21,9 @@ public class UploadResourceConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path rootDir = Paths.get(uploadPath).toAbsolutePath().normalize();
         String location = rootDir.toUri().toString();
+        if (!location.endsWith("/")) {
+            location = location + "/";
+        }
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(location);
     }
