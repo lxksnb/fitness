@@ -105,18 +105,16 @@
               </div>
 
               <!-- 操作按钮 -->
-              <div class="food-card-actions" v-if="!food.isSystem">
-                <el-button type="primary" link size="small" @click="openDialog(food)">
+              <div class="food-card-actions">
+                <el-button v-if="canEditFood(food)" type="primary" link size="small" @click="openDialog(food)">
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" link size="small" @click="handleDelete(food)">
+                <el-button v-if="canDeleteFood(food)" type="danger" link size="small" @click="handleDelete(food)">
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
-              </div>
-              <div v-else class="food-card-actions">
-                <span class="system-hint">系统数据，不可编辑</span>
+                <span v-if="!canEditFood(food) && food.isSystem" class="system-hint">系统数据，不可编辑</span>
               </div>
             </el-card>
           </el-col>
@@ -243,7 +241,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { searchFoods, getFoodDetail, createFood, updateFood, deleteFood } from '@/api/food'
+import { updateAdminFood } from '@/api/admin'
 import { getDictOptions, type DictOption } from '@/api/dict'
+import { useUserStore } from '@/stores/user'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
 // ==================== 类型定义 ====================
@@ -286,6 +286,7 @@ const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
 const activeScope = ref<'ALL' | 'SYSTEM' | 'USER'>('ALL')
+const userStore = useUserStore()
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 食物列表 */
@@ -336,6 +337,14 @@ function scheduleFetchFoods() {
   searchTimer = setTimeout(() => {
     fetchFoods()
   }, 300)
+}
+
+function canEditFood(food: FoodItem): boolean {
+  return !food.isSystem || userStore.role === 'ADMIN'
+}
+
+function canDeleteFood(food: FoodItem): boolean {
+  return !food.isSystem
 }
 
 // ==================== 数据获取 ====================
@@ -505,7 +514,12 @@ async function handleSave() {
     }
 
     if (isEditing.value && editingId.value) {
-      await updateFood(editingId.value, payload)
+      const target = foodList.value.find(item => item.id === editingId.value)
+      if (target?.isSystem && userStore.role === 'ADMIN') {
+        await updateAdminFood(editingId.value, payload)
+      } else {
+        await updateFood(editingId.value, payload)
+      }
       ElMessage.success('食物已更新')
     } else {
       await createFood(payload)
