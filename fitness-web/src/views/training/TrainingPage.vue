@@ -37,19 +37,59 @@
       </el-card>
     </el-collapse-transition>
 
-    <!-- ==================== 训练日历热力图 ==================== -->
-    <el-card class="section">
+    <!-- ==================== 训练日历 ==================== -->
+    <el-card ref="calendarSectionRef" class="section training-calendar-card">
       <template #header>
         <div class="card-header">
           <span>训练日历</span>
-          <el-select v-model="calendarYear" size="small" style="width: 100px" @change="fetchCalendar">
-            <el-option v-for="y in yearOptions" :key="y" :label="String(y)" :value="y" />
-          </el-select>
+          <div class="calendar-tools">
+            <div class="calendar-legend">
+              <span
+                v-for="item in calendarLegend"
+                :key="item.value"
+                class="legend-item"
+              >
+                <span class="legend-dot" :style="{ backgroundColor: item.color }" />
+                {{ item.label }}
+              </span>
+            </div>
+            <el-select v-model="calendarYear" size="small" style="width: 100px" @change="fetchCalendar">
+              <el-option v-for="y in yearOptions" :key="y" :label="String(y)" :value="y" />
+            </el-select>
+            <el-select v-model="calendarMonth" size="small" style="width: 86px" @change="fetchCalendar">
+              <el-option v-for="m in monthOptions" :key="m" :label="`${m}月`" :value="m" />
+            </el-select>
+          </div>
         </div>
       </template>
       <div v-loading="calendarLoading">
-        <v-chart v-if="calendarOption" :option="calendarOption" style="height: 200px" autoresize />
-        <el-empty v-else description="暂无训练日历数据" :image-size="80" />
+        <div class="calendar-weekdays">
+          <span v-for="day in weekDays" :key="day">{{ day }}</span>
+        </div>
+        <div class="calendar-grid">
+          <div
+            v-for="day in calendarDays"
+            :key="day.key"
+            class="calendar-day"
+            :class="{ 'calendar-day--muted': !day.inMonth, 'calendar-day--today': day.isToday }"
+          >
+            <div class="calendar-day-number">{{ day.dayOfMonth }}</div>
+            <div v-if="day.records.length" class="calendar-records">
+              <div
+                v-for="(record, recordIndex) in day.records"
+                :key="record.id || `${day.key}-${record.trainingType}-${recordIndex}`"
+                class="calendar-record"
+                :style="{ backgroundColor: getTrainingTypeColor(record.trainingType) }"
+                :title="`${getTrainingTypeLabel(record.trainingType)} ${record.durationMinutes || 0}分钟`"
+              >
+                <span class="calendar-record-type">{{ getTrainingTypeLabel(record.trainingType) }}</span>
+                <span v-if="record.durationMinutes" class="calendar-record-duration">
+                  {{ record.durationMinutes }}分钟
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </el-card>
 
@@ -352,10 +392,11 @@
 <script setup lang="ts">
 /**
  * 训练记录页面
- * 功能：训练日历热力图（ECharts）、训练记录表格（可展开查看动作详情）、
+ * 功能：训练月历、训练记录表格（可展开查看动作详情）、
  * 训练录入/编辑弹窗（含动态动作列表、从计划加载）、删除确认、组间休息计时器
  */
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Timer } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -364,15 +405,14 @@ import {
   getTrainingDetail,
   createTraining,
   updateTraining,
-  deleteTraining,
-  getCalendar
+  deleteTraining
 } from '@/api/training'
 import { getDictOptions } from '@/api/dict'
 import { searchActions } from '@/api/action'
 import { getPlans, getPlanDetail } from '@/api/plan'
-import VChart from 'vue-echarts'
-import 'echarts'
 import RestTimer from '@/components/common/RestTimer.vue'
+
+const route = useRoute()
 
 // ==================== 类型定义 ====================
 
@@ -400,6 +440,14 @@ interface TrainingRecord {
   details: ActionItem[]
 }
 
+interface CalendarDay {
+  key: string
+  dayOfMonth: number | string
+  inMonth: boolean
+  isToday: boolean
+  records: TrainingRecord[]
+}
+
 /** 计划训练日 */
 interface PlanDay {
   id: number
@@ -423,6 +471,7 @@ const error = ref('')
 const saving = ref(false)
 const loadingPlan = ref(false)
 const calendarLoading = ref(false)
+const calendarSectionRef = ref<any>()
 
 /** 日期范围 */
 const dateRange = ref<[string, string]>([getDefaultStartDate(), getTodayStr()])
@@ -460,11 +509,14 @@ const planDays = ref<PlanDay[]>([])
 
 /** 日历 */
 const calendarYear = ref(new Date().getFullYear())
-const calendarOption = ref<any>(null)
+const calendarMonth = ref(new Date().getMonth() + 1)
+const calendarRecords = ref<TrainingRecord[]>([])
+const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 const yearOptions = computed(() => {
   const current = new Date().getFullYear()
   return [current - 1, current, current + 1]
 })
+const monthOptions = computed(() => Array.from({ length: 12 }, (_, index) => index + 1))
 
 /** 日期快捷选项 */
 const dateShortcuts = [
@@ -548,6 +600,106 @@ function getTypeTag(type: string): 'success' | 'warning' | 'danger' | 'info' | '
   return map[type] || 'info'
 }
 
+function getTrainingTypeColor(type?: string): string {
+  const map: Record<string, string> = {
+    CHEST: '#ef6f6c',
+    BACK: '#2f9e75',
+    LEGS: '#f2a541',
+    SHOULDER: '#5c7cfa',
+    ARMS: '#d66efd',
+    CORE: '#20a4a8',
+    CARDIO: '#ff7a59',
+    REST: '#8c9aa9',
+    strength: '#ef6f6c',
+    hypertrophy: '#f2a541',
+    endurance: '#2f9e75',
+    cardio: '#ff7a59',
+    flexibility: '#5c7cfa'
+  }
+  return map[type || ''] || '#607d8b'
+}
+
+function formatDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function normalizeDateKey(value: string): string {
+  if (!value) return ''
+  return value.slice(0, 10)
+}
+
+function getMonthStart(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}-01`
+}
+
+function getMonthEnd(year: number, month: number): string {
+  return formatDateKey(new Date(year, month, 0))
+}
+
+const calendarRecordMap = computed(() => {
+  const map = new Map<string, TrainingRecord[]>()
+  calendarRecords.value.forEach(record => {
+    const key = normalizeDateKey(record.recordDate)
+    if (!key) return
+    const records = map.get(key) || []
+    records.push(record)
+    map.set(key, records)
+  })
+  return map
+})
+
+const calendarDays = computed<CalendarDay[]>(() => {
+  const year = calendarYear.value
+  const month = calendarMonth.value
+  const first = new Date(year, month - 1, 1)
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const leadingBlanks = (first.getDay() + 6) % 7
+  const todayKey = formatDateKey(new Date())
+  const days: CalendarDay[] = []
+
+  for (let index = 0; index < leadingBlanks; index++) {
+    days.push({
+      key: `blank-${index}`,
+      dayOfMonth: '',
+      inMonth: false,
+      isToday: false,
+      records: []
+    })
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    days.push({
+      key,
+      dayOfMonth: day,
+      inMonth: true,
+      isToday: key === todayKey,
+      records: calendarRecordMap.value.get(key) || []
+    })
+  }
+
+  const trailingBlanks = (7 - (days.length % 7)) % 7
+  for (let index = 0; index < trailingBlanks; index++) {
+    days.push({
+      key: `tail-${index}`,
+      dayOfMonth: '',
+      inMonth: false,
+      isToday: false,
+      records: []
+    })
+  }
+
+  return days
+})
+
+const calendarLegend = computed(() => {
+  return trainingTypeOptions.value.map(item => ({
+    value: item.value,
+    label: item.label,
+    color: getTrainingTypeColor(item.value)
+  }))
+})
+
 function parseTimeToMinutes(time: string | null): number | null {
   if (!time) return null
   const parts = time.split(':').map(Number)
@@ -606,66 +758,11 @@ async function fetchCalendar() {
   calendarLoading.value = true
   try {
     const year = calendarYear.value
-    // 并行加载全年12个月的数据
-    const results = await Promise.all(
-      Array.from({ length: 12 }, (_, i) => getCalendar(year, i + 1))
-    ) as any[]
-    const allData: [string, number][] = []
-    for (const res of results) {
-      const monthData = Array.isArray(res) ? res : res?.records || res?.list || res || []
-      monthData.forEach((item: any) => {
-        const date = item.recordDate || item.date || item.trainingDate || item.calendarDate
-        const count = item.count ?? 1
-        if (date) allData.push([date, count])
-      })
-    }
-
-    if (allData.length === 0) {
-      calendarOption.value = null
-      return
-    }
-
-    calendarOption.value = {
-      tooltip: {
-        formatter: (params: any) => {
-          const d = params?.data?.[0] || ''
-          const c = params?.data?.[1] || 0
-          return `训练 ${c} 次`
-        }
-      },
-      visualMap: {
-        min: 0,
-        max: Math.max(...allData.map(d => d[1]), 1),
-        type: 'piecewise',
-        orient: 'horizontal',
-        left: 'center',
-        top: 0,
-        pieces: [
-          { min: 3, color: '#1a5e20' },
-          { min: 2, max: 2, color: '#4caf50' },
-          { min: 1, max: 1, color: '#a5d6a7' },
-          { min: 0, max: 0, color: '#f5f5f5' }
-        ]
-      },
-      calendar: {
-        top: 60,
-        left: 40,
-        right: 20,
-        range: String(year),
-        cellSize: ['auto', 15],
-        dayLabel: { firstDay: 1, nameMap: 'ZH' },
-        monthLabel: { nameMap: 'ZH' },
-        itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 3 },
-        yearLabel: { show: false }
-      },
-      series: [{
-        type: 'heatmap',
-        coordinateSystem: 'calendar',
-        data: allData
-      }]
-    }
+    const month = calendarMonth.value
+    const res = await getTrainings(getMonthStart(year, month), getMonthEnd(year, month)) as any
+    calendarRecords.value = (Array.isArray(res) ? res : res?.records || res?.list || []) as TrainingRecord[]
   } catch {
-    calendarOption.value = null
+    calendarRecords.value = []
   } finally {
     calendarLoading.value = false
   }
@@ -985,6 +1082,11 @@ function onRestComplete() {
 onMounted(() => {
   fetchTrainingTypes()
   fetchTrainings()
+  if (route.query.focus === 'calendar') {
+    nextTick(() => {
+      calendarSectionRef.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
 })
 
 watch(() => [trainingForm.startTime, trainingForm.endTime], syncDurationFromTime)
@@ -1038,6 +1140,116 @@ watch(() => [trainingForm.startTime, trainingForm.endTime], syncDurationFromTime
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.training-calendar-card {
+  scroll-margin-top: 16px;
+}
+
+.calendar-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #909399;
+  font-size: 12px;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-day {
+  min-height: 92px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.calendar-day--muted {
+  background: #fafafa;
+}
+
+.calendar-day--today {
+  border-color: #38b589;
+  box-shadow: 0 0 0 1px rgba(56, 181, 137, 0.18);
+}
+
+.calendar-day-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  min-height: 18px;
+  margin-bottom: 6px;
+}
+
+.calendar-records {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.calendar-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 24px;
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.calendar-record-type,
+.calendar-record-duration {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-record-type {
+  min-width: 0;
+}
+
+.calendar-record-duration {
+  flex: 0 0 auto;
+  opacity: 0.92;
 }
 
 /* ==================== 展开动作详情 ==================== */

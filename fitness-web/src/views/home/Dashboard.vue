@@ -110,7 +110,8 @@
           v-for="card in statCards"
           :key="card.label"
           class="stat-card"
-          :class="[`stat-card--${card.theme}`]"
+          :class="[`stat-card--${card.theme}`, { 'stat-card--clickable': card.action }]"
+          @click="handleStatCardClick(card.action)"
         >
           <div class="stat-card-icon">
             <el-icon :size="18"><component :is="card.icon" /></el-icon>
@@ -547,10 +548,17 @@ const statCards = computed(() => {
       color: (d.streakDays ?? 0) >= 7 ? '#f39c12' : (d.streakDays ?? 0) > 0 ? '#a371f7' : '#b2bec3',
       theme: 'streak',
       icon: CARD_THEMES.streak.icon,
-      glow: CARD_THEMES.streak.glow
+      glow: CARD_THEMES.streak.glow,
+      action: 'training-calendar'
     }
   ]
 })
+
+function handleStatCardClick(action?: string) {
+  if (action === 'training-calendar') {
+    router.push({ path: '/training', query: { focus: 'calendar' } })
+  }
+}
 
 // ==================== 营养进度条 ====================
 
@@ -961,6 +969,10 @@ onMounted(() => {
       opacity: 1;
     }
   }
+}
+
+.stat-card--clickable {
+  cursor: pointer;
 }
 
 .stat-card-icon {
