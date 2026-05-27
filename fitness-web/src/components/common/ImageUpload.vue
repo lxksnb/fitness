@@ -44,7 +44,7 @@
  * 基于el-upload封装，自动附加JWT token，处理上传成功/失败回调
  * 支持图片墙(picture-card)和普通按钮两种模式
  */
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Upload } from '@element-plus/icons-vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
@@ -102,20 +102,24 @@ const uploadHeaders = computed(() => ({
 /** 已上传文件列表，用于el-upload展示 */
 const fileList = ref<UploadFile[]>([])
 
-/** 初始化fileList，将modelValue中的URL转为el-upload需要的格式 */
-function initFileList() {
-  if (props.modelValue && props.modelValue.length > 0) {
-    fileList.value = props.modelValue.map((url, index) => ({
+/**
+ * 将 modelValue URL 数组同步到 el-upload 的 fileList
+ */
+function syncFileList(urls: string[]) {
+  if (urls && urls.length > 0) {
+    fileList.value = urls.map((url, index) => ({
       name: `image-${index}`,
       url: url,
       status: 'success' as const,
       uid: Date.now() + index
     })) as any
+  } else {
+    fileList.value = []
   }
 }
 
-// 初始化
-initFileList()
+// 监听 modelValue 变化，同步 fileList，避免切换编辑对象时残留旧图片
+watch(() => props.modelValue, syncFileList, { immediate: true })
 
 // ==================== 上传处理 ====================
 
@@ -163,15 +167,8 @@ function handleSuccess(response: any, _uploadFile: UploadFile, _uploadFiles: Upl
   urls.push(imageUrl)
   emit('update:modelValue', urls)
 
-  // 更新fileList以显示上传结果
-  if (props.listType === 'picture-card') {
-    fileList.value = urls.map((url, index) => ({
-      name: `image-${index}`,
-      url: url,
-      status: 'success' as const,
-      uid: Date.now() + index
-    })) as any
-  }
+  // 同步 fileList 以即时显示上传结果
+  syncFileList(urls)
 
   ElMessage.success('图片上传成功')
 }
@@ -207,7 +204,7 @@ function reset() {
 
 /** 重新初始化文件列表 */
 function refresh() {
-  initFileList()
+  syncFileList(props.modelValue || [])
 }
 
 defineExpose({ reset, refresh })
