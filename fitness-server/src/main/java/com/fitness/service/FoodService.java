@@ -36,11 +36,11 @@ public class FoodService {
      * @param keyword 食物名称关键字
      * @return 食物 VO 列表，包含营养成分信息
      */
-    public List<FoodVO> search(String keyword, String scope) {
+    public List<FoodVO> search(String keyword, String scope, String categoryType) {
         Long userId = SecurityUtils.getCurrentUserId();
         String normalizedScope = normalizeScope(scope);
-        // keyword可为null, SQL中通过<if>动态标签处理空值查询全部
-        List<FoodLibrary> foods = foodMapper.searchByName(keyword, userId, normalizedScope);
+        // keyword/categoryType可为null, SQL中通过<if>动态标签处理空值查询全部
+        List<FoodLibrary> foods = foodMapper.searchByName(keyword, userId, normalizedScope, categoryType);
         return toVOList(foods);
     }
 

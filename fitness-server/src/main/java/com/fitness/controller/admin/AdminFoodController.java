@@ -36,8 +36,8 @@ public class AdminFoodController {
      * 返回SCOPE=SYSTEM且STATUS=ACTIVE的食物
      */
     @GetMapping
-    public Result<List<FoodLibrary>> list(@RequestParam(required = false) String keyword) {
-        return Result.ok(foodMapper.selectSystemFoods(keyword));
+    public Result<List<FoodLibrary>> list(@RequestParam(required = false) String keyword, @RequestParam(required = false) String categoryType) {
+        return Result.ok(foodMapper.selectSystemFoods(keyword, categoryType));
     }
 
     /**

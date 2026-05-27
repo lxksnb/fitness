@@ -29,6 +29,32 @@
       <el-tab-pane label="我的食物" name="USER" />
     </el-tabs>
 
+    <!-- ==================== 主内容区：左侧分类 + 右侧内容 ==================== -->
+    <div class="food-layout">
+      <!-- 左侧分类列表 -->
+      <div class="category-sidebar">
+        <div class="category-title">食物分类</div>
+        <ul class="category-list">
+          <li
+            :class="['category-item', { active: !selectedCategory }]"
+            @click="selectCategory('')"
+          >
+            全部
+          </li>
+          <li
+            v-for="cat in categoryOptions"
+            :key="cat.value"
+            :class="['category-item', { active: selectedCategory === cat.value }]"
+            @click="selectCategory(cat.value)"
+          >
+            {{ cat.label }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- 右侧内容区 -->
+      <div class="food-main">
+
     <!-- ==================== 加载骨架 ==================== -->
     <template v-if="loading">
       <el-row :gutter="16">
@@ -129,6 +155,11 @@
         <el-button type="primary" @click="openDialog()">添加食物</el-button>
       </el-empty>
     </template>
+
+      </div>
+      <!-- food-main end -->
+    </div>
+    <!-- food-layout end -->
 
     <!-- ==================== 添加/编辑食物弹窗 ==================== -->
     <el-dialog
@@ -308,6 +339,7 @@ const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
+const selectedCategory = ref('')
 const activeScope = ref<'ALL' | 'SYSTEM' | 'USER'>('ALL')
 const userStore = useUserStore()
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -400,7 +432,8 @@ async function fetchFoods() {
   try {
     const kw = keyword.value.trim() || undefined
     const scope = activeScope.value === 'ALL' ? undefined : activeScope.value
-    const res = await searchFoods(kw, scope) as any
+    const catType = selectedCategory.value || undefined
+    const res = await searchFoods(kw, scope, catType) as any
     const list = (Array.isArray(res) ? res : (res?.records || res?.list || [])) as any[]
     foodList.value = list.map(item => ({
       ...item,
@@ -411,6 +444,12 @@ async function fetchFoods() {
   } finally {
     loading.value = false
   }
+}
+
+/** 选择分类进行筛选 */
+function selectCategory(cat: string) {
+  selectedCategory.value = cat
+  fetchFoods()
 }
 
 /** 展开/折叠食物详情 */
@@ -665,6 +704,61 @@ watch(keyword, scheduleFetchFoods)
 
 .scope-tabs {
   margin-bottom: 12px;
+}
+
+/* ==================== 左分类 + 右内容布局 ==================== */
+.food-layout {
+  display: flex;
+  gap: 16px;
+}
+
+.category-sidebar {
+  width: 180px;
+  min-width: 180px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.category-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  padding: 14px 16px;
+  border-bottom: 1px solid #ebeef5;
+  background: #fafafa;
+}
+
+.category-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.category-item {
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #f5f7fa;
+    color: #38b589;
+  }
+
+  &.active {
+    background: #e8f8f2;
+    color: #38b589;
+    font-weight: 600;
+  }
+}
+
+.food-main {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ==================== 食物卡片 ==================== */

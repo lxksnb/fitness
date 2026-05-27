@@ -30,8 +30,9 @@ public class FoodController {
      */
     @GetMapping
     public Result<List<FoodVO>> search(@RequestParam(required = false) String keyword,
-                                       @RequestParam(required = false) String scope) {
-        return Result.ok(foodService.search(keyword, scope));
+                                       @RequestParam(required = false) String scope,
+                                       @RequestParam(required = false) String categoryType) {
+        return Result.ok(foodService.search(keyword, scope, categoryType));
     }
 
     /**

@@ -5,7 +5,7 @@ import request from './request'
 // ---------- 食物库管理 ----------
 
 /** 获取系统食物列表 */
-export function getAdminFoods(params?: { keyword?: string }) {
+export function getAdminFoods(params?: { keyword?: string; categoryType?: string }) {
   return request.get('/admin/foods', { params })
 }
 

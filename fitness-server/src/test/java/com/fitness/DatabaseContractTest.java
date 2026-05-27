@@ -37,6 +37,17 @@ class DatabaseContractTest {
         assertTrue(sql.contains("'香蕉'") && sql.contains("'FRUIT'"), "initial foods should include fruit classification");
     }
 
+    @Test
+    void foodSchemaMigrationSupportsExistingDatabases() throws Exception {
+        String sql = read("src/main/resources/db/migration_food_category_nutrition_weight.sql");
+
+        assertTrue(sql.contains("ALTER TABLE food_library ADD COLUMN category_type"), "migration should add food category column");
+        assertTrue(sql.contains("ALTER TABLE food_nutrition ADD COLUMN edible_weight_g"), "migration should add edible weight column");
+        assertTrue(sql.contains("information_schema.COLUMNS"), "migration should be safe to rerun for existing columns");
+        assertTrue(sql.contains("INSERT IGNORE INTO sys_dict_type"), "migration should not duplicate dict types");
+        assertTrue(sql.contains("NOT EXISTS (SELECT 1 FROM food_nutrition"), "migration should not duplicate sample nutrition units");
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
     }

@@ -26,6 +26,9 @@
         <if test="keyword != null and keyword != ''">
             and food_name LIKE CONCAT('%', #{keyword}, '%')
         </if>
+        <if test="categoryType != null and categoryType != ''">
+            and category_type = #{categoryType}
+        </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
         SELECT id, scope, user_id, food_name, category_type, image_url, status, created_by, created_at, updated_at
@@ -55,6 +58,9 @@
         WHERE scope = 'SYSTEM' AND status = 'ACTIVE'
         <if test="keyword != null and keyword != ''">
             AND food_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="categoryType != null and categoryType != ''">
+            AND category_type = #{categoryType}
         </if>
         ORDER BY created_at DESC
     </select>

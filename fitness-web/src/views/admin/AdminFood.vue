@@ -23,88 +23,116 @@
       </div>
     </div>
 
-    <!-- ==================== 数据表格 ==================== -->
-    <el-table
-      v-loading="loading"
-      :data="tableData"
-      border
-      stripe
-      style="width: 100%"
-      empty-text="暂无系统食物数据"
-    >
-      <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column label="图片" width="90" align="center">
-        <template #default="{ row }">
-          <el-image
-            v-if="row.imageUrl"
-            :src="row.imageUrl"
-            fit="cover"
-            style="width: 50px; height: 50px; border-radius: 4px"
-            :preview-src-list="[row.imageUrl]"
-          />
-          <span v-else class="no-image">--</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="foodName" label="食物名称" min-width="180" />
-      <el-table-column label="分类" width="120" align="center">
-        <template #default="{ row }">
-          <el-tag v-if="row.categoryType" size="small" type="success" effect="plain">
-            {{ getCategoryLabel(row.categoryType) }}
-          </el-tag>
-          <span v-else>--</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" width="100" align="center">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 'DELETED' ? 'danger' : 'success'" size="small">
-            {{ row.status === 'DELETED' ? '已删除' : '正常' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" width="180" align="center">
-        <template #default="{ row }">
-          {{ formatDate(row.createdAt) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="160" align="center" fixed="right">
-        <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="openDialog(row)">
-            <el-icon><Edit /></el-icon>
-            编辑
-          </el-button>
-          <el-button
-            v-if="row.status !== 'DELETED'"
-            type="danger"
-            link
-            size="small"
-            @click="handleDelete(row)"
+    <!-- ==================== 主内容区：左侧分类 + 右侧表格 ==================== -->
+    <div class="food-layout">
+      <!-- 左侧分类列表 -->
+      <div class="category-sidebar">
+        <div class="category-title">食物分类</div>
+        <ul class="category-list">
+          <li
+            :class="['category-item', { active: !selectedCategory }]"
+            @click="selectCategory('')"
           >
-            <el-icon><Delete /></el-icon>
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+            全部
+            <span class="category-count" v-if="totalCount > 0">{{ totalCount }}</span>
+          </li>
+          <li
+            v-for="cat in categoryOptions"
+            :key="cat.value"
+            :class="['category-item', { active: selectedCategory === cat.value }]"
+            @click="selectCategory(cat.value)"
+          >
+            {{ cat.label }}
+          </li>
+        </ul>
+      </div>
 
-    <!-- ==================== 分页 ==================== -->
-    <div class="pagination-wrapper" v-if="total > pageSize">
-      <el-pagination
-        v-model:current-page="currentPage"
-        :page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        @current-change="fetchList"
-      />
+      <!-- 右侧表格区 -->
+      <div class="food-main">
+        <!-- 数据表格 -->
+        <el-table
+          v-loading="loading"
+          :data="tableData"
+          border
+          stripe
+          style="width: 100%"
+          empty-text="暂无系统食物数据"
+        >
+          <el-table-column prop="id" label="ID" width="80" align="center" />
+          <el-table-column label="图片" width="90" align="center">
+            <template #default="{ row }">
+              <el-image
+                v-if="row.imageUrl"
+                :src="row.imageUrl"
+                fit="cover"
+                style="width: 50px; height: 50px; border-radius: 4px"
+                :preview-src-list="[row.imageUrl]"
+              />
+              <span v-else class="no-image">--</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="foodName" label="食物名称" min-width="180" />
+          <el-table-column label="分类" width="120" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.categoryType" size="small" type="success" effect="plain">
+                {{ getCategoryLabel(row.categoryType) }}
+              </el-tag>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'DELETED' ? 'danger' : 'success'" size="small">
+                {{ row.status === 'DELETED' ? '已删除' : '正常' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" width="180" align="center">
+            <template #default="{ row }">
+              {{ formatDate(row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="160" align="center" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" link size="small" @click="openDialog(row)">
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+              <el-button
+                v-if="row.status !== 'DELETED'"
+                type="danger"
+                link
+                size="small"
+                @click="handleDelete(row)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <!-- 分页 -->
+        <div class="pagination-wrapper" v-if="total > pageSize">
+          <el-pagination
+            v-model:current-page="currentPage"
+            :page-size="pageSize"
+            :total="total"
+            layout="total, prev, pager, next"
+            @current-change="fetchList"
+          />
+        </div>
+
+        <!-- 错误状态 -->
+        <template v-if="!loading && error">
+          <el-result icon="error" title="数据加载失败" :sub-title="error">
+            <template #extra>
+              <el-button type="primary" @click="fetchList">重新加载</el-button>
+            </template>
+          </el-result>
+        </template>
+      </div>
     </div>
-
-    <!-- ==================== 错误状态 ==================== -->
-    <template v-if="!loading && error">
-      <el-result icon="error" title="数据加载失败" :sub-title="error">
-        <template #extra>
-          <el-button type="primary" @click="fetchList">重新加载</el-button>
-        </template>
-      </el-result>
-    </template>
 
     <!-- ==================== 添加/编辑弹窗 ==================== -->
     <el-dialog
@@ -283,9 +311,11 @@ const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const keyword = ref('')
+const selectedCategory = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const totalCount = ref(0)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 表格数据 */
@@ -345,7 +375,8 @@ async function fetchList() {
   error.value = ''
   try {
     const kw = keyword.value.trim() || undefined
-    const res = await getAdminFoods({ keyword: kw }) as any
+    const catType = selectedCategory.value || undefined
+    const res = await getAdminFoods({ keyword: kw, categoryType: catType }) as any
     // 兼容分页和列表两种响应格式
     if (res && (res.records || res.list)) {
       const list = res.records || res.list || []
@@ -358,12 +389,23 @@ async function fetchList() {
       tableData.value = []
       total.value = 0
     }
+    // 记录全部类别总数（仅在无筛选时更新）
+    if (!catType && !kw) {
+      totalCount.value = tableData.value.length
+    }
   } catch (err: any) {
     error.value = err.message || '数据加载失败，请稍后重试'
     tableData.value = []
   } finally {
     loading.value = false
   }
+}
+
+/** 选择分类 */
+function selectCategory(cat: string) {
+  selectedCategory.value = cat
+  currentPage.value = 1
+  fetchList()
 }
 
 // ==================== 营养单位操作 ====================
@@ -583,6 +625,73 @@ watch(keyword, scheduleFetchList)
     align-items: center;
     gap: 12px;
   }
+}
+
+/* ==================== 左分类 + 右表格布局 ==================== */
+.food-layout {
+  display: flex;
+  gap: 16px;
+}
+
+.category-sidebar {
+  width: 180px;
+  min-width: 180px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.category-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  padding: 14px 16px;
+  border-bottom: 1px solid #ebeef5;
+  background: #fafafa;
+}
+
+.category-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.category-item {
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:hover {
+    background: #f5f7fa;
+    color: #38b589;
+  }
+
+  &.active {
+    background: #e8f8f2;
+    color: #38b589;
+    font-weight: 600;
+  }
+
+  .category-count {
+    font-size: 12px;
+    color: #909399;
+    background: #f0f0f0;
+    padding: 0 8px;
+    border-radius: 10px;
+    min-width: 28px;
+    text-align: center;
+  }
+}
+
+.food-main {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ==================== 分页 ==================== */
