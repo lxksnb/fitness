@@ -115,7 +115,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEditing ? '编辑饮食记录' : '添加饮食记录'"
-      width="680px"
+      width="min(760px, 94vw)"
       :close-on-click-modal="false"
       @closed="resetForm"
     >
@@ -934,6 +934,38 @@ onMounted(() => {
   border: 1px solid #ebeef5;
   border-radius: 6px;
   background: #fafcff;
+
+  :deep(.el-form-item) {
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  :deep(.el-col) {
+    flex: 1 1 180px;
+    max-width: none;
+  }
+
+  :deep(.el-form-item__label) {
+    width: auto !important;
+    height: 22px;
+    line-height: 22px;
+    justify-content: flex-start;
+    padding: 0 0 6px;
+  }
+
+  :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+  }
+
+  :deep(.el-input-number) {
+    min-width: 150px;
+  }
+
+  :deep(.el-input-number .el-input__inner) {
+    text-align: left;
+    padding-left: 10px;
+    padding-right: 38px;
+  }
 }
 
 /* ==================== 食物选择器弹窗 ==================== */
