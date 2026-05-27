@@ -89,6 +89,7 @@ public class PlanTemplateController {
         dto.setTemplateName(template.getTemplateName());
         dto.setPlanType(template.getPlanType());
         dto.setSplitType(template.getSplitType());
+        dto.setDifficulty(template.getDifficulty());
 
         // 转换训练日
         List<PlanTemplateDay> days = templateDayMapper.selectByTemplateId(template.getId());

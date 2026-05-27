@@ -11,6 +11,8 @@ import java.util.List;
 public class PlanCreateDTO {
     /** 计划名称 */
     private String templateName;
+    /** 计划描述 */
+    private String description;
     /** 计划类型（TRAINING / DIET / HYBRID） */
     private String planType;
     /** 训练分化类型 */
@@ -24,6 +26,8 @@ public class PlanCreateDTO {
 
     public String getTemplateName() { return templateName; }
     public void setTemplateName(String s) { this.templateName = s; }
+    public String getDescription() { return description; }
+    public void setDescription(String s) { this.description = s; }
     public String getPlanType() { return planType; }
     public void setPlanType(String s) { this.planType = s; }
     public String getSplitType() { return splitType; }

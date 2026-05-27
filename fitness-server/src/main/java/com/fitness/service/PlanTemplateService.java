@@ -63,6 +63,7 @@ public class PlanTemplateService {
         // 创建模板主记录
         PlanTemplate template = new PlanTemplate();
         template.setTemplateName(dto.getTemplateName());
+        template.setDescription(dto.getDescription());
         template.setPlanType(dto.getPlanType());
         template.setSplitType(dto.getSplitType());
         template.setDifficulty(dto.getDifficulty());
@@ -131,6 +132,19 @@ public class PlanTemplateService {
     }
 
     /**
+     * 获取模板完整详情（含训练日、动作、餐次配置）
+     * @param id 模板 ID
+     * @return PlanCreateDTO 完整模板数据
+     */
+    public PlanCreateDTO getById(Long id) {
+        PlanTemplate template = templateMapper.selectById(id);
+        if (template == null || !"ACTIVE".equals(template.getStatus())) {
+            throw new BusinessException(ResultCode.NOT_FOUND);
+        }
+        return buildDetailDTO(template);
+    }
+
+    /**
      * 更新模板基本信息
      * @param id  模板 ID
      * @param dto 更新 DTO（仅含基本信息字段）
@@ -150,6 +164,34 @@ public class PlanTemplateService {
     }
 
     /**
+     * 完整更新模板（删除旧子记录后重建）
+     * 与 PlanService.update() 逻辑一致，先删子记录再重建
+     * @param id  模板 ID
+     * @param dto 完整计划创建 DTO（含训练日、动作、餐次配置）
+     */
+    @Transactional
+    public void updateFull(Long id, PlanCreateDTO dto) {
+        PlanTemplate template = templateMapper.selectById(id);
+        if (template == null || !"ACTIVE".equals(template.getStatus())) {
+            throw new BusinessException(ResultCode.NOT_FOUND);
+        }
+        // 更新主表基本信息
+        template.setTemplateName(dto.getTemplateName());
+        template.setDescription(dto.getDescription());
+        template.setPlanType(dto.getPlanType());
+        template.setSplitType(dto.getSplitType());
+        template.setDifficulty(dto.getDifficulty());
+        templateMapper.updateById(template);
+
+        // 删除旧子记录（数据库级联删除动作和食物）
+        templateDayMapper.deleteByTemplateId(id);
+        templateMealConfigMapper.deleteByTemplateId(id);
+
+        // 重建子记录
+        recreateChildren(template.getId(), dto);
+    }
+
+    /**
      * 删除模板（软删除）
      * 将模板状态设为 DELETED
      * @param id 模板 ID
@@ -165,7 +207,148 @@ public class PlanTemplateService {
     }
 
     /**
-     * 将实体转换为 VO
+     * 将模板实体转换为完整的 PlanCreateDTO（含训练日、动作、餐次配置）
+     */
+    private PlanCreateDTO buildDetailDTO(PlanTemplate template) {
+        PlanCreateDTO dto = new PlanCreateDTO();
+        dto.setTemplateName(template.getTemplateName());
+        dto.setDescription(template.getDescription());
+        dto.setPlanType(template.getPlanType());
+        dto.setSplitType(template.getSplitType());
+        dto.setDifficulty(template.getDifficulty());
+
+        // 转换训练日
+        List<PlanTemplateDay> days = templateDayMapper.selectByTemplateId(template.getId());
+        if (days != null && !days.isEmpty()) {
+            List<PlanCreateDTO.TrainingDayItem> dayItems = new ArrayList<>();
+            for (PlanTemplateDay day : days) {
+                PlanCreateDTO.TrainingDayItem dayItem = new PlanCreateDTO.TrainingDayItem();
+                dayItem.setDayOrder(day.getDayOrder());
+                dayItem.setDayType(day.getDayType());
+                dayItem.setTrainingType(day.getTrainingType());
+                dayItem.setCarbMultiplier(day.getCarbMultiplier());
+                dayItem.setProteinMultiplier(day.getProteinMultiplier());
+                dayItem.setFatMultiplier(day.getFatMultiplier());
+
+                List<PlanTemplateAction> actions = templateActionMapper.selectByTemplateDayId(day.getId());
+                if (actions != null && !actions.isEmpty()) {
+                    List<PlanCreateDTO.ActionItem> actionItems = new ArrayList<>();
+                    for (PlanTemplateAction a : actions) {
+                        PlanCreateDTO.ActionItem actionItem = new PlanCreateDTO.ActionItem();
+                        actionItem.setActionId(a.getActionId());
+                        actionItem.setActionName(a.getActionName());
+                        actionItem.setMinSets(a.getMinSets());
+                        actionItem.setMaxSets(a.getMaxSets());
+                        actionItem.setRestMinutes(a.getRestMinutes());
+                        actionItem.setSortOrder(a.getSortOrder());
+                        actionItems.add(actionItem);
+                    }
+                    dayItem.setActions(actionItems);
+                }
+                dayItems.add(dayItem);
+            }
+            dto.setTrainingDays(dayItems);
+        }
+
+        // 转换餐次配置
+        List<PlanTemplateMealConfig> mealConfigs = templateMealConfigMapper.selectByTemplateId(template.getId());
+        if (mealConfigs != null && !mealConfigs.isEmpty()) {
+            List<PlanCreateDTO.MealConfigItem> mcItems = new ArrayList<>();
+            for (PlanTemplateMealConfig mc : mealConfigs) {
+                PlanCreateDTO.MealConfigItem mcItem = new PlanCreateDTO.MealConfigItem();
+                mcItem.setDayType(mc.getDayType());
+                mcItem.setMealType(mc.getMealType());
+                mcItem.setCarbRatio(mc.getCarbRatio());
+                mcItem.setProteinRatio(mc.getProteinRatio());
+                mcItem.setFatRatio(mc.getFatRatio());
+                mcItem.setSortOrder(mc.getSortOrder());
+
+                List<PlanTemplateMealFood> foods = templateMealFoodMapper.selectByMealConfigId(mc.getId());
+                if (foods != null && !foods.isEmpty()) {
+                    List<PlanCreateDTO.MealFoodItem> foodItems = new ArrayList<>();
+                    for (PlanTemplateMealFood f : foods) {
+                        PlanCreateDTO.MealFoodItem foodItem = new PlanCreateDTO.MealFoodItem();
+                        foodItem.setFoodId(f.getFoodId());
+                        foodItem.setFoodName(f.getFoodName());
+                        foodItem.setSuggestedAmountG(f.getSuggestedAmountG());
+                        foodItem.setSortOrder(f.getSortOrder());
+                        foodItems.add(foodItem);
+                    }
+                    mcItem.setFoods(foodItems);
+                }
+                mcItems.add(mcItem);
+            }
+            dto.setMealConfigs(mcItems);
+        }
+
+        return dto;
+    }
+
+    /**
+     * 重建模板的子记录（训练日和餐次配置）
+     * 与 create() 中的子记录插入逻辑一致
+     */
+    private void recreateChildren(Long templateId, PlanCreateDTO dto) {
+        if (dto.getTrainingDays() != null) {
+            int order = 1;
+            for (PlanCreateDTO.TrainingDayItem dayItem : dto.getTrainingDays()) {
+                PlanTemplateDay day = new PlanTemplateDay();
+                day.setTemplateId(templateId);
+                day.setDayOrder(order++);
+                day.setDayType(dayItem.getDayType());
+                day.setTrainingType(dayItem.getTrainingType());
+                day.setCarbMultiplier(dayItem.getCarbMultiplier() != null ? dayItem.getCarbMultiplier() : 0);
+                day.setProteinMultiplier(dayItem.getProteinMultiplier() != null ? dayItem.getProteinMultiplier() : 0);
+                day.setFatMultiplier(dayItem.getFatMultiplier() != null ? dayItem.getFatMultiplier() : 0);
+                templateDayMapper.insert(day);
+
+                if (dayItem.getActions() != null) {
+                    int aOrder = 0;
+                    for (PlanCreateDTO.ActionItem a : dayItem.getActions()) {
+                        PlanTemplateAction action = new PlanTemplateAction();
+                        action.setTemplateDayId(day.getId());
+                        action.setActionId(a.getActionId());
+                        action.setActionName(a.getActionName());
+                        action.setMinSets(a.getMinSets() != null ? a.getMinSets() : 3);
+                        action.setMaxSets(a.getMaxSets() != null ? a.getMaxSets() : 5);
+                        action.setRestMinutes(a.getRestMinutes() != null ? a.getRestMinutes() : 2);
+                        action.setSortOrder(a.getSortOrder() != null ? a.getSortOrder() : aOrder++);
+                        templateActionMapper.insert(action);
+                    }
+                }
+            }
+        }
+
+        if (dto.getMealConfigs() != null) {
+            for (PlanCreateDTO.MealConfigItem mcItem : dto.getMealConfigs()) {
+                PlanTemplateMealConfig mc = new PlanTemplateMealConfig();
+                mc.setTemplateId(templateId);
+                mc.setDayType(mcItem.getDayType());
+                mc.setMealType(mcItem.getMealType());
+                mc.setCarbRatio(mcItem.getCarbRatio() != null ? mcItem.getCarbRatio() : 0);
+                mc.setProteinRatio(mcItem.getProteinRatio() != null ? mcItem.getProteinRatio() : 0);
+                mc.setFatRatio(mcItem.getFatRatio() != null ? mcItem.getFatRatio() : 0);
+                mc.setSortOrder(mcItem.getSortOrder() != null ? mcItem.getSortOrder() : 0);
+                templateMealConfigMapper.insert(mc);
+
+                if (mcItem.getFoods() != null) {
+                    int fOrder = 0;
+                    for (PlanCreateDTO.MealFoodItem f : mcItem.getFoods()) {
+                        PlanTemplateMealFood mf = new PlanTemplateMealFood();
+                        mf.setMealConfigId(mc.getId());
+                        mf.setFoodId(f.getFoodId());
+                        mf.setFoodName(f.getFoodName());
+                        mf.setSuggestedAmountG(f.getSuggestedAmountG() != null ? f.getSuggestedAmountG() : 100);
+                        mf.setSortOrder(f.getSortOrder() != null ? f.getSortOrder() : fOrder++);
+                        templateMealFoodMapper.insert(mf);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 将实体转换为 VO（仅基本信息）
      */
     private PlanTemplateVO toVO(PlanTemplate t) {
         PlanTemplateVO vo = new PlanTemplateVO();

@@ -53,6 +53,11 @@ export function getAdminTemplates(params?: { keyword?: string }) {
   return request.get('/admin/templates', { params })
 }
 
+/** 获取模板完整详情（含训练日、动作、餐次配置） */
+export function getAdminTemplateDetail(id: number) {
+  return request.get(`/admin/templates/${id}`)
+}
+
 /** 创建模板 */
 export function createAdminTemplate(data: any) {
   return request.post('/admin/templates', data)

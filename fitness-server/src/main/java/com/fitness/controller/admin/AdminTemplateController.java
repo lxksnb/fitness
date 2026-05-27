@@ -2,7 +2,6 @@ package com.fitness.controller.admin;
 
 import com.fitness.common.Result;
 import com.fitness.dto.PlanCreateDTO;
-import com.fitness.dto.PlanTemplateUpdateDTO;
 import com.fitness.dto.PlanTemplateVO;
 import com.fitness.service.PlanTemplateService;
 import org.springframework.web.bind.annotation.*;
@@ -42,12 +41,21 @@ public class AdminTemplateController {
     }
 
     /**
-     * 更新模板基本信息
-     * 管理员编辑模板的名称、描述、计划类型、分化方式、难度
+     * 获取模板完整详情（含训练日、动作、餐次配置）
+     * 供管理员编辑模板时加载完整数据
+     */
+    @GetMapping("/{id}")
+    public Result<PlanCreateDTO> getById(@PathVariable Long id) {
+        return Result.ok(templateService.getById(id));
+    }
+
+    /**
+     * 完整更新模板（含训练日、动作、餐次配置）
+     * 删除旧子记录后重建，与个人计划的编辑逻辑一致
      */
     @PutMapping("/{id}")
-    public Result<?> update(@PathVariable Long id, @RequestBody PlanTemplateUpdateDTO dto) {
-        templateService.update(id, dto);
+    public Result<?> update(@PathVariable Long id, @RequestBody PlanCreateDTO dto) {
+        templateService.updateFull(id, dto);
         return Result.ok();
     }
 
