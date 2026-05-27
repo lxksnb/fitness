@@ -99,6 +99,9 @@ public class TrainingService {
             throw new BusinessException(ResultCode.NOT_FOUND, "训练记录不存在");
         }
 
+        record.setRecordDate(dto.getRecordDate());
+        record.setPlanId(dto.getPlanId());
+        record.setTrainingDayId(dto.getTrainingDayId());
         record.setTrainingType(dto.getTrainingType());
         record.setStartTime(dto.getStartTime());
         record.setEndTime(dto.getEndTime());
@@ -147,25 +150,9 @@ public class TrainingService {
     private List<TrainingRecordDetail> buildDetails(Long recordId, TrainingRecordDTO dto) {
         List<TrainingRecordDetail> details = new ArrayList<>();
 
-        // 如果关联了计划训练日，从计划导入动作列表
-        if (dto.getTrainingDayId() != null) {
-            List<PlanTrainingAction> planActions = planActionMapper.selectByDayId(dto.getTrainingDayId());
-            int order = 0;
-            for (PlanTrainingAction pa : planActions) {
-                TrainingRecordDetail detail = new TrainingRecordDetail();
-                detail.setTrainingRecordId(recordId);
-                detail.setActionId(pa.getActionId());
-                detail.setActionName(pa.getActionName());
-                detail.setSets(pa.getMinSets()); // 默认使用最小推荐组数
-                detail.setWeightKg(0.0);
-                detail.setSortOrder(order++);
-                details.add(detail);
-            }
-        }
-
         // 合并用户手动输入的动作明细(如果有)
         if (dto.getDetails() != null) {
-            int order = details.size();
+            int order = 0;
             for (TrainingRecordDTO.DetailItem item : dto.getDetails()) {
                 TrainingRecordDetail detail = new TrainingRecordDetail();
                 detail.setTrainingRecordId(recordId);
@@ -174,6 +161,22 @@ public class TrainingService {
                 detail.setSets(item.getSets() != null ? item.getSets() : 0);
                 detail.setWeightKg(item.getWeightKg() != null ? item.getWeightKg() : 0.0);
                 detail.setSortOrder(item.getSortOrder() != null ? item.getSortOrder() : order++);
+                details.add(detail);
+            }
+        }
+
+        // 如果前端只提交了计划训练日而未提交动作明细，则从计划训练日导入动作列表。
+        if (details.isEmpty() && dto.getTrainingDayId() != null) {
+            List<PlanTrainingAction> planActions = planActionMapper.selectByDayId(dto.getTrainingDayId());
+            int order = 0;
+            for (PlanTrainingAction pa : planActions) {
+                TrainingRecordDetail detail = new TrainingRecordDetail();
+                detail.setTrainingRecordId(recordId);
+                detail.setActionId(pa.getActionId());
+                detail.setActionName(pa.getActionName());
+                detail.setSets(pa.getMinSets());
+                detail.setWeightKg(0.0);
+                detail.setSortOrder(order++);
                 details.add(detail);
             }
         }

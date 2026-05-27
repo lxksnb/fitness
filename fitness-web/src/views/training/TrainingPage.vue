@@ -292,7 +292,7 @@
                 <el-icon><Plus /></el-icon>
                 添加动作
               </el-button>
-              <el-button size="small" :loading="loadingPlan" @click="loadFromPlanDialog = true">
+              <el-button size="small" :loading="loadingPlan" @click="openLoadFromPlanDialog">
                 从计划加载
               </el-button>
             </div>
@@ -313,8 +313,25 @@
       append-to-body
     >
       <el-form label-width="100px">
+        <el-form-item label="选择计划">
+          <el-select
+            v-model="selectedPlanId"
+            placeholder="请选择训练计划"
+            filterable
+            :loading="planLoading"
+            style="width: 100%"
+            @change="handlePlanSelect"
+          >
+            <el-option
+              v-for="plan in planOptions"
+              :key="plan.id"
+              :label="plan.planName"
+              :value="plan.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="选择训练日">
-          <el-select v-model="selectedPlanDay" placeholder="请选择训练日" style="width: 100%">
+          <el-select v-model="selectedPlanDay" placeholder="请选择训练日" style="width: 100%" :disabled="!selectedPlanId">
             <el-option
               v-for="day in planDays"
               :key="day.id"
@@ -338,8 +355,8 @@
  * 功能：训练日历热力图（ECharts）、训练记录表格（可展开查看动作详情）、
  * 训练录入/编辑弹窗（含动态动作列表、从计划加载）、删除确认、组间休息计时器
  */
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Timer } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
@@ -352,6 +369,7 @@ import {
 } from '@/api/training'
 import { getDictOptions } from '@/api/dict'
 import { searchActions } from '@/api/action'
+import { getPlans, getPlanDetail } from '@/api/plan'
 import VChart from 'vue-echarts'
 import 'echarts'
 import RestTimer from '@/components/common/RestTimer.vue'
@@ -364,12 +382,15 @@ interface ActionItem {
   actionName: string
   sets: number
   weightKg: number
+  sortOrder?: number
 }
 
 /** 训练记录 */
 interface TrainingRecord {
   id?: number
   recordDate: string
+  planId?: number | null
+  trainingDayId?: number | null
   trainingType: string
   trainingTypeLabel?: string
   startTime: string | null
@@ -384,7 +405,15 @@ interface PlanDay {
   id: number
   name: string
   dayNumber: number
+  trainingType?: string
   actions: ActionItem[]
+}
+
+/** 训练计划选项 */
+interface PlanOption {
+  id: number
+  planName: string
+  isActive?: number
 }
 
 // ==================== 状态 ====================
@@ -423,7 +452,10 @@ const actionSearchLoading = ref(false)
 
 /** 从计划加载 */
 const loadFromPlanDialog = ref(false)
+const planLoading = ref(false)
+const selectedPlanId = ref<number | null>(null)
 const selectedPlanDay = ref<number | null>(null)
+const planOptions = ref<PlanOption[]>([])
 const planDays = ref<PlanDay[]>([])
 
 /** 日历 */
@@ -462,6 +494,8 @@ const defaultActions = (): ActionItem[] => [{ actionId: null, actionName: '', se
 
 const trainingForm = reactive({
   recordDate: getTodayStr(),
+  planId: null as number | null,
+  trainingDayId: null as number | null,
   trainingType: '',
   startTime: null as string | null,
   endTime: null as string | null,
@@ -512,6 +546,27 @@ function getTypeTag(type: string): 'success' | 'warning' | 'danger' | 'info' | '
     flexibility: 'info'
   }
   return map[type] || 'info'
+}
+
+function parseTimeToMinutes(time: string | null): number | null {
+  if (!time) return null
+  const parts = time.split(':').map(Number)
+  if (parts.length < 2 || parts.some(Number.isNaN)) return null
+  return parts[0] * 60 + parts[1]
+}
+
+function calcDurationMinutes(startTime: string | null, endTime: string | null): number | null {
+  const start = parseTimeToMinutes(startTime)
+  const end = parseTimeToMinutes(endTime)
+  if (start === null || end === null || end <= start) return null
+  return end - start
+}
+
+function syncDurationFromTime() {
+  const duration = calcDurationMinutes(trainingForm.startTime, trainingForm.endTime)
+  if (duration !== null) {
+    trainingForm.durationMinutes = duration
+  }
 }
 
 // ==================== 数据获取 ====================
@@ -637,6 +692,78 @@ async function searchActionsRemote(query: string) {
   }
 }
 
+async function fetchPlans() {
+  planLoading.value = true
+  try {
+    const res = await getPlans() as any
+    const list = (Array.isArray(res) ? res : res?.records || res?.list || []) as PlanOption[]
+    planOptions.value = list
+    if (!selectedPlanId.value) {
+      const active = list.find(plan => plan.isActive === 1)
+      selectedPlanId.value = active?.id || list[0]?.id || null
+    }
+    if (selectedPlanId.value) {
+      await handlePlanSelect(selectedPlanId.value)
+    }
+  } catch (err: any) {
+    planOptions.value = []
+    planDays.value = []
+    ElMessage.error(err.message || '训练计划加载失败')
+  } finally {
+    planLoading.value = false
+  }
+}
+
+async function handlePlanSelect(planId: number | null) {
+  selectedPlanDay.value = null
+  planDays.value = []
+  if (!planId) return
+
+  planLoading.value = true
+  try {
+    const detail = await getPlanDetail(planId) as any
+    const days = Array.isArray(detail?.trainingDays) ? detail.trainingDays : []
+    planDays.value = days
+      .filter((day: any) => day.dayType !== 'REST')
+      .map((day: any) => ({
+        id: day.id,
+        name: getPlanDayLabel(day),
+        dayNumber: day.dayOrder || day.dayNumber || 1,
+        trainingType: normalizePlanTrainingType(day.trainingType),
+        actions: (day.actions || []).map((action: any, index: number) => ({
+          actionId: action.actionId ?? null,
+          actionName: action.actionName || '',
+          sets: action.minSets ?? action.sets ?? 3,
+          weightKg: 0,
+          sortOrder: action.sortOrder ?? index
+        }))
+      }))
+    selectedPlanDay.value = planDays.value[0]?.id || null
+  } catch (err: any) {
+    planDays.value = []
+    ElMessage.error(err.message || '训练计划详情加载失败')
+  } finally {
+    planLoading.value = false
+  }
+}
+
+function getPlanDayLabel(day: any): string {
+  const dayNumber = day.dayOrder || day.dayNumber || 1
+  const typeText = getTrainingTypeLabel(normalizePlanTrainingType(day.trainingType))
+  return typeText ? `第${dayNumber}天 · ${typeText}` : `第${dayNumber}天`
+}
+
+function normalizePlanTrainingType(value: any): string {
+  if (Array.isArray(value)) return value[0] || ''
+  if (typeof value !== 'string') return ''
+  return value.split(',').map(item => item.trim()).filter(Boolean)[0] || ''
+}
+
+function getTrainingTypeLabel(value?: string): string {
+  if (!value) return ''
+  return trainingTypeOptions.value.find(item => item.value === value)?.label || value
+}
+
 /** 动作选中回调 */
 function onActionSelect(val: number | null, index: number) {
   if (val == null) return
@@ -663,41 +790,90 @@ function removeActionRow(index: number) {
 // ==================== 弹窗操作 ====================
 
 /** 打开训练录入/编辑弹窗 */
-function openTrainingDialog(row?: TrainingRecord) {
+async function openTrainingDialog(row?: TrainingRecord) {
   loadFromPlanDialog.value = false
 
   if (row) {
     isEditing.value = true
     editingId.value = row.id ?? null
-    trainingForm.recordDate = row.recordDate
-    trainingForm.trainingType = row.trainingType
-    trainingForm.startTime = row.startTime || null
-    trainingForm.endTime = row.endTime || null
-    trainingForm.durationMinutes = row.durationMinutes ?? null
-    trainingForm.note = row.note || ''
-    trainingForm.details = row.details?.length
-      ? row.details.map(a => ({ ...a }))
-      : defaultActions()
+    dialogVisible.value = true
+    loadingPlan.value = true
+    try {
+      const detail = row.id ? await getTrainingDetail(row.id) as any : null
+      const record = detail?.record || row
+      const details = Array.isArray(detail?.details) ? detail.details : (row.details || [])
+      fillTrainingForm(record, details)
+    } catch (err: any) {
+      ElMessage.error(err.message || '训练记录详情加载失败')
+      fillTrainingForm(row, row.details || [])
+    } finally {
+      loadingPlan.value = false
+    }
   } else {
     isEditing.value = false
     editingId.value = null
-    trainingForm.recordDate = getTodayStr()
-    trainingForm.trainingType = ''
-    trainingForm.startTime = null
-    trainingForm.endTime = null
-    trainingForm.durationMinutes = null
-    trainingForm.note = ''
-    trainingForm.details = defaultActions()
+    resetTrainingFormData()
+    dialogVisible.value = true
   }
-  dialogVisible.value = true
 }
 
 function resetTrainingForm() {
   trainingFormRef.value?.resetFields()
 }
 
+function fillTrainingForm(record: TrainingRecord, details: ActionItem[]) {
+  trainingForm.recordDate = record.recordDate
+  trainingForm.planId = record.planId ?? null
+  trainingForm.trainingDayId = record.trainingDayId ?? null
+  trainingForm.trainingType = record.trainingType
+  trainingForm.startTime = record.startTime || null
+  trainingForm.endTime = record.endTime || null
+  trainingForm.durationMinutes = record.durationMinutes ?? null
+  trainingForm.note = record.note || ''
+  trainingForm.details = details?.length
+    ? details.map((a, index) => ({
+        actionId: a.actionId,
+        actionName: a.actionName || '',
+        sets: a.sets || 3,
+        weightKg: a.weightKg || 0,
+        sortOrder: a.sortOrder ?? index
+      }))
+    : defaultActions()
+}
+
+function resetTrainingFormData() {
+  trainingForm.recordDate = getTodayStr()
+  trainingForm.planId = null
+  trainingForm.trainingDayId = null
+  trainingForm.trainingType = ''
+  trainingForm.startTime = null
+  trainingForm.endTime = null
+  trainingForm.durationMinutes = null
+  trainingForm.note = ''
+  trainingForm.details = defaultActions()
+}
+
 /** 处理从计划加载 */
+async function openLoadFromPlanDialog() {
+  loadFromPlanDialog.value = true
+  const preferredDayId = trainingForm.trainingDayId
+  selectedPlanId.value = trainingForm.planId || selectedPlanId.value
+  selectedPlanDay.value = trainingForm.trainingDayId || null
+  if (planOptions.value.length === 0) {
+    await fetchPlans()
+  } else if (selectedPlanId.value) {
+    await handlePlanSelect(selectedPlanId.value)
+  }
+  if (preferredDayId && planDays.value.some(day => day.id === preferredDayId)) {
+    selectedPlanDay.value = preferredDayId
+  }
+}
+
 async function handleLoadPlan() {
+  if (!selectedPlanId.value) {
+    ElMessage.warning('请选择训练计划')
+    return
+  }
   if (!selectedPlanDay.value) {
     ElMessage.warning('请选择训练日')
     return
@@ -705,12 +881,30 @@ async function handleLoadPlan() {
   // 从已选训练日加载动作
   const day = planDays.value.find(d => d.id === selectedPlanDay.value)
   if (day && day.actions?.length) {
+    const hasExistingActions = trainingForm.details.some(a => a.actionId != null)
+    if (hasExistingActions) {
+      try {
+        await ElMessageBox.confirm(
+          '当前动作列表已有内容，从计划加载会覆盖现有动作，是否继续？',
+          '确认覆盖',
+          { type: 'warning' }
+        )
+      } catch {
+        return
+      }
+    }
     trainingForm.details = day.actions.map(a => ({
       actionId: a.actionId,
       actionName: a.actionName || '',
       sets: a.sets || 3,
-      weightKg: a.weightKg || (a as any).weight || 0
+      weightKg: a.weightKg || (a as any).weight || 0,
+      sortOrder: a.sortOrder
     }))
+    trainingForm.planId = selectedPlanId.value
+    trainingForm.trainingDayId = selectedPlanDay.value
+    if (day.trainingType) {
+      trainingForm.trainingType = day.trainingType
+    }
     ElMessage.success(`已从计划加载 ${day.actions.length} 个动作`)
   } else {
     ElMessage.warning('该训练日无动作数据')
@@ -723,6 +917,14 @@ async function handleLoadPlan() {
 async function handleTrainingSave() {
   const valid = await trainingFormRef.value?.validate().catch(() => false)
   if (!valid) return
+  if (trainingForm.startTime && trainingForm.endTime) {
+    const duration = calcDurationMinutes(trainingForm.startTime, trainingForm.endTime)
+    if (duration === null) {
+      ElMessage.warning('结束时间必须晚于开始时间')
+      return
+    }
+    trainingForm.durationMinutes = duration
+  }
 
   // 过滤无效动作（未选择动作的行）
   const validDetails = trainingForm.details.filter(a => a.actionId != null)
@@ -731,6 +933,8 @@ async function handleTrainingSave() {
   try {
     const payload = {
       recordDate: trainingForm.recordDate,
+      planId: trainingForm.planId,
+      trainingDayId: trainingForm.trainingDayId,
       trainingType: trainingForm.trainingType,
       startTime: trainingForm.startTime,
       endTime: trainingForm.endTime,
@@ -782,6 +986,8 @@ onMounted(() => {
   fetchTrainingTypes()
   fetchTrainings()
 })
+
+watch(() => [trainingForm.startTime, trainingForm.endTime], syncDurationFromTime)
 </script>
 
 <style scoped lang="scss">

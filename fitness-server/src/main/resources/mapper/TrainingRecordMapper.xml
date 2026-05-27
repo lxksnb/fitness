@@ -37,7 +37,8 @@
         VALUES (#{userId}, #{recordDate}, #{planId}, #{trainingDayId}, #{trainingType}, #{startTime}, #{endTime}, #{durationMinutes}, #{note})
     </insert>
     <update id="updateById">
-        UPDATE training_record SET training_type = #{trainingType}, start_time = #{startTime},
+        UPDATE training_record SET record_date = #{recordDate}, plan_id = #{planId}, training_day_id = #{trainingDayId},
+        training_type = #{trainingType}, start_time = #{startTime},
         end_time = #{endTime}, duration_minutes = #{durationMinutes}, note = #{note}
         WHERE id = #{id}
     </update>
