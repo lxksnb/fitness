@@ -1,0 +1,124 @@
+-- ============================================
+-- 数据库增量升级脚本
+-- 日期: 2026-05-27
+-- 描述: 为动作库和食物库填充图片URL
+-- ============================================
+
+-- ========== 动作库: 更新 image_urls ==========
+
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-bench-press.svg') WHERE action_name = '杠铃卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/incline-barbell-bench-press.svg') WHERE action_name = '上斜杠铃卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/decline-barbell-bench-press.svg') WHERE action_name = '下斜杠铃卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/dumbbell-bench-press.svg') WHERE action_name = '哑铃卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/incline-dumbbell-bench-press.svg') WHERE action_name = '上斜哑铃卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/parallel-bar-dips.svg') WHERE action_name = '双杠臂屈伸' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/cable-fly.svg') WHERE action_name = '绳索夹胸' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/pec-deck-fly.svg') WHERE action_name = '蝴蝶机夹胸' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/push-up.svg') WHERE action_name = '俯卧撑' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/pull-up.svg') WHERE action_name = '引体向上' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/lat-pulldown.svg') WHERE action_name = '高位下拉' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-row.svg') WHERE action_name = '杠铃划船' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/one-arm-dumbbell-row.svg') WHERE action_name = '哑铃单臂划船' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/seated-cable-row.svg') WHERE action_name = '坐姿划船' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/t-bar-row.svg') WHERE action_name = 'T杠划船' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/deadlift.svg') WHERE action_name = '硬拉' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/romanian-deadlift.svg') WHERE action_name = '罗马尼亚硬拉' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/face-pull.svg') WHERE action_name = '面拉' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-shoulder-press.svg') WHERE action_name = '杠铃肩推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/dumbbell-shoulder-press.svg') WHERE action_name = '哑铃肩推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/arnold-press.svg') WHERE action_name = '阿诺德推举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/lateral-raise.svg') WHERE action_name = '哑铃侧平举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/bent-over-fly.svg') WHERE action_name = '俯身飞鸟' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-shrug.svg') WHERE action_name = '杠铃耸肩' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-curl.svg') WHERE action_name = '杠铃弯举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/dumbbell-curl.svg') WHERE action_name = '哑铃弯举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/hammer-curl.svg') WHERE action_name = '锤式弯举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/cable-pushdown.svg') WHERE action_name = '绳索下压' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/lying-triceps-extension.svg') WHERE action_name = '仰卧臂屈伸' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/close-grip-bench-press.svg') WHERE action_name = '窄距卧推' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/barbell-squat.svg') WHERE action_name = '杠铃深蹲' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/front-squat.svg') WHERE action_name = '前蹲' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/bulgarian-split-squat.svg') WHERE action_name = '保加利亚分腿蹲' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/leg-press.svg') WHERE action_name = '腿举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/leg-extension.svg') WHERE action_name = '腿屈伸' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/leg-curl.svg') WHERE action_name = '腿弯举' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/glute-bridge.svg') WHERE action_name = '臀桥' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/seated-calf-raise.svg') WHERE action_name = '坐姿提踵' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/standing-calf-raise.svg') WHERE action_name = '站姿提踵' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/crunch.svg') WHERE action_name = '卷腹' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/plank.svg') WHERE action_name = '平板支撑' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/russian-twist.svg') WHERE action_name = '俄罗斯转体' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/hanging-leg-raise.svg') WHERE action_name = '悬垂举腿' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/treadmill-run.svg') WHERE action_name = '跑步机跑步' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/elliptical.svg') WHERE action_name = '椭圆机' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/rowing-machine.svg') WHERE action_name = '划船机' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+UPDATE action_library SET image_urls = JSON_ARRAY('/uploads/2026/05/27/actions/burpee.svg') WHERE action_name = '波比跳' AND scope = 'SYSTEM' AND JSON_LENGTH(image_urls) = 0;
+
+-- ========== 食物库: 更新 image_url ==========
+
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-rice.svg' WHERE food_name = '生大米' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cooked-rice.svg' WHERE food_name = '熟米饭' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/brown-rice.svg' WHERE food_name = '糙米饭' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/fried-rice.svg' WHERE food_name = '炒饭' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-noodles.svg' WHERE food_name = '白面条(生)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cooked-noodles.svg' WHERE food_name = '煮面条' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/fried-noodles.svg' WHERE food_name = '炒面' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/whole-wheat-bread.svg' WHERE food_name = '全麦面包' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/white-bread.svg' WHERE food_name = '白面包' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/oats.svg' WHERE food_name = '燕麦片' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-sweet-potato.svg' WHERE food_name = '红薯(生)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/steamed-sweet-potato.svg' WHERE food_name = '蒸红薯' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/corn.svg' WHERE food_name = '玉米' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-potato.svg' WHERE food_name = '土豆(生)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/boiled-potato.svg' WHERE food_name = '水煮土豆' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/french-fries.svg' WHERE food_name = '炸薯条' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-beef.svg' WHERE food_name = '生牛肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/steak.svg' WHERE food_name = '牛排(煎)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/braised-beef.svg' WHERE food_name = '卤牛肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/stir-fried-beef.svg' WHERE food_name = '炒牛肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/stewed-beef.svg' WHERE food_name = '炖牛肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/beef-rolls.svg' WHERE food_name = '肥牛卷' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/lean-pork-raw.svg' WHERE food_name = '瘦猪肉(生)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/pork-belly.svg' WHERE food_name = '五花肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/braised-pork-belly.svg' WHERE food_name = '红烧肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/pork-tenderloin.svg' WHERE food_name = '猪里脊' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/stir-fried-shredded-pork.svg' WHERE food_name = '炒肉丝' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-chicken-breast.svg' WHERE food_name = '鸡胸肉(生)' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/boiled-chicken-breast.svg' WHERE food_name = '水煮鸡胸肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/pan-fried-chicken-breast.svg' WHERE food_name = '煎鸡胸肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/fried-chicken.svg' WHERE food_name = '炸鸡' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/chicken-thigh.svg' WHERE food_name = '鸡腿肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/raw-lamb.svg' WHERE food_name = '生羊肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/hotpot-lamb.svg' WHERE food_name = '涮羊肉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/lamb-skewers.svg' WHERE food_name = '烤羊肉串' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/salmon.svg' WHERE food_name = '三文鱼' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/tuna.svg' WHERE food_name = '金枪鱼' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cod.svg' WHERE food_name = '鳕鱼' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/shrimp.svg' WHERE food_name = '虾仁' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/pan-fried-fish.svg' WHERE food_name = '煎鱼' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/egg.svg' WHERE food_name = '鸡蛋' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/egg-white.svg' WHERE food_name = '蛋清' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/whole-milk.svg' WHERE food_name = '全脂牛奶' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/low-fat-milk.svg' WHERE food_name = '低脂牛奶' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/plain-yogurt.svg' WHERE food_name = '无糖酸奶' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/tofu.svg' WHERE food_name = '北豆腐' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/soy-milk.svg' WHERE food_name = '豆浆' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/apple.svg' WHERE food_name = '苹果' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/banana.svg' WHERE food_name = '香蕉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/orange.svg' WHERE food_name = '橙子' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/strawberry.svg' WHERE food_name = '草莓' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/blueberry.svg' WHERE food_name = '蓝莓' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/watermelon.svg' WHERE food_name = '西瓜' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/avocado.svg' WHERE food_name = '牛油果' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/broccoli.svg' WHERE food_name = '西兰花' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/spinach.svg' WHERE food_name = '菠菜' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cucumber.svg' WHERE food_name = '黄瓜' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/tomato.svg' WHERE food_name = '番茄' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/carrot.svg' WHERE food_name = '胡萝卜' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/lettuce.svg' WHERE food_name = '生菜' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/almond.svg' WHERE food_name = '杏仁' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cashew.svg' WHERE food_name = '腰果' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/peanut.svg' WHERE food_name = '花生' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/whey-protein.svg' WHERE food_name = '乳清蛋白粉' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/cola.svg' WHERE food_name = '可乐' AND scope = 'SYSTEM' AND image_url IS NULL;
+UPDATE food_library SET image_url = '/uploads/2026/05/27/foods/diet-cola.svg' WHERE food_name = '无糖可乐' AND scope = 'SYSTEM' AND image_url IS NULL;
