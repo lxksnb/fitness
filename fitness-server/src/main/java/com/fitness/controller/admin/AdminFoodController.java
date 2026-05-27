@@ -41,6 +41,40 @@ public class AdminFoodController {
     }
 
     /**
+     * 获取食物详情（含营养信息）
+     * 编辑时用于回填表单
+     */
+    @GetMapping("/{id}")
+    public Result<FoodCreateDTO> getById(@PathVariable Long id) {
+        FoodLibrary food = foodMapper.selectById(id);
+        if (food == null || !"SYSTEM".equals(food.getScope())) {
+            throw new BusinessException(ResultCode.NOT_FOUND);
+        }
+        FoodCreateDTO dto = new FoodCreateDTO();
+        dto.setFoodName(food.getFoodName());
+        dto.setCategoryType(food.getCategoryType());
+        dto.setImageUrl(food.getImageUrl());
+
+        List<FoodNutrition> nutritions = nutritionMapper.selectByFoodId(id);
+        if (nutritions != null && !nutritions.isEmpty()) {
+            List<FoodCreateDTO.NutritionItem> items = new java.util.ArrayList<>();
+            for (FoodNutrition n : nutritions) {
+                FoodCreateDTO.NutritionItem item = new FoodCreateDTO.NutritionItem();
+                item.setUnitType(n.getUnitType());
+                item.setServingWeightG(n.getServingWeightG());
+                item.setEdibleWeightG(n.getEdibleWeightG());
+                item.setCarbGrams(n.getCarbGrams());
+                item.setProteinGrams(n.getProteinGrams());
+                item.setFatGrams(n.getFatGrams());
+                item.setImageUrl(n.getImageUrl());
+                items.add(item);
+            }
+            dto.setNutritions(items);
+        }
+        return Result.ok(dto);
+    }
+
+    /**
      * 新增系统食物(含营养信息)
      * 创建SCOPE=SYSTEM的食物及其关联的营养数据
      */
@@ -49,6 +83,7 @@ public class AdminFoodController {
         // 创建食物主记录
         FoodLibrary food = new FoodLibrary();
         food.setFoodName(dto.getFoodName());
+        food.setCategoryType(dto.getCategoryType());
         food.setScope("SYSTEM");
         food.setImageUrl(dto.getImageUrl());
         food.setStatus("ACTIVE");
@@ -57,17 +92,7 @@ public class AdminFoodController {
         // 创建关联的营养信息记录
         if (dto.getNutritions() != null) {
             for (FoodCreateDTO.NutritionItem item : dto.getNutritions()) {
-                FoodNutrition n = new FoodNutrition();
-                n.setFoodId(food.getId());
-                n.setUnitType(item.getUnitType());
-                n.setServingWeightG(item.getServingWeightG());
-                n.setCarbGrams(item.getCarbGrams());
-                n.setProteinGrams(item.getProteinGrams());
-                n.setFatGrams(item.getFatGrams());
-                // 根据宏量营养素计算卡路里: 碳水*4 + 蛋白质*4 + 脂肪*9
-                n.setCalories(item.getCarbGrams() * 4 + item.getProteinGrams() * 4 + item.getFatGrams() * 9);
-                n.setImageUrl(item.getImageUrl());
-                nutritionMapper.insert(n);
+                nutritionMapper.insert(buildNutrition(food.getId(), item));
             }
         }
         return Result.ok();
@@ -86,6 +111,7 @@ public class AdminFoodController {
             }
             // 更新食物基本信息
             food.setFoodName(dto.getFoodName());
+            food.setCategoryType(dto.getCategoryType());
             food.setImageUrl(dto.getImageUrl());
             foodMapper.updateById(food);
 
@@ -93,17 +119,7 @@ public class AdminFoodController {
             nutritionMapper.deleteByFoodId(id);
             if (dto.getNutritions() != null) {
                 for (FoodCreateDTO.NutritionItem item : dto.getNutritions()) {
-                    FoodNutrition n = new FoodNutrition();
-                    n.setFoodId(id);
-                    n.setUnitType(item.getUnitType());
-                    n.setServingWeightG(item.getServingWeightG());
-                    n.setCarbGrams(item.getCarbGrams());
-                    n.setProteinGrams(item.getProteinGrams());
-                    n.setFatGrams(item.getFatGrams());
-                    // 根据宏量营养素计算卡路里
-                    n.setCalories(item.getCarbGrams() * 4 + item.getProteinGrams() * 4 + item.getFatGrams() * 9);
-                    n.setImageUrl(item.getImageUrl());
-                    nutritionMapper.insert(n);
+                    nutritionMapper.insert(buildNutrition(id, item));
                 }
             }
         }
@@ -125,5 +141,27 @@ public class AdminFoodController {
             foodMapper.updateById(food);
         }
         return Result.ok();
+    }
+
+    private FoodNutrition buildNutrition(Long foodId, FoodCreateDTO.NutritionItem item) {
+        FoodNutrition n = new FoodNutrition();
+        n.setFoodId(foodId);
+        n.setUnitType(item.getUnitType());
+        if ("PER_100G".equals(item.getUnitType())) {
+            n.setServingWeightG(100.0);
+            n.setEdibleWeightG(100.0);
+        } else {
+            n.setServingWeightG(item.getServingWeightG());
+            n.setEdibleWeightG(item.getEdibleWeightG());
+        }
+        n.setCarbGrams(item.getCarbGrams());
+        n.setProteinGrams(item.getProteinGrams());
+        n.setFatGrams(item.getFatGrams());
+        double carb = item.getCarbGrams() != null ? item.getCarbGrams() : 0;
+        double protein = item.getProteinGrams() != null ? item.getProteinGrams() : 0;
+        double fat = item.getFatGrams() != null ? item.getFatGrams() : 0;
+        n.setCalories(carb * 4 + protein * 4 + fat * 9);
+        n.setImageUrl(item.getImageUrl());
+        return n;
     }
 }

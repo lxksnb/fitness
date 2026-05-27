@@ -17,6 +17,8 @@ public class FoodNutrition {
     private String unitType;
     /** 每份重量（克） */
     private Double servingWeightG;
+    /** Edible weight of this unit in grams */
+    private Double edibleWeightG;
     /** 碳水含量（克） */
     private Double carbGrams;
     /** 蛋白质含量（克） */

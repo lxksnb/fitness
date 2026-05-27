@@ -7,6 +7,7 @@
         <result column="scope" property="scope"/>
         <result column="user_id" property="userId"/>
         <result column="food_name" property="foodName"/>
+        <result column="category_type" property="categoryType"/>
         <result column="image_url" property="imageUrl"/>
         <result column="status" property="status"/>
         <result column="created_by" property="createdBy"/>
@@ -14,7 +15,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
     <select id="searchByName" resultMap="BaseResultMap">
-        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        SELECT id, scope, user_id, food_name, category_type, image_url, status, created_by, created_at, updated_at
         FROM food_library
         WHERE
         status = 'ACTIVE'
@@ -27,21 +28,21 @@
         </if>
     </select>
     <select id="selectByScopeAndUser" resultMap="BaseResultMap">
-        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        SELECT id, scope, user_id, food_name, category_type, image_url, status, created_by, created_at, updated_at
         FROM food_library
         WHERE status = 'ACTIVE'
         AND (scope = 'SYSTEM' OR (scope = #{scope} AND user_id = #{userId}))
     </select>
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        SELECT id, scope, user_id, food_name, category_type, image_url, status, created_by, created_at, updated_at
         FROM food_library WHERE id = #{id}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO food_library (scope, user_id, food_name, image_url, status, created_by)
-        VALUES (#{scope}, #{userId}, #{foodName}, #{imageUrl}, #{status}, #{createdBy})
+        INSERT INTO food_library (scope, user_id, food_name, category_type, image_url, status, created_by)
+        VALUES (#{scope}, #{userId}, #{foodName}, #{categoryType}, #{imageUrl}, #{status}, #{createdBy})
     </insert>
     <update id="updateById">
-        UPDATE food_library SET food_name = #{foodName}, image_url = #{imageUrl}, status = #{status}
+        UPDATE food_library SET food_name = #{foodName}, category_type = #{categoryType}, image_url = #{imageUrl}, status = #{status}
         WHERE id = #{id}
     </update>
     <delete id="deleteById">
@@ -49,7 +50,7 @@
     </delete>
     <!-- 查询系统级别的食物 -->
     <select id="selectSystemFoods" resultMap="BaseResultMap">
-        SELECT id, scope, user_id, food_name, image_url, status, created_by, created_at, updated_at
+        SELECT id, scope, user_id, food_name, category_type, image_url, status, created_by, created_at, updated_at
         FROM food_library
         WHERE scope = 'SYSTEM' AND status = 'ACTIVE'
         <if test="keyword != null and keyword != ''">

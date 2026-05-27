@@ -9,6 +9,11 @@ export function getAdminFoods(params?: { keyword?: string }) {
   return request.get('/admin/foods', { params })
 }
 
+/** 获取系统食物详情（含营养信息） */
+export function getAdminFoodDetail(id: number) {
+  return request.get(`/admin/foods/${id}`)
+}
+
 /** 创建系统食物 */
 export function createAdminFood(data: any) {
   return request.post('/admin/foods', data)

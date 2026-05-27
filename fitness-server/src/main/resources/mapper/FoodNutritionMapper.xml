@@ -7,6 +7,7 @@
         <result column="food_id" property="foodId"/>
         <result column="unit_type" property="unitType"/>
         <result column="serving_weight_g" property="servingWeightG"/>
+        <result column="edible_weight_g" property="edibleWeightG"/>
         <result column="carb_grams" property="carbGrams"/>
         <result column="protein_grams" property="proteinGrams"/>
         <result column="fat_grams" property="fatGrams"/>
@@ -19,11 +20,11 @@
         SELECT * FROM food_nutrition WHERE food_id = #{foodId}
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO food_nutrition (food_id, unit_type, serving_weight_g, carb_grams, protein_grams, fat_grams, calories, image_url)
-        VALUES (#{foodId}, #{unitType}, #{servingWeightG}, #{carbGrams}, #{proteinGrams}, #{fatGrams}, #{calories}, #{imageUrl})
+        INSERT INTO food_nutrition (food_id, unit_type, serving_weight_g, edible_weight_g, carb_grams, protein_grams, fat_grams, calories, image_url)
+        VALUES (#{foodId}, #{unitType}, #{servingWeightG}, #{edibleWeightG}, #{carbGrams}, #{proteinGrams}, #{fatGrams}, #{calories}, #{imageUrl})
     </insert>
     <update id="updateById">
-        UPDATE food_nutrition SET unit_type = #{unitType}, serving_weight_g = #{servingWeightG},
+        UPDATE food_nutrition SET unit_type = #{unitType}, serving_weight_g = #{servingWeightG}, edible_weight_g = #{edibleWeightG},
         carb_grams = #{carbGrams}, protein_grams = #{proteinGrams}, fat_grams = #{fatGrams},
         calories = #{calories}, image_url = #{imageUrl}
         WHERE id = #{id}
@@ -32,10 +33,10 @@
         DELETE FROM food_nutrition WHERE food_id = #{foodId}
     </delete>
     <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO food_nutrition (food_id, unit_type, serving_weight_g, carb_grams, protein_grams, fat_grams, calories, image_url)
+        INSERT INTO food_nutrition (food_id, unit_type, serving_weight_g, edible_weight_g, carb_grams, protein_grams, fat_grams, calories, image_url)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.foodId}, #{item.unitType}, #{item.servingWeightG}, #{item.carbGrams}, #{item.proteinGrams}, #{item.fatGrams}, #{item.calories}, #{item.imageUrl})
+            (#{item.foodId}, #{item.unitType}, #{item.servingWeightG}, #{item.edibleWeightG}, #{item.carbGrams}, #{item.proteinGrams}, #{item.fatGrams}, #{item.calories}, #{item.imageUrl})
         </foreach>
     </insert>
 </mapper>

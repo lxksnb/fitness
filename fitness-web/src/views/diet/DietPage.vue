@@ -152,7 +152,7 @@
               <el-option
                 v-for="unit in foodUnits"
                 :key="unit.unitType"
-                :label="getUnitTypeLabel(unit.unitType) + ' (' + unit.servingWeight + 'g)'"
+                :label="formatFoodUnitLabel(unit)"
                 :value="unit.unitType"
               />
             </el-select>
@@ -250,7 +250,9 @@ interface FoodOption {
 /** 食物营养单位 */
 interface FoodUnit {
   unitType: string
-  servingWeight: number
+  servingWeight?: number
+  servingWeightG?: number
+  edibleWeightG?: number
   carbGrams: number
   proteinGrams: number
   fatGrams: number
@@ -351,6 +353,14 @@ function getMealLabel(type: string): string {
 /** 将食物单位类型映射为字典标签 */
 function getUnitTypeLabel(type: string): string {
   return unitTypeOptions.value.find(item => item.value === type)?.label || type
+}
+
+function formatFoodUnitLabel(unit: FoodUnit): string {
+  const label = getUnitTypeLabel(unit.unitType)
+  const wholeWeight = unit.servingWeightG ?? unit.servingWeight ?? 100
+  if (unit.unitType === 'PER_100G') return label
+  const edibleWeight = unit.edibleWeightG ?? wholeWeight
+  return `${label}（可食${edibleWeight}g / 整体${wholeWeight}g）`
 }
 
 /** 根据餐食类型返回 el-tag 的 type */

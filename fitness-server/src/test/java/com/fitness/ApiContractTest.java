@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitness.common.Result;
 import com.fitness.controller.UploadController;
 import com.fitness.dto.ActionDTO;
+import com.fitness.dto.FoodCreateDTO;
 import com.fitness.dto.PlanCreateDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -60,5 +61,16 @@ class ApiContractTest {
         );
 
         assertEquals("CHEST,BACK", dto.getTrainingDays().get(0).getTrainingType());
+    }
+
+    @Test
+    void foodCreateDtoAcceptsCategoryAndEdibleWeight() throws Exception {
+        FoodCreateDTO dto = mapper.readValue(
+            "{\"foodName\":\"香蕉\",\"categoryType\":\"FRUIT\",\"nutritions\":[{\"unitType\":\"PER_ROOT\",\"servingWeightG\":150,\"edibleWeightG\":100,\"carbGrams\":22.8,\"proteinGrams\":1.1,\"fatGrams\":0.3}]}",
+            FoodCreateDTO.class
+        );
+
+        assertEquals("FRUIT", dto.getCategoryType());
+        assertEquals(100.0, dto.getNutritions().get(0).getEdibleWeightG());
     }
 }

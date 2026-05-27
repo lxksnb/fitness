@@ -46,6 +46,14 @@
         </template>
       </el-table-column>
       <el-table-column prop="foodName" label="食物名称" min-width="180" />
+      <el-table-column label="分类" width="120" align="center">
+        <template #default="{ row }">
+          <el-tag v-if="row.categoryType" size="small" type="success" effect="plain">
+            {{ getCategoryLabel(row.categoryType) }}
+          </el-tag>
+          <span v-else>--</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="row.status === 'DELETED' ? 'danger' : 'success'" size="small">
@@ -111,6 +119,17 @@
           <el-input v-model="form.name" placeholder="如：鸡胸肉" maxlength="50" show-word-limit />
         </el-form-item>
 
+        <el-form-item label="食物分类" prop="categoryType">
+          <el-select v-model="form.categoryType" placeholder="选择食物分类" style="width: 100%">
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="食物图片">
           <ImageUpload
             v-model="form.imageUrls"
@@ -141,7 +160,7 @@
           </div>
 
           <el-row :gutter="16" style="margin-bottom: 15px">
-            <el-col :span="12">
+            <el-col :span="8">
               <el-form-item label="单位类型" :prop="`nutritionEntries.${index}.unitType`" :rules="[{ required: true, message: '请选择', trigger: 'change' }]" style="margin-bottom: 0">
                 <el-select v-model="entry.unitType" placeholder="选择单位类型" style="width: 100%" @change="onUnitTypeChange(index)">
                   <el-option
@@ -153,9 +172,14 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="10" v-if="entry.unitType !== 'PER_100G'">
-              <el-form-item label="单位重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]" style="margin-bottom: 0">
-                <el-input-number v-model="entry.servingWeightG" :min="1" :controls="false" style="width: 100%" />
+            <el-col :span="8">
+              <el-form-item label="整体重量(g)" :prop="`nutritionEntries.${index}.servingWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]" style="margin-bottom: 0">
+                <el-input-number v-model="entry.servingWeightG" :min="1" :controls="false" :disabled="entry.unitType === 'PER_100G'" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="可食重量(g)" :prop="`nutritionEntries.${index}.edibleWeightG`" :rules="[{ required: true, message: '必填', trigger: 'blur' }]" style="margin-bottom: 0">
+                <el-input-number v-model="entry.edibleWeightG" :min="1" :controls="false" :disabled="entry.unitType === 'PER_100G'" style="width: 100%" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -213,7 +237,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getAdminFoods, createAdminFood, updateAdminFood, deleteAdminFood } from '@/api/admin'
+import { getAdminFoods, getAdminFoodDetail, createAdminFood, updateAdminFood, deleteAdminFood } from '@/api/admin'
 import { getDictOptions, type DictOption } from '@/api/dict'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
@@ -223,6 +247,7 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 interface FoodItem {
   id: number
   foodName: string
+  categoryType?: string
   imageUrl?: string
   status?: string
   scope?: string
@@ -233,6 +258,7 @@ interface FoodItem {
 interface NutritionEntry {
   unitType: string
   servingWeightG: number
+  edibleWeightG: number
   carbGrams: number
   proteinGrams: number
   fatGrams: number
@@ -267,16 +293,19 @@ const tableData = ref<FoodItem[]>([])
 
 /** 单位类型下拉选项（从字典 food_unit_type 加载） */
 const unitTypeOptions = ref<DictOption[]>([])
+const categoryOptions = ref<DictOption[]>([])
 
 // ==================== 表单 ====================
 
 const form = reactive({
   name: '',
+  categoryType: '',
   imageUrls: [] as string[],
   nutritionEntries: [
     {
       unitType: 'PER_100G',
       servingWeightG: 100,
+      edibleWeightG: 100,
       carbGrams: 0,
       proteinGrams: 0,
       fatGrams: 0,
@@ -289,7 +318,8 @@ const formRules: FormRules = {
   name: [
     { required: true, message: '请输入食物名称', trigger: 'blur' },
     { max: 50, message: '食物名称不超过50个字符', trigger: 'blur' }
-  ]
+  ],
+  categoryType: [{ required: true, message: '请选择食物分类', trigger: 'change' }]
 }
 
 // ==================== 工具函数 ====================
@@ -300,6 +330,11 @@ function formatDate(dateStr?: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function getCategoryLabel(type?: string): string {
+  if (!type) return ''
+  return categoryOptions.value.find(item => item.value === type)?.label || type
 }
 
 // ==================== 数据获取 ====================
@@ -338,6 +373,7 @@ function addNutritionEntry() {
   form.nutritionEntries.push({
     unitType: 'PER_100G',
     servingWeightG: 100,
+    edibleWeightG: 100,
     carbGrams: 0,
     proteinGrams: 0,
     fatGrams: 0,
@@ -358,6 +394,7 @@ function removeNutritionEntry(index: number) {
 function onUnitTypeChange(index: number) {
   if (form.nutritionEntries[index].unitType === 'PER_100G') {
     form.nutritionEntries[index].servingWeightG = 100
+    form.nutritionEntries[index].edibleWeightG = 100
   }
 }
 
@@ -368,33 +405,35 @@ async function openDialog(food?: FoodItem) {
   if (food) {
     isEditing.value = true
     editingId.value = food.id
-    form.name = food.foodName
-    form.imageUrls = food.imageUrl ? [food.imageUrl] : []
-
-    // 尝试加载详情以获取营养单位列表
+    // 调用详情接口获取完整数据（含营养信息和图片）
     try {
-      // 用 admin API 获取详情（复用列表中的接口可能已包含详情）
-      // 如果后端单独提供了详情接口，可在此调用
-      // 这里使用 food 对象自身携带的信息
-      const detail = food as any
-      const entries = detail.nutritions || detail.nutritionEntries
+      const detail = await getAdminFoodDetail(food.id) as any
+      form.name = detail.foodName || ''
+      form.categoryType = detail.categoryType || food.categoryType || categoryOptions.value[0]?.value || ''
+      form.imageUrls = detail.imageUrl ? [detail.imageUrl] : []
+      const entries = detail.nutritions
       if (entries && Array.isArray(entries) && entries.length > 0) {
         form.nutritionEntries = entries.map((e: any) => ({
           unitType: e.unitType || 'PER_100G',
-          servingWeightG: e.servingWeightG || e.servingWeight || 100,
-          carbGrams: e.carbGrams || 0,
-          proteinGrams: e.proteinGrams || 0,
-          fatGrams: e.fatGrams || 0,
+          servingWeightG: e.servingWeightG ?? 100,
+          edibleWeightG: e.edibleWeightG ?? e.servingWeightG ?? 100,
+          carbGrams: e.carbGrams ?? 0,
+          proteinGrams: e.proteinGrams ?? 0,
+          fatGrams: e.fatGrams ?? 0,
           imageUrl: e.imageUrl || ''
         }))
       } else {
         form.nutritionEntries = [
-          { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+          { unitType: 'PER_100G', servingWeightG: 100, edibleWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
         ]
       }
     } catch {
+      // 详情加载失败时用列表数据兜底
+      form.name = food.foodName
+      form.categoryType = food.categoryType || categoryOptions.value[0]?.value || ''
+      form.imageUrls = food.imageUrl ? [food.imageUrl] : []
       form.nutritionEntries = [
-        { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+        { unitType: 'PER_100G', servingWeightG: 100, edibleWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
       ]
     }
   } else {
@@ -408,9 +447,10 @@ async function openDialog(food?: FoodItem) {
 /** 重置表单数据 */
 function resetFormData() {
   form.name = ''
+  form.categoryType = categoryOptions.value[0]?.value || ''
   form.imageUrls = []
   form.nutritionEntries = [
-    { unitType: 'PER_100G', servingWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
+    { unitType: 'PER_100G', servingWeightG: 100, edibleWeightG: 100, carbGrams: 0, proteinGrams: 0, fatGrams: 0, imageUrl: '' }
   ]
 }
 
@@ -429,10 +469,12 @@ async function handleSave() {
   try {
     const payload = {
       foodName: form.name,
+      categoryType: form.categoryType,
       imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined,
       nutritions: form.nutritionEntries.map(e => ({
         unitType: e.unitType,
         servingWeightG: e.servingWeightG,
+        edibleWeightG: e.edibleWeightG,
         carbGrams: e.carbGrams,
         proteinGrams: e.proteinGrams,
         fatGrams: e.fatGrams,
@@ -478,12 +520,21 @@ async function handleDelete(food: FoodItem) {
 
 // ==================== 字典数据 ====================
 
-/** 加载食物单位类型字典 */
+/** 加载食物单位类型和分类字典 */
 async function loadUnitTypeOptions() {
   try {
-    unitTypeOptions.value = await getDictOptions('food_unit_type')
+    const [unitTypes, categories] = await Promise.all([
+      getDictOptions('food_unit_type'),
+      getDictOptions('food_category')
+    ])
+    unitTypeOptions.value = unitTypes
+    categoryOptions.value = categories
+    if (!form.categoryType) {
+      form.categoryType = categories[0]?.value || ''
+    }
   } catch {
     unitTypeOptions.value = []
+    categoryOptions.value = []
   }
 }
 

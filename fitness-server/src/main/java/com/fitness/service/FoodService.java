@@ -56,6 +56,7 @@ public class FoodService {
         food.setScope("USER");
         food.setUserId(userId);
         food.setFoodName(dto.getFoodName());
+        food.setCategoryType(dto.getCategoryType());
         food.setImageUrl(dto.getImageUrl());
         food.setStatus("ACTIVE");
         foodMapper.insert(food);
@@ -85,6 +86,7 @@ public class FoodService {
         if (food == null) throw new BusinessException(ResultCode.NOT_FOUND, "食物不存在");
         if (!userId.equals(food.getUserId())) throw new BusinessException(ResultCode.FORBIDDEN, "不能修改他人食物");
         food.setFoodName(dto.getFoodName());
+        food.setCategoryType(dto.getCategoryType());
         food.setImageUrl(dto.getImageUrl());
         foodMapper.updateById(food);
         // 先删除旧营养成分，再重新插入
@@ -136,7 +138,7 @@ public class FoodService {
         FoodNutrition n = new FoodNutrition();
         n.setFoodId(foodId);
         n.setUnitType(item.getUnitType());
-        n.setServingWeightG(item.getServingWeightG());
+        applyWeightRule(n, item);
         n.setCarbGrams(item.getCarbGrams());
         n.setProteinGrams(item.getProteinGrams());
         n.setFatGrams(item.getFatGrams());
@@ -147,6 +149,19 @@ public class FoodService {
         n.setCalories(carb * 4 + protein * 4 + fat * 9);
         n.setImageUrl(item.getImageUrl());
         return n;
+    }
+
+    /**
+     * PER_100G is a normalized reference unit. Other units keep whole weight and edible weight separately.
+     */
+    private void applyWeightRule(FoodNutrition n, FoodCreateDTO.NutritionItem item) {
+        if ("PER_100G".equals(item.getUnitType())) {
+            n.setServingWeightG(100.0);
+            n.setEdibleWeightG(100.0);
+            return;
+        }
+        n.setServingWeightG(item.getServingWeightG());
+        n.setEdibleWeightG(item.getEdibleWeightG());
     }
 
     /** 批量转换 FoodLibrary 列表为 FoodVO 列表 */
@@ -165,6 +180,7 @@ public class FoodService {
         vo.setId(food.getId());
         vo.setScope(food.getScope());
         vo.setFoodName(food.getFoodName());
+        vo.setCategoryType(food.getCategoryType());
         vo.setImageUrl(food.getImageUrl());
         vo.setStatus(food.getStatus());
         vo.setCreatedAt(food.getCreatedAt());
@@ -174,6 +190,7 @@ public class FoodService {
             nvo.setId(n.getId());
             nvo.setUnitType(n.getUnitType());
             nvo.setServingWeightG(n.getServingWeightG());
+            nvo.setEdibleWeightG(n.getEdibleWeightG());
             nvo.setCarbGrams(n.getCarbGrams());
             nvo.setProteinGrams(n.getProteinGrams());
             nvo.setFatGrams(n.getFatGrams());

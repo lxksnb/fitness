@@ -17,6 +17,8 @@ public class FoodLibrary {
     private Long userId;
     /** 食物名称 */
     private String foodName;
+    /** Food category dict value */
+    private String categoryType;
     /** 图片 URL */
     private String imageUrl;
     /** 状态 */

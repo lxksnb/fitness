@@ -26,6 +26,17 @@ class DatabaseContractTest {
         assertTrue(mapper.contains("#{recordedAt}"), "diet insert should bind recordedAt");
     }
 
+    @Test
+    void foodSchemaSupportsCategoryAndEdibleWeightUnits() throws Exception {
+        String sql = read("src/main/resources/db/init.sql");
+
+        assertTrue(sql.matches("(?s).*category_type\\s+VARCHAR\\(50\\).*"), "food_library should include category_type");
+        assertTrue(sql.matches("(?s).*edible_weight_g\\s+DECIMAL\\(6,1\\).*"), "food_nutrition should include edible_weight_g");
+        assertTrue(sql.contains("('food_category', '食物分类')"), "food_category dict type should be initialized");
+        assertTrue(sql.contains("'每根', 'PER_ROOT'"), "food_unit_type should include per-root units");
+        assertTrue(sql.contains("'香蕉'") && sql.contains("'FRUIT'"), "initial foods should include fruit classification");
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
     }
