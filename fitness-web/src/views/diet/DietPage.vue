@@ -115,7 +115,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEditing ? '编辑饮食记录' : '添加饮食记录'"
-      width="560px"
+      width="680px"
       :close-on-click-modal="false"
       @closed="resetForm"
     >
@@ -143,6 +143,50 @@
             </el-select>
           </div>
         </el-form-item>
+
+        <div v-if="selectedFoodUnit" class="unit-adjust-panel">
+          <el-row :gutter="12">
+            <el-col :span="8">
+              <el-form-item label="倍数">
+                <el-input-number
+                  v-model="unitAdjustForm.multiplier"
+                  :min="0.01"
+                  :precision="2"
+                  :step="0.1"
+                  controls-position="right"
+                  style="width: 100%"
+                  @change="onMultiplierChange"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="整体重量(g)">
+                <el-input-number
+                  v-model="unitAdjustForm.servingWeightG"
+                  :min="0.1"
+                  :precision="1"
+                  :step="1"
+                  controls-position="right"
+                  style="width: 100%"
+                  @change="onServingWeightChange"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="可食重量(g)">
+                <el-input-number
+                  v-model="unitAdjustForm.edibleWeightG"
+                  :min="0.1"
+                  :precision="1"
+                  :step="1"
+                  controls-position="right"
+                  style="width: 100%"
+                  @change="onEdibleWeightChange"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
 
         <el-form-item label="餐次" prop="mealType">
           <el-select v-model="form.mealType" placeholder="选择餐次" style="width: 100%">
@@ -279,7 +323,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Food, DataAnalysis, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
+import { Plus, Search, Food, DataAnalysis, Edit, Delete, PictureFilled } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getDietList, createDiet, updateDiet, deleteDiet } from '@/api/diet'
 import { getDictOptions, type DictOption } from '@/api/dict'
@@ -335,6 +379,13 @@ const dietRecords = ref<DietRecord[]>([])
 const selectedFoodDetail = ref<any>(null)
 const foodUnits = ref<FoodUnit[]>([])
 const selectedUnitType = ref<string>('')
+const selectedFoodUnit = ref<FoodUnit | null>(null)
+const unitAdjustForm = reactive({
+  multiplier: 1,
+  servingWeightG: 100,
+  edibleWeightG: 100
+})
+let syncingUnitAdjustment = false
 
 /** 食物选择器弹窗 */
 const foodPickerVisible = ref(false)
@@ -421,6 +472,66 @@ function formatFoodUnitLabel(unit: FoodUnit): string {
   if (unit.unitType === 'PER_100G') return label
   const edibleWeight = unit.edibleWeightG ?? wholeWeight
   return `${label}（可食${edibleWeight}g / 整体${wholeWeight}g）`
+}
+
+function normalizePositiveNumber(value: number | null | undefined, fallback = 1): number {
+  const num = Number(value)
+  return Number.isFinite(num) && num > 0 ? num : fallback
+}
+
+function roundNumber(value: number, decimals = 1): number {
+  return Number(value.toFixed(decimals))
+}
+
+function getUnitServingWeight(unit: FoodUnit): number {
+  return normalizePositiveNumber(unit.servingWeightG ?? unit.servingWeight, 100)
+}
+
+function getUnitEdibleWeight(unit: FoodUnit): number {
+  return normalizePositiveNumber(unit.edibleWeightG, getUnitServingWeight(unit))
+}
+
+function resetUnitAdjustment() {
+  selectedFoodUnit.value = null
+  unitAdjustForm.multiplier = 1
+  unitAdjustForm.servingWeightG = 100
+  unitAdjustForm.edibleWeightG = 100
+}
+
+function applyNutritionRatio(ratio: number) {
+  const unit = selectedFoodUnit.value
+  if (!unit) return
+  form.carbGrams = roundNumber((unit.carbGrams || 0) * ratio)
+  form.proteinGrams = roundNumber((unit.proteinGrams || 0) * ratio)
+  form.fatGrams = roundNumber((unit.fatGrams || 0) * ratio)
+}
+
+function syncUnitAdjustmentByRatio(ratio: number) {
+  const unit = selectedFoodUnit.value
+  if (!unit) return
+  const normalizedRatio = normalizePositiveNumber(ratio, 1)
+
+  syncingUnitAdjustment = true
+  unitAdjustForm.multiplier = roundNumber(normalizedRatio, 2)
+  unitAdjustForm.servingWeightG = roundNumber(getUnitServingWeight(unit) * normalizedRatio)
+  unitAdjustForm.edibleWeightG = roundNumber(getUnitEdibleWeight(unit) * normalizedRatio)
+  applyNutritionRatio(normalizedRatio)
+  syncingUnitAdjustment = false
+}
+
+function onMultiplierChange(value: number | undefined) {
+  if (syncingUnitAdjustment) return
+  syncUnitAdjustmentByRatio(normalizePositiveNumber(value, 1))
+}
+
+function onServingWeightChange(value: number | undefined) {
+  if (syncingUnitAdjustment || !selectedFoodUnit.value) return
+  syncUnitAdjustmentByRatio(normalizePositiveNumber(value, getUnitServingWeight(selectedFoodUnit.value)) / getUnitServingWeight(selectedFoodUnit.value))
+}
+
+function onEdibleWeightChange(value: number | undefined) {
+  if (syncingUnitAdjustment || !selectedFoodUnit.value) return
+  syncUnitAdjustmentByRatio(normalizePositiveNumber(value, getUnitEdibleWeight(selectedFoodUnit.value)) / getUnitEdibleWeight(selectedFoodUnit.value))
 }
 
 /** 根据餐食类型返回 el-tag 的 type */
@@ -530,6 +641,7 @@ async function selectPickerFood(food: any) {
       fillNutritionFromUnit(foodUnits.value[0])
     } else {
       selectedUnitType.value = ''
+      resetUnitAdjustment()
     }
     foodPickerVisible.value = false
   } catch (err: any) {
@@ -554,9 +666,8 @@ function onUnitSelected(unitType: string) {
 
 /** 根据营养单位自动填充碳水/蛋白质/脂肪 */
 function fillNutritionFromUnit(unit: FoodUnit) {
-  form.carbGrams = unit.carbGrams || 0
-  form.proteinGrams = unit.proteinGrams || 0
-  form.fatGrams = unit.fatGrams || 0
+  selectedFoodUnit.value = unit
+  syncUnitAdjustmentByRatio(1)
 }
 
 // ==================== 弹窗操作 ====================
@@ -581,6 +692,7 @@ function openDialog(record?: DietRecord) {
   selectedFoodDetail.value = null
   foodUnits.value = []
   selectedUnitType.value = ''
+  resetUnitAdjustment()
   pickerSelectedId.value = null
   dialogVisible.value = true
 }
@@ -814,6 +926,14 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   width: 100%;
+}
+
+.unit-adjust-panel {
+  margin: -4px 0 16px 100px;
+  padding: 12px 12px 0;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fafcff;
 }
 
 /* ==================== 食物选择器弹窗 ==================== */
