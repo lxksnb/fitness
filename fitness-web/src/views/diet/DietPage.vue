@@ -60,7 +60,7 @@
           <!-- 饮食记录卡片列表 -->
           <div class="diet-records">
             <div v-for="record in records" :key="record.id" class="diet-record-card">
-              <!-- 食物图片缩略图 -->
+              <!-- 食物图片缩略图：优先上传图片，其次食物库图片 -->
               <div class="record-image" v-if="record.imageUrl">
                 <el-image
                   :src="record.imageUrl"
@@ -121,31 +121,16 @@
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <!-- 从食物库导入 -->
-        <el-form-item label="从食物库导入">
+        <el-form-item label="导入食物">
           <div class="food-import-row">
-            <el-select
-              v-model="selectedFoodId"
-              filterable
-              remote
-              reserve-keyword
-              :remote-method="searchFoodsRemote"
-              :loading="foodSearchLoading"
-              placeholder="搜索食物..."
-              clearable
-              style="flex: 1"
-              @change="onFoodSelected"
-            >
-              <el-option
-                v-for="food in foodOptions"
-                :key="food.id"
-                :label="food.name"
-                :value="food.id"
-              />
-            </el-select>
+            <el-button @click="openFoodPicker" style="flex: 1">
+              <el-icon><Search /></el-icon>
+              {{ selectedFoodDetail ? selectedFoodDetail.foodName : '点击搜索食物库...' }}
+            </el-button>
             <el-select
               v-model="selectedUnitType"
               placeholder="选择单位"
-              style="width: 140px"
+              style="width: 160px"
               :disabled="!selectedFoodDetail"
               @change="onUnitSelected"
             >
@@ -206,6 +191,82 @@
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- ==================== 食物库选择弹窗 ==================== -->
+    <el-dialog
+      v-model="foodPickerVisible"
+      title="从食物库选择"
+      width="900px"
+      :close-on-click-modal="false"
+    >
+      <div class="food-picker-layout">
+        <!-- 左侧分类 -->
+        <div class="picker-sidebar">
+          <div class="picker-sidebar-title">食物分类</div>
+          <ul class="picker-category-list">
+            <li
+              :class="['picker-category-item', { active: !pickerCategory }]"
+              @click="pickerCategory = ''; fetchPickerFoods()"
+            >全部</li>
+            <li
+              v-for="cat in categoryOptions"
+              :key="cat.value"
+              :class="['picker-category-item', { active: pickerCategory === cat.value }]"
+              @click="pickerCategory = cat.value; fetchPickerFoods()"
+            >{{ cat.label }}</li>
+          </ul>
+        </div>
+
+        <!-- 右侧食物列表 -->
+        <div class="picker-main">
+          <el-input
+            v-model="pickerKeyword"
+            placeholder="搜索食物名称..."
+            clearable
+            @clear="fetchPickerFoods"
+            @keyup.enter="fetchPickerFoods"
+            style="margin-bottom: 12px"
+          >
+            <template #prefix><el-icon><Search /></el-icon></template>
+            <template #append><el-button @click="fetchPickerFoods">搜索</el-button></template>
+          </el-input>
+
+          <div v-loading="pickerLoading" style="min-height: 300px">
+            <template v-if="pickerFoods.length > 0">
+              <el-row :gutter="12">
+                <el-col v-for="food in pickerFoods" :key="food.id" :span="8" style="margin-bottom: 12px">
+                  <div
+                    :class="['picker-food-card', { selected: pickerSelectedId === food.id }]"
+                    @click="selectPickerFood(food)"
+                  >
+                    <el-image
+                      v-if="food.imageUrl"
+                      :src="food.imageUrl"
+                      fit="cover"
+                      style="width: 100%; height: 100px; border-radius: 6px 6px 0 0"
+                    />
+                    <div v-else class="picker-food-placeholder">
+                      <el-icon :size="28"><PictureFilled /></el-icon>
+                    </div>
+                    <div class="picker-food-info">
+                      <span class="picker-food-name">{{ food.foodName }}</span>
+                      <el-tag v-if="food.categoryType" size="small" type="success" effect="plain">
+                        {{ getCategoryLabel(food.categoryType) }}
+                      </el-tag>
+                    </div>
+                  </div>
+                </el-col>
+              </el-row>
+            </template>
+            <el-empty v-else description="暂无食物数据" :image-size="80" />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="foodPickerVisible = false">取消</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -241,12 +302,6 @@ interface DietRecord {
   imageUrl?: string
 }
 
-/** 食物搜索选项 */
-interface FoodOption {
-  id: number
-  name: string
-}
-
 /** 食物营养单位 */
 interface FoodUnit {
   unitType: string
@@ -268,21 +323,26 @@ const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const formRef = ref<FormInstance>()
 const selectedDate = ref(getTodayStr())
-const foodSearchLoading = ref(false)
-
 /** 餐次字典选项 */
 const mealTypeOptions = ref<DictOption[]>([])
 const unitTypeOptions = ref<DictOption[]>([])
+const categoryOptions = ref<DictOption[]>([])
 
 /** 全部饮食记录 */
 const dietRecords = ref<DietRecord[]>([])
 
-/** 食物库搜索选项 */
-const foodOptions = ref<FoodOption[]>([])
-const selectedFoodId = ref<number | null>(null)
+/** 食物库搜索 */
 const selectedFoodDetail = ref<any>(null)
 const foodUnits = ref<FoodUnit[]>([])
 const selectedUnitType = ref<string>('')
+
+/** 食物选择器弹窗 */
+const foodPickerVisible = ref(false)
+const pickerCategory = ref('')
+const pickerKeyword = ref('')
+const pickerLoading = ref(false)
+const pickerFoods = ref<any[]>([])
+const pickerSelectedId = ref<number | null>(null)
 
 // ==================== 表单 ====================
 
@@ -389,22 +449,25 @@ function calcMealCalories(records: DietRecord[]): string {
 
 // ==================== 数据获取 ====================
 
-/** 加载餐次字典 */
+/** 加载餐次字典和食物分类 */
 async function fetchMealTypes() {
   try {
-    const [mealTypes, unitTypes] = await Promise.all([
+    const [mealTypes, unitTypes, categories] = await Promise.all([
       getDictOptions('meal_type'),
-      getDictOptions('food_unit_type')
+      getDictOptions('food_unit_type'),
+      getDictOptions('food_category')
     ])
     mealTypeOptions.value = mealTypes
     unitTypeOptions.value = unitTypes
+    categoryOptions.value = categories
     if (!form.mealType) {
       form.mealType = mealTypeOptions.value[0]?.value || ''
     }
   } catch (err: any) {
-    ElMessage.error(err.message || '餐次字典加载失败')
+    ElMessage.error(err.message || '字典加载失败')
     mealTypeOptions.value = []
     unitTypeOptions.value = []
+    categoryOptions.value = []
   }
 }
 
@@ -422,52 +485,62 @@ async function fetchDietList() {
   }
 }
 
-/** 远程搜索食物库 */
-async function searchFoodsRemote(keyword: string) {
-  if (!keyword) {
-    foodOptions.value = []
-    return
-  }
-  foodSearchLoading.value = true
+/** 打开食物选择器弹窗 */
+function openFoodPicker() {
+  pickerCategory.value = ''
+  pickerKeyword.value = ''
+  pickerSelectedId.value = null
+  foodPickerVisible.value = true
+  fetchPickerFoods()
+}
+
+/** 搜索食物库（弹窗内卡片列表） */
+async function fetchPickerFoods() {
+  pickerLoading.value = true
   try {
-    const res = await searchFoods(keyword) as any
-    foodOptions.value = (Array.isArray(res) ? res : (res?.records || res?.list || [])).map((item: any) => ({
-      id: item.id,
-      name: item.foodName || item.name
-    }))
+    const kw = pickerKeyword.value.trim() || undefined
+    const catType = pickerCategory.value || undefined
+    const res = await searchFoods(kw, undefined, catType) as any
+    pickerFoods.value = Array.isArray(res) ? res : (res?.records || res?.list || [])
   } catch {
-    foodOptions.value = []
+    pickerFoods.value = []
   } finally {
-    foodSearchLoading.value = false
+    pickerLoading.value = false
   }
 }
 
-/** 选中食物库中的食物 */
-async function onFoodSelected(foodId: number | null) {
-  selectedFoodDetail.value = null
-  foodUnits.value = []
-  selectedUnitType.value = ''
-
-  if (!foodId) return
-
+/** 在弹窗中选中食物 */
+async function selectPickerFood(food: any) {
+  pickerSelectedId.value = food.id
   try {
-    const res = await getFoodDetail(foodId) as any
+    const res = await getFoodDetail(food.id) as any
     selectedFoodDetail.value = res
-    // 提取营养单位列表
     const units = res?.nutritions || res?.nutritionEntries || res?.units || []
     foodUnits.value = Array.isArray(units) ? units : []
 
-    // 填充食物名称
-    form.foodName = res?.foodName || res?.name || form.foodName
+    form.foodName = res?.foodName || food.foodName
 
-    // 如果只有一个单位，自动选择
+    // 若未上传自定义图片，使用食物库图片作为默认图
+    if (form.imageUrls.length === 0 && res?.imageUrl) {
+      form.imageUrls = [res.imageUrl]
+    }
+
     if (foodUnits.value.length === 1) {
       selectedUnitType.value = foodUnits.value[0].unitType
       fillNutritionFromUnit(foodUnits.value[0])
+    } else {
+      selectedUnitType.value = ''
     }
+    foodPickerVisible.value = false
   } catch (err: any) {
     ElMessage.error('获取食物详情失败')
   }
+}
+
+/** 获取分类标签 */
+function getCategoryLabel(type?: string): string {
+  if (!type) return ''
+  return categoryOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 选择营养单位后自动填充营养值 */
@@ -505,10 +578,10 @@ function openDialog(record?: DietRecord) {
     resetFormData()
   }
   // 清除食物库选择
-  selectedFoodId.value = null
   selectedFoodDetail.value = null
   foodUnits.value = []
   selectedUnitType.value = ''
+  pickerSelectedId.value = null
   dialogVisible.value = true
 }
 
@@ -535,6 +608,11 @@ async function handleSave() {
 
   saving.value = true
   try {
+    // 若无自定义上传图片，优先使用食物库默认图片
+    const recordImage = form.imageUrls.length > 0
+      ? form.imageUrls[0]
+      : (selectedFoodDetail.value?.imageUrl || undefined)
+
     const payload = {
       recordDate: selectedDate.value,
       mealType: form.mealType,
@@ -542,7 +620,7 @@ async function handleSave() {
       carbGrams: form.carbGrams,
       proteinGrams: form.proteinGrams,
       fatGrams: form.fatGrams,
-      imageUrl: form.imageUrls.length > 0 ? form.imageUrls[0] : undefined
+      imageUrl: recordImage
     }
 
     if (isEditing.value && editingId.value) {
@@ -736,5 +814,106 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   width: 100%;
+}
+
+/* ==================== 食物选择器弹窗 ==================== */
+.food-picker-layout {
+  display: flex;
+  gap: 16px;
+  min-height: 400px;
+}
+
+.picker-sidebar {
+  width: 160px;
+  min-width: 160px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.picker-sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  padding: 12px 14px;
+  border-bottom: 1px solid #ebeef5;
+  background: #fafafa;
+}
+
+.picker-category-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.picker-category-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #f5f7fa;
+    color: #38b589;
+  }
+
+  &.active {
+    background: #e8f8f2;
+    color: #38b589;
+    font-weight: 600;
+  }
+}
+
+.picker-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-food-card {
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #38b589;
+    box-shadow: 0 2px 8px rgba(56, 181, 137, 0.15);
+  }
+
+  &.selected {
+    border-color: #38b589;
+    box-shadow: 0 0 0 2px rgba(56, 181, 137, 0.3);
+  }
+}
+
+.picker-food-placeholder {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  color: #c0c4cc;
+}
+
+.picker-food-info {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+
+  .picker-food-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #303133;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
 }
 </style>
