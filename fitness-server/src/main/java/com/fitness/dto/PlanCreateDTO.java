@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class PlanCreateDTO {
     /** 计划名称 */
+    private String planName;
     private String templateName;
     /** 计划描述 */
     private String description;
@@ -24,7 +25,9 @@ public class PlanCreateDTO {
     /** 餐食配置列表 */
     private List<MealConfigItem> mealConfigs;
 
-    public String getTemplateName() { return templateName; }
+    public String getPlanName() { return planName != null ? planName : templateName; }
+    public void setPlanName(String s) { this.planName = s; }
+    public String getTemplateName() { return templateName != null ? templateName : planName; }
     public void setTemplateName(String s) { this.templateName = s; }
     public String getDescription() { return description; }
     public void setDescription(String s) { this.description = s; }

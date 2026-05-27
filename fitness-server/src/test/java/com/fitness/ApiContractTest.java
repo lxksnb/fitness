@@ -64,6 +64,22 @@ class ApiContractTest {
     }
 
     @Test
+    void planCreateDtoAcceptsPlanNameAndTemplateName() throws Exception {
+        PlanCreateDTO planDto = mapper.readValue(
+            "{\"planName\":\"增肌计划\",\"planType\":\"TRAINING\"}",
+            PlanCreateDTO.class
+        );
+        PlanCreateDTO templateDto = mapper.readValue(
+            "{\"templateName\":\"增肌模板\",\"planType\":\"TRAINING\"}",
+            PlanCreateDTO.class
+        );
+
+        assertEquals("增肌计划", planDto.getPlanName());
+        assertEquals("增肌模板", templateDto.getTemplateName());
+        assertEquals("增肌模板", templateDto.getPlanName());
+    }
+
+    @Test
     void foodCreateDtoAcceptsCategoryAndEdibleWeight() throws Exception {
         FoodCreateDTO dto = mapper.readValue(
             "{\"foodName\":\"香蕉\",\"categoryType\":\"FRUIT\",\"nutritions\":[{\"unitType\":\"PER_ROOT\",\"servingWeightG\":150,\"edibleWeightG\":100,\"carbGrams\":22.8,\"proteinGrams\":1.1,\"fatGrams\":0.3}]}",
