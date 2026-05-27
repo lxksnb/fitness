@@ -10,18 +10,20 @@ import java.util.List;
  */
 public class PlanCreateDTO {
     /** 计划名称 */
-    private String planName;
+    private String templateName;
     /** 计划类型（TRAINING / DIET / HYBRID） */
     private String planType;
     /** 训练分化类型 */
     private String splitType;
+    /** 难度级别（BEGINNER / INTERMEDIATE / ADVANCED） */
+    private String difficulty;
     /** 训练日列表 */
     private List<TrainingDayItem> trainingDays;
     /** 餐食配置列表 */
     private List<MealConfigItem> mealConfigs;
 
-    public String getPlanName() { return planName; }
-    public void setPlanName(String s) { this.planName = s; }
+    public String getTemplateName() { return templateName; }
+    public void setTemplateName(String s) { this.templateName = s; }
     public String getPlanType() { return planType; }
     public void setPlanType(String s) { this.planType = s; }
     public String getSplitType() { return splitType; }
@@ -30,6 +32,14 @@ public class PlanCreateDTO {
     public void setTrainingDays(List<TrainingDayItem> l) { this.trainingDays = l; }
     public List<MealConfigItem> getMealConfigs() { return mealConfigs; }
     public void setMealConfigs(List<MealConfigItem> l) { this.mealConfigs = l; }
+
+    public String getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
 
     /**
      * 训练日内嵌项

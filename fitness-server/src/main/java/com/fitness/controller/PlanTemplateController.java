@@ -86,7 +86,7 @@ public class PlanTemplateController {
      */
     private PlanCreateDTO buildTemplateDTO(PlanTemplate template) {
         PlanCreateDTO dto = new PlanCreateDTO();
-        dto.setPlanName(template.getTemplateName());
+        dto.setTemplateName(template.getTemplateName());
         dto.setPlanType(template.getPlanType());
         dto.setSplitType(template.getSplitType());
 

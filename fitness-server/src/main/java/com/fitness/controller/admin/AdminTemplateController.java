@@ -58,9 +58,10 @@ public class AdminTemplateController {
 
         // 创建模板主记录
         PlanTemplate template = new PlanTemplate();
-        template.setTemplateName(dto.getPlanName());
+        template.setTemplateName(dto.getTemplateName());
         template.setPlanType(dto.getPlanType());
         template.setSplitType(dto.getSplitType());
+        template.setDifficulty(dto.getDifficulty());
         template.setCreatedBy(userId);
         template.setStatus("ACTIVE");
         templateMapper.insert(template);

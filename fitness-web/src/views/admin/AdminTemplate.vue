@@ -45,7 +45,7 @@
       empty-text="暂无模板数据"
     >
       <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column prop="name" label="模板名称" min-width="160" />
+      <el-table-column prop="templateName" label="模板名称" min-width="160" />
       <el-table-column label="描述" min-width="200" show-overflow-tooltip>
         <template #default="{ row }">
           {{ row.description || '--' }}
@@ -118,8 +118,8 @@
       @closed="resetForm"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
-        <el-form-item label="模板名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入模板名称" maxlength="50" show-word-limit />
+        <el-form-item label="模板名称" prop="templateName">
+          <el-input v-model="form.templateName" placeholder="请输入模板名称" maxlength="50" show-word-limit />
         </el-form-item>
 
         <el-form-item label="描述" prop="description">
@@ -193,7 +193,7 @@ import { getDictOptions, type DictOption } from '@/api/dict'
 /** 模板列表项 */
 interface TemplateItem {
   id: number
-  name: string
+  templateName: string
   description?: string
   planType: string
   splitType: string
@@ -228,7 +228,7 @@ const tableData = ref<TemplateItem[]>([])
 // ==================== 表单 ====================
 
 const form = reactive({
-  name: '',
+  templateName: '',
   description: '',
   planType: 'BULK',
   splitType: 'FOUR_DAY',
@@ -236,7 +236,7 @@ const form = reactive({
 })
 
 const formRules: FormRules = {
-  name: [
+  templateName: [
     { required: true, message: '请输入模板名称', trigger: 'blur' },
     { max: 50, message: '模板名称不超过50个字符', trigger: 'blur' }
   ],
@@ -354,7 +354,7 @@ function openDialog(template?: TemplateItem) {
   if (template) {
     isEditing.value = true
     editingId.value = template.id
-    form.name = template.name
+    form.templateName = template.templateName
     form.description = template.description || ''
     form.planType = template.planType || getPreferredOptionValue(planTypeOptions.value, 'BULK')
     form.splitType = template.splitType || getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
@@ -369,7 +369,7 @@ function openDialog(template?: TemplateItem) {
 
 /** 重置表单数据 */
 function resetFormData() {
-  form.name = ''
+  form.templateName = ''
   form.description = ''
   form.planType = getPreferredOptionValue(planTypeOptions.value, 'BULK')
   form.splitType = getPreferredOptionValue(splitTypeOptions.value, 'FOUR_DAY')
@@ -390,7 +390,7 @@ async function handleSave() {
   saving.value = true
   try {
     const payload = {
-      name: form.name,
+      templateName: form.templateName,
       description: form.description || undefined,
       planType: form.planType,
       splitType: form.splitType,
@@ -418,7 +418,7 @@ async function handleSave() {
 async function handleDelete(template: TemplateItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${template.name}"吗？此操作不可撤销。`,
+      `确定要删除"${template.templateName}"吗？此操作不可撤销。`,
       '删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )

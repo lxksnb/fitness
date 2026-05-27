@@ -575,7 +575,6 @@ const nutritionBars = computed(() => {
   if (!dashboard.value) return []
   const d = dashboard.value
   const bars: NutritionBar[] = []
-
   // 碳水 —— 薄荷绿
   if (d.targetCarb != null && d.targetCarb > 0) {
     bars.push({

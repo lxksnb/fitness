@@ -68,7 +68,7 @@ public class PlanService {
         // 创建计划主记录
         FitnessPlan plan = new FitnessPlan();
         plan.setUserId(userId);
-        plan.setPlanName(dto.getPlanName());
+        plan.setPlanName(dto.getTemplateName());
         plan.setPlanType(dto.getPlanType());
         plan.setSplitType(dto.getSplitType());
         plan.setIsActive(0);
@@ -150,7 +150,7 @@ public class PlanService {
         if (plan == null || !plan.getUserId().equals(SecurityUtils.getCurrentUserId())) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
-        plan.setPlanName(dto.getPlanName());
+        plan.setPlanName(dto.getTemplateName());
         plan.setPlanType(dto.getPlanType());
         plan.setSplitType(dto.getSplitType());
         planMapper.updateById(plan);
