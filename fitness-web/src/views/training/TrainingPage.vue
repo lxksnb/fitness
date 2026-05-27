@@ -276,7 +276,7 @@
               <el-table-column label="动作" min-width="180">
                 <template #default="{ row: act, $index }">
                   <el-select
-                    v-model="act.actionId"
+                    v-model="act.actionName"
                     filterable
                     remote
                     reserve-keyword
