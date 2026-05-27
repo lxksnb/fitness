@@ -71,7 +71,7 @@
               <div class="photo-meta">
                 <span class="photo-date">{{ formatDate(photo.photoDate || photo.recordDate || '') }}</span>
                 <el-tag :type="getTypeTagColor(photo.photoType)" size="small">
-                  {{ photo.photoTypeLabel || photo.photoType || '未分类' }}
+                  {{ photo.photoTypeLabel || getPhotoTypeLabel(photo.photoType) || '未分类' }}
                 </el-tag>
               </div>
               <p v-if="photo.note" class="photo-note">{{ photo.note }}</p>
@@ -113,9 +113,12 @@
         </el-form-item>
         <el-form-item label="照片类型" prop="photoType">
           <el-select v-model="uploadForm.photoType" placeholder="选择照片类型" style="width: 100%">
-            <el-option label="正面" value="FRONT" />
-            <el-option label="侧面" value="SIDE" />
-            <el-option label="背面" value="BACK" />
+            <el-option
+              v-for="item in photoTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="照片上传" prop="imageUrl">
@@ -168,6 +171,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import { getPhotos, savePhoto, deletePhoto } from '@/api/bodyPhoto'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 // ==================== 类型定义 ====================
 
@@ -192,6 +196,7 @@ const uploadFormRef = ref<FormInstance>()
 const uploadFileList = ref<UploadFile[]>([])
 
 const photoList = ref<PhotoRecord[]>([])
+const photoTypeOptions = ref<DictOption[]>([])
 
 /** 日期范围 */
 const dateRange = ref<[string, string]>([getDefaultStartDate(), getTodayStr()])
@@ -277,6 +282,19 @@ function getTypeTagColor(type: string) {
     背面: 'info'
   }
   return map[type] || ''
+}
+
+function getPhotoTypeLabel(type?: string): string {
+  if (!type) return ''
+  return photoTypeOptions.value.find(item => item.value === type)?.label || type
+}
+
+async function fetchPhotoTypes() {
+  try {
+    photoTypeOptions.value = await getDictOptions('photo_type')
+  } catch {
+    photoTypeOptions.value = []
+  }
 }
 
 // ==================== 数据获取 ====================
@@ -392,6 +410,7 @@ async function handleDelete(id: number) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchPhotoTypes()
   fetchPhotos()
 })
 </script>

@@ -65,10 +65,10 @@
               <!-- 标签行：计划类型 + 分化类型 -->
               <div class="plan-tags">
                 <el-tag :type="planTypeTag(plan.planType)" size="small" effect="plain">
-                  {{ plan.planType }}
+                  {{ getPlanTypeLabel(plan.planType) }}
                 </el-tag>
                 <el-tag type="info" size="small" effect="plain">
-                  {{ plan.splitType }}
+                  {{ getSplitTypeLabel(plan.splitType) }}
                 </el-tag>
               </div>
 
@@ -137,6 +137,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Collection, Calendar, List, CircleCheck, Delete } from '@element-plus/icons-vue'
 import { getPlans, activatePlan, deletePlan } from '@/api/plan'
+import { getDictOptions, type DictOption } from '@/api/dict'
 
 const router = useRouter()
 
@@ -161,17 +162,32 @@ const activatingId = ref<number | null>(null)
 
 /** 计划列表 */
 const planList = ref<PlanItem[]>([])
+const planTypeOptions = ref<DictOption[]>([])
+const splitTypeOptions = ref<DictOption[]>([])
 
 // ==================== 工具函数 ====================
 
 /** 根据计划类型返回 el-tag 样式 */
 function planTypeTag(type: string): string {
   const map: Record<string, string> = {
+    CUT: 'danger',
+    BULK: 'primary',
+    MAINTAIN: 'info',
     '减脂': 'danger',
     '增肌': 'primary',
     '维持': 'info'
   }
   return map[type] || ''
+}
+
+function getPlanTypeLabel(type?: string): string {
+  if (!type) return ''
+  return planTypeOptions.value.find(item => item.value === type)?.label || type
+}
+
+function getSplitTypeLabel(type?: string): string {
+  if (!type) return ''
+  return splitTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 格式化日期 */
@@ -201,6 +217,20 @@ async function fetchPlans() {
     error.value = err.message || '数据加载失败，请稍后重试'
   } finally {
     loading.value = false
+  }
+}
+
+async function fetchDictData() {
+  try {
+    const [planTypes, splitTypes] = await Promise.all([
+      getDictOptions('plan_type'),
+      getDictOptions('split_type')
+    ])
+    planTypeOptions.value = planTypes
+    splitTypeOptions.value = splitTypes
+  } catch {
+    planTypeOptions.value = []
+    splitTypeOptions.value = []
   }
 }
 
@@ -248,6 +278,7 @@ async function handleDelete(plan: PlanItem) {
 // ==================== 生命周期 ====================
 
 onMounted(() => {
+  fetchDictData()
   fetchPlans()
 })
 </script>

@@ -246,7 +246,7 @@
                 <div class="training-detail">
                   <div class="training-type-row">
                     <el-tag type="primary" size="default" effect="dark">
-                      {{ dashboard.todayTraining.trainingType || dashboard.todayTrainingType || '自由训练' }}
+                      {{ getTrainingTypeLabel(dashboard.todayTraining.trainingType || dashboard.todayTrainingType) || '自由训练' }}
                     </el-tag>
                   </div>
                   <div class="training-meta">
@@ -269,7 +269,7 @@
                 <div class="training-detail">
                   <div class="training-type-row">
                     <el-tag type="primary" size="default" effect="dark">
-                      {{ dashboard.todayTrainingType }}
+                      {{ getTrainingTypeLabel(dashboard.todayTrainingType) }}
                     </el-tag>
                   </div>
                 </div>
@@ -280,7 +280,7 @@
                   <div class="training-type-row">
                     <span class="training-plan-label">今日计划：</span>
                     <el-tag type="warning" size="default" effect="dark">
-                      {{ dashboard.scheduledTrainingType }}
+                      {{ getTrainingTypeLabel(dashboard.scheduledTrainingType) }}
                     </el-tag>
                   </div>
                 </div>
@@ -350,6 +350,7 @@ const error = ref('')
 /** 看板数据 */
 const dashboard = ref<DashboardData | null>(null)
 const mealTypeOptions = ref<DictOption[]>([])
+const trainingTypeOptions = ref<DictOption[]>([])
 
 // ==================== 类型定义 ====================
 
@@ -429,9 +430,15 @@ async function fetchDashboard() {
 
 async function fetchMealTypes() {
   try {
-    mealTypeOptions.value = await getDictOptions('meal_type')
+    const [mealTypes, trainingTypes] = await Promise.all([
+      getDictOptions('meal_type'),
+      getDictOptions('training_type')
+    ])
+    mealTypeOptions.value = mealTypes
+    trainingTypeOptions.value = trainingTypes
   } catch {
     mealTypeOptions.value = []
+    trainingTypeOptions.value = []
   }
 }
 
@@ -453,6 +460,12 @@ function formatChange(change: number | null | undefined): string {
 /** 将后端餐食类型映射为中文 */
 function getMealLabel(type: string): string {
   return mealTypeOptions.value.find(item => item.value === type)?.label || type
+}
+
+/** 将后端训练类型映射为字典标签 */
+function getTrainingTypeLabel(type?: string | null): string {
+  if (!type) return ''
+  return trainingTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 /** 根据餐食类型返回 el-tag 的 type */
@@ -503,6 +516,8 @@ const CARD_THEMES = {
 const statCards = computed(() => {
   if (!dashboard.value) return []
   const d = dashboard.value
+  const todayTrainingTypeLabel = getTrainingTypeLabel(d.todayTrainingType)
+  const scheduledTrainingTypeLabel = getTrainingTypeLabel(d.scheduledTrainingType)
 
   return [
     {
@@ -531,7 +546,7 @@ const statCards = computed(() => {
     },
     {
       label: '今日训练',
-      value: d.todayTrainingType || d.scheduledTrainingType
+      value: todayTrainingTypeLabel || scheduledTrainingTypeLabel
         || (d.scheduledDayType === 'REST' ? '休息日' : '暂无计划'),
       sub: d.todayTraining?.durationMinutes
         ? `${d.todayTraining.durationMinutes} 分钟`

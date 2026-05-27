@@ -144,7 +144,7 @@
           <el-table-column prop="trainingType" label="训练类型" width="120">
             <template #default="{ row }">
               <el-tag :type="getTypeTag(row.trainingType)" size="small">
-                {{ row.trainingTypeLabel || row.trainingType || '--' }}
+                {{ row.trainingTypeLabel || getTrainingTypeLabel(row.trainingType) || '--' }}
               </el-tag>
             </template>
           </el-table-column>

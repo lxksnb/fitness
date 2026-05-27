@@ -152,7 +152,7 @@
               <el-option
                 v-for="unit in foodUnits"
                 :key="unit.unitType"
-                :label="unit.unitType + ' (' + unit.servingWeight + 'g)'"
+                :label="getUnitTypeLabel(unit.unitType) + ' (' + unit.servingWeight + 'g)'"
                 :value="unit.unitType"
               />
             </el-select>
@@ -270,6 +270,7 @@ const foodSearchLoading = ref(false)
 
 /** 餐次字典选项 */
 const mealTypeOptions = ref<DictOption[]>([])
+const unitTypeOptions = ref<DictOption[]>([])
 
 /** 全部饮食记录 */
 const dietRecords = ref<DietRecord[]>([])
@@ -347,6 +348,11 @@ function getMealLabel(type: string): string {
   return mealTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
+/** 将食物单位类型映射为字典标签 */
+function getUnitTypeLabel(type: string): string {
+  return unitTypeOptions.value.find(item => item.value === type)?.label || type
+}
+
 /** 根据餐食类型返回 el-tag 的 type */
 function mealTagType(type: string): string {
   const map: Record<string, string> = {
@@ -376,13 +382,19 @@ function calcMealCalories(records: DietRecord[]): string {
 /** 加载餐次字典 */
 async function fetchMealTypes() {
   try {
-    mealTypeOptions.value = await getDictOptions('meal_type')
+    const [mealTypes, unitTypes] = await Promise.all([
+      getDictOptions('meal_type'),
+      getDictOptions('food_unit_type')
+    ])
+    mealTypeOptions.value = mealTypes
+    unitTypeOptions.value = unitTypes
     if (!form.mealType) {
       form.mealType = mealTypeOptions.value[0]?.value || ''
     }
   } catch (err: any) {
     ElMessage.error(err.message || '餐次字典加载失败')
     mealTypeOptions.value = []
+    unitTypeOptions.value = []
   }
 }
 

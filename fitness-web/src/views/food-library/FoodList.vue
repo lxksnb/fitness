@@ -85,7 +85,7 @@
                     :key="idx"
                     class="nutrition-entry-item"
                   >
-                    <el-tag size="small" effect="plain" type="success">{{ entry.unitType || '标准' }}</el-tag>
+                    <el-tag size="small" effect="plain" type="success">{{ getUnitTypeLabel(entry.unitType) || '标准' }}</el-tag>
                     <span class="entry-serving">每{{ entry.servingWeightG || 100 }}g</span>
                     <div class="entry-macros">
                       <span>碳水 {{ formatNum(entry.carbGrams) }}g</span>
@@ -345,6 +345,11 @@ function canEditFood(food: FoodItem): boolean {
 
 function canDeleteFood(food: FoodItem): boolean {
   return !food.isSystem
+}
+
+function getUnitTypeLabel(type?: string): string {
+  if (!type) return ''
+  return unitTypeOptions.value.find(item => item.value === type)?.label || type
 }
 
 // ==================== 数据获取 ====================
