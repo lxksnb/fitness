@@ -25,6 +25,7 @@ public class DashboardService {
     private final PlanTrainingDayMapper dayMapper;
     private final TrainingRecordMapper trainMapper;
     private final WeightService weightService;
+    private final PlanProgressService planProgressService;
 
     public DashboardService(WeightRecordMapper weightMapper,
                             DietRecordMapper dietMapper,
@@ -32,7 +33,8 @@ public class DashboardService {
                             FitnessPlanMapper planMapper,
                             PlanTrainingDayMapper dayMapper,
                             TrainingRecordMapper trainMapper,
-                            WeightService weightService) {
+                            WeightService weightService,
+                            PlanProgressService planProgressService) {
         this.weightMapper = weightMapper;
         this.dietMapper = dietMapper;
         this.waterMapper = waterMapper;
@@ -40,6 +42,7 @@ public class DashboardService {
         this.dayMapper = dayMapper;
         this.trainMapper = trainMapper;
         this.weightService = weightService;
+        this.planProgressService = planProgressService;
     }
 
     /**
@@ -91,11 +94,18 @@ public class DashboardService {
         // ---- 4. 计划目标 (基于活跃计划 + 体重 + 营养乘数) ----
         List<FitnessPlan> activePlans = planMapper.selectActiveByUser(userId);
         FitnessPlan activePlan = (activePlans != null && !activePlans.isEmpty()) ? activePlans.get(0) : null;
+        PlanTrainingDay currentPlanDay = null;
+        List<PlanTrainingDay> activePlanDays = Collections.emptyList();
+        if (activePlan != null) {
+            vo.setActivePlanId(activePlan.getId());
+            vo.setActivePlanName(activePlan.getPlanName());
+            activePlanDays = dayMapper.selectByPlanId(activePlan.getId());
+            currentPlanDay = planProgressService.getCurrentDay(activePlan);
+        }
         if (activePlan != null && todayWeight != null) {
-            List<PlanTrainingDay> days = dayMapper.selectByPlanId(activePlan.getId());
-            if (days != null && !days.isEmpty()) {
-                // 简化: 取第一个训练日的营养乘数作为目标
-                PlanTrainingDay day = days.get(0);
+            PlanTrainingDay day = currentPlanDay;
+            if (day != null) {
+                // 使用当前待执行训练日的营养乘数作为今日目标
                 double w = todayWeight.getWeightKg();
                 double carbMult = day.getCarbMultiplier() != null ? day.getCarbMultiplier() : 0;
                 double proteinMult = day.getProteinMultiplier() != null ? day.getProteinMultiplier() : 0;
@@ -108,17 +118,14 @@ public class DashboardService {
             }
         }
 
-        // ---- 5. 今日训练(基于计划轮换) ----
+        // ---- 5. 今日训练(基于实际执行进度) ----
         if (activePlan != null) {
-            // 根据计划激活日期计算今天应该是第几天
-            List<PlanTrainingDay> days = dayMapper.selectByPlanId(activePlan.getId());
-            if (days != null && !days.isEmpty()) {
-                int todayDayIndex = calcTodayDayIndex(activePlan.getActivatedAt(), days.size());
-                PlanTrainingDay todayDay = days.get(todayDayIndex);
-                vo.setScheduledTrainingType(todayDay.getTrainingType());
-                vo.setScheduledDayType(todayDay.getDayType());
-                vo.setScheduledDayOrder(todayDay.getDayOrder());
-                vo.setTotalPlanDays(days.size());
+            if (currentPlanDay != null) {
+                vo.setScheduledTrainingDayId(currentPlanDay.getId());
+                vo.setScheduledTrainingType(currentPlanDay.getTrainingType());
+                vo.setScheduledDayType(currentPlanDay.getDayType());
+                vo.setScheduledDayOrder(currentPlanDay.getDayOrder());
+                vo.setTotalPlanDays(activePlanDays != null ? activePlanDays.size() : null);
             }
         }
 

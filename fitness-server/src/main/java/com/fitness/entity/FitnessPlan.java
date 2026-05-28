@@ -21,6 +21,8 @@ public class FitnessPlan {
     private String splitType;
     /** 是否启用（1=启用 0=停用） */
     private Integer isActive;
+    /** 当前待执行训练日序号，用于按实际执行进度推进计划 */
+    private Integer currentDayOrder;
     /** 计划激活时间, 用于计算训练日轮换 */
     private Date activatedAt;
     /** 创建时间 */

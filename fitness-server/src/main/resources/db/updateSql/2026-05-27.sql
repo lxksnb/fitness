@@ -1,3 +1,27 @@
+-- ========== 健身计划执行进度 ==========
+
+SET @fitness_plan_current_day_order_exists := (
+    SELECT COUNT(1)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'fitness_plan'
+      AND COLUMN_NAME = 'current_day_order'
+);
+
+SET @fitness_plan_current_day_order_sql := IF(
+    @fitness_plan_current_day_order_exists = 0,
+    'ALTER TABLE fitness_plan ADD COLUMN current_day_order INT NOT NULL DEFAULT 1 COMMENT ''当前待执行训练日序号, 按实际完成/跳过推进'' AFTER is_active',
+    'SELECT 1'
+);
+
+PREPARE fitness_plan_current_day_order_stmt FROM @fitness_plan_current_day_order_sql;
+EXECUTE fitness_plan_current_day_order_stmt;
+DEALLOCATE PREPARE fitness_plan_current_day_order_stmt;
+
+UPDATE fitness_plan
+SET current_day_order = 1
+WHERE current_day_order IS NULL OR current_day_order <= 0;
+
 -- ============================================
 -- 数据库增量升级脚本
 -- 日期: 2026-05-27

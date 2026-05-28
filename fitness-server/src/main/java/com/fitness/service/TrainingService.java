@@ -29,13 +29,16 @@ public class TrainingService {
     private final TrainingRecordMapper recordMapper;
     private final TrainingRecordDetailMapper detailMapper;
     private final PlanTrainingActionMapper planActionMapper;
+    private final PlanProgressService planProgressService;
 
     public TrainingService(TrainingRecordMapper recordMapper,
                            TrainingRecordDetailMapper detailMapper,
-                           PlanTrainingActionMapper planActionMapper) {
+                           PlanTrainingActionMapper planActionMapper,
+                           PlanProgressService planProgressService) {
         this.recordMapper = recordMapper;
         this.detailMapper = detailMapper;
         this.planActionMapper = planActionMapper;
+        this.planProgressService = planProgressService;
     }
 
     /**
@@ -86,6 +89,7 @@ public class TrainingService {
             detailMapper.batchInsert(details);
         }
 
+        planProgressService.advanceAfterTraining(userId, record);
         return record;
     }
 

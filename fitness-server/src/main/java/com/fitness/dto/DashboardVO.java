@@ -55,6 +55,12 @@ public class DashboardVO {
     /** 今日训练类型 */
     private String todayTrainingType;
 
+    /** 当前激活计划ID */
+    private Long activePlanId;
+
+    /** 当前激活计划名称 */
+    private String activePlanName;
+
     /** 计划中今日排定的训练类型(如CHEST) */
     private String scheduledTrainingType;
 
@@ -63,6 +69,9 @@ public class DashboardVO {
 
     /** 计划中今日排定的天序号 */
     private Integer scheduledDayOrder;
+
+    /** 当前待执行计划训练日ID */
+    private Long scheduledTrainingDayId;
 
     /** 计划总天数 */
     private Integer totalPlanDays;
@@ -198,6 +207,22 @@ public class DashboardVO {
         this.todayTrainingType = todayTrainingType;
     }
 
+    public Long getActivePlanId() {
+        return activePlanId;
+    }
+
+    public void setActivePlanId(Long activePlanId) {
+        this.activePlanId = activePlanId;
+    }
+
+    public String getActivePlanName() {
+        return activePlanName;
+    }
+
+    public void setActivePlanName(String activePlanName) {
+        this.activePlanName = activePlanName;
+    }
+
     public String getScheduledTrainingType() {
         return scheduledTrainingType;
     }
@@ -220,6 +245,14 @@ public class DashboardVO {
 
     public void setScheduledDayOrder(Integer scheduledDayOrder) {
         this.scheduledDayOrder = scheduledDayOrder;
+    }
+
+    public Long getScheduledTrainingDayId() {
+        return scheduledTrainingDayId;
+    }
+
+    public void setScheduledTrainingDayId(Long scheduledTrainingDayId) {
+        this.scheduledTrainingDayId = scheduledTrainingDayId;
     }
 
     public Integer getTotalPlanDays() {

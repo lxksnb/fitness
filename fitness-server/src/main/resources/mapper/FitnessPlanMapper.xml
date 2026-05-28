@@ -9,6 +9,7 @@
         <result column="plan_type" property="planType"/>
         <result column="split_type" property="splitType"/>
         <result column="is_active" property="isActive"/>
+        <result column="current_day_order" property="currentDayOrder"/>
         <result column="activated_at" property="activatedAt"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
@@ -23,12 +24,12 @@
         SELECT * FROM fitness_plan WHERE user_id = #{userId} AND is_active = 1
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO fitness_plan (user_id, plan_name, plan_type, split_type, is_active)
-        VALUES (#{userId}, #{planName}, #{planType}, #{splitType}, #{isActive})
+        INSERT INTO fitness_plan (user_id, plan_name, plan_type, split_type, is_active, current_day_order)
+        VALUES (#{userId}, #{planName}, #{planType}, #{splitType}, #{isActive}, #{currentDayOrder})
     </insert>
     <update id="updateById">
         UPDATE fitness_plan SET plan_name = #{planName}, plan_type = #{planType},
-        split_type = #{splitType}, is_active = #{isActive}
+        split_type = #{splitType}, is_active = #{isActive}, current_day_order = #{currentDayOrder}
         WHERE id = #{id}
     </update>
     <delete id="deleteById">
@@ -38,6 +39,11 @@
         UPDATE fitness_plan SET is_active = 0 WHERE user_id = #{userId}
     </update>
     <update id="activateById">
-        UPDATE fitness_plan SET is_active = 1, activated_at = NOW() WHERE id = #{id}
+        UPDATE fitness_plan SET is_active = 1, current_day_order = 1, activated_at = NOW() WHERE id = #{id}
+    </update>
+    <update id="updateCurrentDayOrder">
+        UPDATE fitness_plan
+        SET current_day_order = #{currentDayOrder}
+        WHERE id = #{planId} AND user_id = #{userId} AND is_active = 1
     </update>
 </mapper>

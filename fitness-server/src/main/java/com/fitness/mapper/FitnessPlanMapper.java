@@ -14,4 +14,7 @@ public interface FitnessPlanMapper {
     int deleteById(Long id);
     int deactivateByUser(Long userId);
     int activateById(Long id);
+    int updateCurrentDayOrder(@org.apache.ibatis.annotations.Param("userId") Long userId,
+                              @org.apache.ibatis.annotations.Param("planId") Long planId,
+                              @org.apache.ibatis.annotations.Param("currentDayOrder") Integer currentDayOrder);
 }

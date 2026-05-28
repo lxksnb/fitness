@@ -50,4 +50,10 @@ public class PlanController {
         planService.activate(id);
         return Result.ok();
     }
+
+    @PutMapping("/{id}/progress/skip")
+    public Result<?> skipCurrentDay(@PathVariable Long id) {
+        planService.skipCurrentDay(id);
+        return Result.ok();
+    }
 }

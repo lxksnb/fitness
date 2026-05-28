@@ -48,6 +48,19 @@ class DatabaseContractTest {
         assertTrue(sql.contains("NOT EXISTS (SELECT 1 FROM food_nutrition"), "migration should not duplicate sample nutrition units");
     }
 
+    @Test
+    void planProgressSchemaSupportsCurrentDayOrder() throws Exception {
+        String initSql = read("src/main/resources/db/init.sql");
+        String updateSql = read("src/main/resources/db/updateSql/2026-05-27.sql");
+
+        assertTrue(initSql.matches("(?s).*current_day_order\\s+INT\\s+NOT NULL\\s+DEFAULT\\s+1.*"),
+            "fitness_plan should include current_day_order in init schema");
+        assertTrue(updateSql.contains("ALTER TABLE fitness_plan ADD COLUMN current_day_order"),
+            "updateSql should add current_day_order for existing databases");
+        assertTrue(updateSql.contains("information_schema.COLUMNS"),
+            "current_day_order migration should be safe to rerun");
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
     }

@@ -25,15 +25,18 @@ public class PlanService {
     private final PlanTrainingActionMapper actionMapper;
     private final PlanMealConfigMapper mealConfigMapper;
     private final PlanMealFoodMapper mealFoodMapper;
+    private final PlanProgressService planProgressService;
 
     public PlanService(FitnessPlanMapper planMapper, PlanTrainingDayMapper dayMapper,
                        PlanTrainingActionMapper actionMapper, PlanMealConfigMapper mealConfigMapper,
-                       PlanMealFoodMapper mealFoodMapper) {
+                       PlanMealFoodMapper mealFoodMapper,
+                       PlanProgressService planProgressService) {
         this.planMapper = planMapper;
         this.dayMapper = dayMapper;
         this.actionMapper = actionMapper;
         this.mealConfigMapper = mealConfigMapper;
         this.mealFoodMapper = mealFoodMapper;
+        this.planProgressService = planProgressService;
     }
 
     /**
@@ -72,6 +75,7 @@ public class PlanService {
         plan.setPlanType(dto.getPlanType());
         plan.setSplitType(dto.getSplitType());
         plan.setIsActive(0);
+        plan.setCurrentDayOrder(1);
         planMapper.insert(plan);
 
         // 创建训练日及其动作
@@ -195,6 +199,16 @@ public class PlanService {
         // 先将该用户所有计划设为未激活, 再激活指定计划(同时记录激活时间)
         planMapper.deactivateByUser(userId);
         planMapper.activateById(id);
+    }
+
+    /**
+     * 跳过当前待执行训练日，计划推进到下一日。
+     *
+     * @param id 计划 ID
+     */
+    @Transactional
+    public void skipCurrentDay(Long id) {
+        planProgressService.skipCurrentDay(SecurityUtils.getCurrentUserId(), id);
     }
 
     /**

@@ -7,6 +7,8 @@ import java.util.List;
 @Mapper
 public interface PlanTrainingDayMapper {
     List<PlanTrainingDay> selectByPlanId(Long planId);
+    PlanTrainingDay selectByPlanIdAndDayOrder(@org.apache.ibatis.annotations.Param("planId") Long planId,
+                                              @org.apache.ibatis.annotations.Param("dayOrder") Integer dayOrder);
     int insert(PlanTrainingDay day);
     int updateById(PlanTrainingDay day);
     int deleteByPlanId(Long planId);

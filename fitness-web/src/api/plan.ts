@@ -54,6 +54,10 @@ export function activatePlan(id: number) {
   return request.put(`/plans/${id}/activate`)
 }
 
+export function skipPlanCurrentDay(id: number) {
+  return request.put(`/plans/${id}/progress/skip`)
+}
+
 /**
  * 获取计划模板列表
  * @returns 模板列表

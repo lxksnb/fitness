@@ -297,6 +297,25 @@
               </template>
               <!-- 无计划也无记录 -->
               <el-empty v-else description="今日暂无训练" :image-size="80" />
+              <div
+                v-if="!dashboard.todayTraining && dashboard.activePlanId && (dashboard.scheduledTrainingType || dashboard.scheduledDayType === 'REST')"
+                class="training-progress-actions"
+              >
+                <el-button
+                  v-if="dashboard.scheduledDayType !== 'REST'"
+                  size="small"
+                  @click="handleRestToday"
+                >
+                  今日休息，顺延
+                </el-button>
+                <el-button
+                  type="warning"
+                  size="small"
+                  @click="handleSkipPlanDay"
+                >
+                  {{ dashboard.scheduledDayType === 'REST' ? '完成休息日' : '跳过本训练日' }}
+                </el-button>
+              </div>
               <div class="card-action">
                 <el-button type="primary" size="small" @click="$router.push('/training')">
                   <el-icon><Plus /></el-icon> 开始训练
@@ -320,6 +339,7 @@
  */
 import { ref, computed, onMounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import {
   Plus,
   Timer,
@@ -333,6 +353,7 @@ import {
   Calendar
 } from '@element-plus/icons-vue'
 import { getDashboard } from '@/api/dashboard'
+import { skipPlanCurrentDay } from '@/api/plan'
 import { getDictOptions, type DictOption } from '@/api/dict'
 import { useUserStore } from '@/stores/user'
 
@@ -403,9 +424,12 @@ interface DashboardData {
   waterTarget: number
   streakDays: number
   todayTrainingType: string | null
+  activePlanId: number | null
+  activePlanName: string | null
   scheduledTrainingType: string | null
   scheduledDayType: string | null
   scheduledDayOrder: number | null
+  scheduledTrainingDayId: number | null
   totalPlanDays: number | null
   weightTrend: WeightTrendItem[]
   todayDietRecords: DietRecordItem[]
@@ -578,6 +602,17 @@ function handleStatCardClick(action?: string) {
 // ==================== 营养进度条 ====================
 
 /** 营养图标映射 */
+function handleRestToday() {
+  ElMessage.info('已顺延计划，当前训练日会保留到下次完成或跳过')
+}
+
+async function handleSkipPlanDay() {
+  if (!dashboard.value?.activePlanId) return
+  await skipPlanCurrentDay(dashboard.value.activePlanId)
+  ElMessage.success(dashboard.value.scheduledDayType === 'REST' ? '休息日已完成' : '已跳过当前训练日')
+  await fetchDashboard()
+}
+
 const nutritionIcons: Record<string, any> = {
   '碳水': markRaw(Apple),
   '蛋白质': markRaw(Chicken),
@@ -1305,6 +1340,13 @@ onMounted(() => {
 }
 
 // ==================== 卡片底部操作按钮 ====================
+
+.training-progress-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
 
 .card-action {
   margin-top: 16px;
